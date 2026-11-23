@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Budget check",
+  "description": "Build the app and check the bundle size budget.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run `npm run build && npm run check-budget`. Report each size that the script prints and whether the budget passed."
+  }
+}

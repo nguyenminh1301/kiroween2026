@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Test on save",
+  "description": "Run the related Vitest tests when a source file is saved.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["src/**/*.ts", "src/**/*.tsx"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was saved. Run `npx vitest run --related <saved file>` and report any failures with the test name and message. If no related tests exist, say so in one line."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Copy check on content edit",
+  "description": "Run the copy check and review changed wording when game text changes.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["src/content/**"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A file under src/content was edited. Run `npm run check-copy` and report every file:line hit. Then review the changed lines for plain, short, period-correct wording (Apollo 11 era, 1969). Flag anything long, flowery or anachronistic."
+  }
+}
