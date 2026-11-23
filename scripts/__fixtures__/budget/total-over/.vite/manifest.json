@@ -1,0 +1,22 @@
+{
+  "index.html": {
+    "file": "assets/index.js",
+    "isEntry": true,
+    "imports": [
+      "_vendor.js"
+    ],
+    "dynamicImports": [
+      "src/lazy.ts"
+    ]
+  },
+  "_vendor.js": {
+    "file": "assets/vendor.js"
+  },
+  "src/lazy.ts": {
+    "file": "assets/lazy.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor.js"
+    ]
+  }
+}
