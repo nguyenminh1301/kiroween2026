@@ -70,6 +70,47 @@ export function playRecipe(
   return { sources, end }
 }
 
+/** Play a recipe on a bus and track it by `name` until its last source ends. */
+export function playTracked(
+  name: string,
+  recipe: Recipe,
+  opts: PlayOptions & { bus?: BusName } = {},
+  existing?: { input: AudioNode; release: () => void } | null,
+): void {
+  try {
+    const ctx = engine.ctx()
+    if (!ctx) return
+    const out = existing ?? engine.output(opts.bus ?? 'sfx', opts.position)
+    if (!out) return
+    const { sources } = playRecipe(ctx, out.input, recipe, ctx.currentTime, opts.gain ?? 1)
+    let left = sources.length
+    const untrack = engine.track(name, () => {
+      for (const s of sources) {
+        try {
+          s.stop()
+        } catch {
+          /* already stopped */
+        }
+      }
+      out.release()
+    })
+    if (left === 0) {
+      untrack()
+      out.release()
+    }
+    for (const src of sources) {
+      src.onended = () => {
+        if (--left === 0) {
+          untrack()
+          out.release()
+        }
+      }
+    }
+  } catch {
+    // Audio never throws into the game.
+  }
+}
+
 /**
  * Play a named effect: a random loaded file, otherwise the synthesized stand-in.
  * Does nothing while the game is paused or when there is no audio. Never throws.
@@ -109,27 +150,7 @@ export function playEffect(name: EffectName, opts: PlayOptions = {}): void {
       s.start()
       return
     }
-    const { sources } = playRecipe(ctx, out.input, RECIPES[name], ctx.currentTime, gain)
-    const untrack = engine.track(name, () => {
-      for (const s of sources) {
-        try {
-          s.stop()
-        } catch {
-          /* already stopped */
-        }
-      }
-      out.release()
-    })
-    let left = sources.length
-    if (left === 0) untrack()
-    for (const src of sources) {
-      src.onended = () => {
-        if (--left === 0) {
-          untrack()
-          out.release()
-        }
-      }
-    }
+    playTracked(name, RECIPES[name], { ...opts, gain, bus: undefined }, out)
   } catch {
     // Audio never throws into the game.
   }
