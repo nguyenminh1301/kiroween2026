@@ -50,4 +50,36 @@ export const LINES: Record<string, Line> = {
     speaker: 'CDR',
     text: 'There you are, Buzz. Strap in. We have a Moon to catch.',
   },
+  'act1.count': {
+    speaker: 'CAPCOM',
+    text: 'Twelve, eleven, ten, nine. Ignition sequence start.',
+    seconds: 4,
+  },
+  'act1.liftoff': { speaker: 'CAPCOM', mood: 'shout', text: 'Liftoff! We have a liftoff!', seconds: 3 },
+  'act1.staging': {
+    speaker: 'CDR',
+    text: 'Staging. Look up at the window, Buzz. Watch the sky go out.',
+  },
+  'act1.o2': {
+    speaker: 'CDR',
+    text: 'Huh. Cabin oxygen is running high. That is what four men would breathe.',
+  },
+  'act1.switch': {
+    speaker: 'CDR',
+    text: 'Probably a bad sensor. Kill it. Red switch, right by your hand.',
+  },
+  'act1.key': {
+    speaker: 'CDR',
+    text: 'Good. Now the computer in front of you. Three presses and we leave orbit.',
+  },
+  'act1.tli': { speaker: 'CAPCOM', text: 'Apollo 11, Houston. You are go for TLI.' },
+  'act1.earth': {
+    speaker: 'CMP',
+    text: 'Oh, would you look at that. The whole Earth fits in the window.',
+  },
+  'act1.moon': { speaker: 'CDR', text: 'And that little one is where we are going.' },
+  'act1.rest': {
+    speaker: 'CAPCOM',
+    text: 'Apollo 11, Houston. You are on your way. Get some rest, it is a long drive.',
+  },
 }
