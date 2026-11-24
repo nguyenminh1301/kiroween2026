@@ -8,10 +8,36 @@ import { GAME_TITLE } from '@/content/menus'
 import { GameView, RenderRuntime } from '@/render/GameView'
 import { PS1Composer } from '@/render/PS1Composer'
 import { StatsBox } from '@/render/StatsBox'
+import { gameStore } from '@/engine/store'
 import { loader } from './loader'
 
 function useLoaderState() {
   return useSyncExternalStore(loader.subscribe, loader.getState)
+}
+
+/** Plain-text subtitle for the audio sandbox, until the dialogue box exists. Debug URLs only. */
+function DebugSubtitle() {
+  const sub = useSyncExternalStore(gameStore.subscribe, () => gameStore.getState().subtitle)
+  if (!sub) return null
+  return (
+    <div
+      data-testid="subtitle"
+      style={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 24,
+        textAlign: 'center',
+        color: '#e8e0cc',
+        fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
+        fontSize: 16,
+        pointerEvents: 'none',
+      }}
+    >
+      {sub.speaker === 'NARRATOR' ? '' : `${sub.speaker}: `}
+      {sub.text}
+    </div>
+  )
 }
 
 export function App() {
@@ -40,6 +66,7 @@ export function App() {
         )}
       </GameView>
       {isDebugUrl() ? <StatsBox /> : null}
+      {isDebugUrl() ? <DebugSubtitle /> : null}
       {showTitle ? (
         <div
           style={{

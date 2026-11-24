@@ -1,5 +1,7 @@
 // Sandbox start-up: creates the player body and registers every system and listener
 // through the cleanup helpers, so unloading removes them. No Three.js or React imports.
+import { audio, radio, startAudioSession } from '../../audio'
+import { TENSION_ORDER } from '../../audio/tension'
 import { addSandboxInstance, setSandboxInfo } from '../../engine/debugInfo'
 import { inputState } from '../../engine/inputRuntime'
 import { createBody, eyePosition } from '../../engine/playerBody'
@@ -14,6 +16,7 @@ import { canStartTestTimeline, isInsideZone, nextMoveMode } from './logic'
 import {
   COLLISION_BOXES,
   groundHeight,
+  KNOCK_POS,
   NORTH_WALL,
   PLAYER_START,
   SEAT_EXIT_POS,
@@ -82,6 +85,36 @@ export function startSandbox(): void {
     },
     { pausable: true },
   )
+
+  // Audio sandbox: the first click or key press unlocks audio. Keys 1 to 5 try the radio, a positional knock and tension.
+  startAudioSession()
+  audio.setScene({ bed: 'ship', breath: true })
+  const unlock = (): void => audio.unlock()
+  addListener(window as unknown as ListenerTarget, 'pointerdown', unlock as (ev: never) => void)
+  addListener(window as unknown as ListenerTarget, 'keydown', ((e: KeyboardEvent) => {
+    audio.unlock()
+    if (e.repeat) return
+    switch (e.code) {
+      case 'Digit1':
+        void radio.say('test.capcom')
+        break
+      case 'Digit2':
+        void radio.say('test.los')
+        break
+      case 'Digit3':
+        void radio.say('act0.intro1')
+        break
+      case 'Digit4':
+        audio.play('knock', { position: KNOCK_POS })
+        break
+      case 'Digit5': {
+        const s = gameStore.getState()
+        const i = TENSION_ORDER.indexOf(s.tension)
+        s.setTension(TENSION_ORDER[(i + 1) % TENSION_ORDER.length])
+        break
+      }
+    }
+  }) as (ev: never) => void)
 
   addListener(window as unknown as ListenerTarget, 'keydown', ((e: KeyboardEvent) => {
     if (e.code !== 'KeyT' || e.repeat) return

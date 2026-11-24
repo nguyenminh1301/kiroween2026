@@ -18,11 +18,16 @@ export const WEST_WALL: Box = box(-ROOM_HALF - T, 0, -ROOM_HALF, -ROOM_HALF, ROO
 export const EAST_WALL: Box = box(ROOM_HALF, 0, -ROOM_HALF, ROOM_HALF + T, ROOM_HEIGHT, ROOM_HALF)
 export const CEILING: Box = box(-ROOM_HALF - T, ROOM_HEIGHT, -ROOM_HALF - T, ROOM_HALF + T, ROOM_HEIGHT + T, ROOM_HALF + T)
 
+/** The box the audio sandbox knocks on (key 4). */
+const KNOCK_BOX: Box = box(-2.5, 0, -4, -1.5, 0.8, -3)
+export const KNOCK_POS: Vec3 = { x: -2, y: 0.4, z: -3.5 }
+
 /** Boxes to walk around. None crosses the line x = 0 on the way north from the start. */
 export const OBSTACLES: Box[] = [
   box(2.5, 0, -1.5, 3.5, 1, -0.5),
   box(-3.5, 0, 0, -2.5, 2, 1),
   box(1.2, 0, -5, 2.2, 0.5, -4),
+  KNOCK_BOX,
 ]
 
 export const SEAT_BOX: Box = box(-5.3, 0, 4.7, -4.7, 0.5, 5.3)

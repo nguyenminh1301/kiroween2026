@@ -1,3 +1,4 @@
+import { audio } from '../audio'
 import type { LoadableId } from '../engine/actLoader'
 import { getSandboxInfo, getSandboxInstances } from '../engine/debugInfo'
 import { frameDriver } from '../engine/frameDriver'
@@ -40,6 +41,7 @@ export interface LosDebug {
   /** Live render numbers. Each read returns the latest values. */
   stats: RenderStats
   render: RenderDebug
+  audio: { loaded(): string[]; playing(): string[]; radioQueue(): string[] }
   /** Number of registered frame systems. */
   systemCount(): number
 }
@@ -74,6 +76,7 @@ export function installDebug(win: Window = window): void {
     },
     stats: getRenderStats(),
     render: installRenderDebug(adaptiveScaler),
+    audio: { loaded: () => audio.loaded(), playing: () => audio.playing(), radioQueue: () => audio.radioQueue() },
     systemCount: () => frameDriver.systemCount(),
   }
 }
