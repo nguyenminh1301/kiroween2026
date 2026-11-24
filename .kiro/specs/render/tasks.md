@@ -162,22 +162,22 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Commit only the files from this task
 
 - [ ] 3. Seeded random numbers and procedural textures
-  - [ ] 3.1 Implement the seeded RNG
+  - [x] 3.1 Implement the seeded RNG
     - Create `src/procgen/rng.ts` (32-bit seed coercion, range 0 inclusive to 1 exclusive, no `Math.random`, no DOM import)
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ] 3.2 Implement shared texture helpers and the first three textures
+  - [x] 3.2 Implement shared texture helpers and the first three textures
     - Create `src/procgen/textures/helpers.ts` (128 px tile, RGBA buffer, wrap-around noise so tiles seam cleanly, palette picking, alpha 255)
     - Create `metalPanel.ts` (painted panel with rivets), `whitePanel.ts` (white panel with orange stripe) and `rust.ts` (blotches and grime), each a pure `drawTexture(seed)`
     - Use hex values from the palettes in `art.md` for the acts that use each texture
     - _Requirements: 11.2, 11.3, 11.4, 11.8, 11.9, 11.10, 11.11, 11.15, 11.16, 11.17, 11.19_
 
-  - [ ] 3.3 Implement the last three textures and the dispatcher
+  - [x] 3.3 Implement the last three textures and the dispatcher
     - Create `gratingPlate.ts`, `instrumentPanel.ts` (beige with small dials) and `regolith.ts`
     - Create `src/procgen/textures/index.ts` with `TEXTURE_NAMES`, `PixelData` and `drawTexture(name, seed)` that throws a descriptive error for an unknown name
     - _Requirements: 11.1, 11.5, 11.6, 11.7, 11.8, 11.18_
 
-  - [ ]* 3.4 Write property test for RNG range and determinism
+  - [x]* 3.4 Write property test for RNG range and determinism
     - **Property 32: Seeded RNG range, determinism and seed sensitivity**
     - **Validates: Requirements 10.2, 10.3, 10.4**
 
@@ -185,7 +185,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - **Property 33: Seed coercion never throws**
     - **Validates: Requirements 10.6**
 
-  - [ ]* 3.6 Write property test for texture invariants
+  - [x]* 3.6 Write property test for texture invariants
     - **Property 34: Texture determinism and dimension invariants**
     - **Validates: Requirements 11.10, 11.11, 11.12, 11.13, 11.15, 11.16**
 
@@ -205,7 +205,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Six names present, every tile is 128 by 128, texture colours come from the `art.md` palettes, six textures fit well under 2 MB
     - _Requirements: 11.1, 11.10, 11.17, 12.10_
 
-  - [ ] 3.11 Run `npm run test` and `npm run lint`, then commit this task's files
+  - [x] 3.11 Run `npm run test` and `npm run lint`, then commit this task's files
     - Commit message: `feat: add seeded rng and procedural textures`
     - Commit only the files from this task
 
