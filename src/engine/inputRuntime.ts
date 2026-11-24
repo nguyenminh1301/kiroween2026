@@ -6,6 +6,7 @@ import {
   type InputState,
   type MouseAccumulator,
 } from './input'
+import { getPlayerBody } from './playerRuntime'
 import { createPauseCollector } from './pointerLock'
 import { gameStore } from './store'
 
@@ -78,7 +79,7 @@ export function resetMouseMovement(): void {
 
 /** True while an act is loaded and the game is meant to be played. */
 export function isPlaying(): boolean {
-  return gameStore.getState().act !== null
+  return gameStore.getState().act !== null || getPlayerBody() !== null
 }
 
 /**

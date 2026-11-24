@@ -1,24 +1,21 @@
-import { Canvas, useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
-import type { Mesh } from 'three'
+import { Canvas } from '@react-three/fiber'
+import { useSyncExternalStore } from 'react'
+import { FrameDriver } from '@/engine/FrameDriver'
+import { Input } from '@/engine/Input'
+import { PointerLockController } from '@/engine/PointerLockController'
+import { isDebugUrl } from '@/engine/inputRuntime'
 import { GAME_TITLE } from '@/content/menus'
+import { loader } from './loader'
 
-function SpinningBox() {
-  const ref = useRef<Mesh>(null)
-  useFrame((_, delta) => {
-    if (!ref.current) return
-    ref.current.rotation.x += delta * 0.3
-    ref.current.rotation.y += delta * 0.5
-  })
-  return (
-    <mesh ref={ref}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#8a8f98" flatShading />
-    </mesh>
-  )
+function useLoaderState() {
+  return useSyncExternalStore(loader.subscribe, loader.getState)
 }
 
 export function App() {
+  const state = useLoaderState()
+  const Scene = state.status === 'ready' ? (loader.getModule()?.Scene ?? null) : null
+  const showTitle = !isDebugUrl() && state.act === null
+
   return (
     <>
       <Canvas
@@ -27,26 +24,29 @@ export function App() {
         gl={{ antialias: false }}
       >
         <color attach="background" args={['#000000']} />
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[2, 3, 4]} intensity={1.5} />
-        <SpinningBox />
+        <FrameDriver />
+        <Input />
+        <PointerLockController />
+        {Scene ? <Scene key={state.act} /> : null}
       </Canvas>
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          pointerEvents: 'none',
-          color: '#d8d8d8',
-          fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
-          fontSize: 12,
-          letterSpacing: '0.3em',
-        }}
-      >
-        {GAME_TITLE}
-      </div>
+      {showTitle ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            color: '#d8d8d8',
+            fontFamily: 'ui-monospace, Menlo, Consolas, monospace',
+            fontSize: 12,
+            letterSpacing: '0.3em',
+          }}
+        >
+          {GAME_TITLE}
+        </div>
+      ) : null}
     </>
   )
 }
