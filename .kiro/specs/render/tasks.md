@@ -13,24 +13,24 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
 ## Tasks
 
 - [ ] 1. Pure logic for resolution, view, fear and stats
-  - [ ] 1.1 Implement level table and Game_View sizing
+  - [x] 1.1 Implement level table and Game_View sizing
     - Create `src/render/levelTable.ts` with `LEVEL_TABLE`, `DEFAULT_LEVEL` (1), `levelCount` and clamping `lookupLevel`
     - Create `src/render/gameView.ts` with `gameViewSize` (largest centred 16:9 rect, zero rect for zero, negative or non-finite input) and pure `dprFor(level, rect)` returning `internalWidth / rect.width`
     - _Requirements: 1.2, 1.3, 1.6, 1.9, 2.1, 2.2, 2.3, 2.6, 2.9_
 
-  - [ ] 1.2 Implement the adaptive decision
+  - [x] 1.2 Implement the adaptive decision
     - Create `src/render/adaptiveDecision.ts` with the window and threshold constants, `windowMean` (returns null when the span is not covered) and `nextLevel` (filters non-finite and negative samples, settle time, strict thresholds, one step at most)
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12_
 
-  - [ ] 1.3 Implement the fear mapping
+  - [x] 1.3 Implement the fear mapping
     - Create `src/render/fear.ts` with `clampFear` (non-finite becomes 0) and `lookParams` (formulas, reduced motion halves fringe and noise only)
     - _Requirements: 5.3, 5.4, 5.5, 5.6, 5.7, 5.8_
 
-  - [ ] 1.4 Add `fear` to the store
+  - [x] 1.4 Add `fear` to the store
     - Extend `src/engine/store.ts` with `fear` (default 0) and `setFear` (clamp to 0 to 1, keep the previous value on non-finite input)
     - _Requirements: 5.1, 5.2_
 
-  - [ ] 1.5 Implement stats smoothing
+  - [x] 1.5 Implement stats smoothing
     - Create `src/render/stats.ts` with `smoothEma` and the `RenderStats` type
     - _Requirements: 14.2, 14.19_
 
@@ -67,7 +67,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - **Property 9: Threshold boundary is inclusive of "no change"**
     - **Validates: Requirements 3.10**
 
-  - [ ]* 1.14 Write simulation tests for the decision
+  - [x]* 1.14 Write simulation tests for the decision
     - Steady 30 ms steps down once per 3 s to level 3 and stays; steady 8 ms steps up to level 0 and stays; one 200 ms spike among 10 ms frames does not step down; alternating one-second 30 ms and 8 ms runs change level at most once in any 3000 ms span
     - _Requirements: 3.14, 3.15, 3.16, 3.17_
 
@@ -75,11 +75,11 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - **Property 14: Fear setter clamps or preserves**
     - **Validates: Requirements 5.1, 5.2**
 
-  - [ ]* 1.16 Write property test for look params formulas
+  - [x]* 1.16 Write property test for look params formulas
     - **Property 15: Look params formula and clamping**
     - **Validates: Requirements 5.4, 5.7, 5.8**
 
-  - [ ]* 1.17 Write property test for reduced motion
+  - [x]* 1.17 Write property test for reduced motion
     - **Property 16: Reduced motion halves fringe and noise only**
     - **Validates: Requirements 5.5, 5.6**
 
@@ -91,7 +91,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - **Property 39: Stats smoothing stays within the observed range**
     - **Validates: Requirements 14.19, 14.20**
 
-  - [ ] 1.20 Run `npm run test` and `npm run lint`, then commit this task's files and the spec folder
+  - [x] 1.20 Run `npm run test` and `npm run lint`, then commit this task's files and the spec folder
     - Commit message: `feat: add resolution, view, fear and stats logic`
     - Include `.kiro/specs/render/` in this commit (repo rule 10)
     - Commit only the files from this task plus the spec folder

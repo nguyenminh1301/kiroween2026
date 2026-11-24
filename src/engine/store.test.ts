@@ -63,3 +63,18 @@ describe('store', () => {
     })
   })
 })
+
+describe('fear', () => {
+  it('defaults to 0, clamps, and ignores non-finite input', () => {
+    const { setFear } = gameStore.getState()
+    expect(gameStore.getState().fear).toBe(0)
+    setFear(5)
+    expect(gameStore.getState().fear).toBe(1)
+    setFear(-2)
+    expect(gameStore.getState().fear).toBe(0)
+    setFear(0.4)
+    setFear(NaN)
+    expect(gameStore.getState().fear).toBe(0.4)
+    setFear(0)
+  })
+})

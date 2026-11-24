@@ -14,6 +14,7 @@ export interface GameState {
   target: string | null
   anomaliesSeen: string[]
   settings: Settings
+  fear: number
   unlockedActs: ActId[]
   setScreen: (screen: Screen) => void
   setAct: (act: ActId | null) => void
@@ -24,6 +25,7 @@ export interface GameState {
   setTarget: (target: string | null) => void
   addAnomalySeen: (id: string) => void
   setSettings: (partial: Partial<Settings>) => void
+  setFear: (fear: number) => void
   setUnlockedActs: (ids: ActId[]) => void
 }
 
@@ -37,6 +39,7 @@ export const gameStore = createStore<GameState>()((set) => ({
   target: null,
   anomaliesSeen: [],
   settings: { ...DEFAULT_SETTINGS },
+  fear: 0,
   unlockedActs: ['act0-pad'],
   setScreen: (screen) => set({ screen }),
   setAct: (act) => set({ act }),
@@ -48,5 +51,7 @@ export const gameStore = createStore<GameState>()((set) => ({
   addAnomalySeen: (id) =>
     set((s) => (s.anomaliesSeen.includes(id) ? s : { anomaliesSeen: [...s.anomaliesSeen, id] })),
   setSettings: (partial) => set((s) => ({ settings: applySettings(s.settings, partial) })),
+  setFear: (fear) =>
+    set((s) => (Number.isFinite(fear) ? { fear: Math.min(1, Math.max(0, fear)) } : s)),
   setUnlockedActs: (unlockedActs) => set({ unlockedActs: [...unlockedActs] }),
 }))
