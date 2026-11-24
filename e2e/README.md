@@ -19,3 +19,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 ## Engine test
 
 `e2e/engine.mjs` plays the sandbox with real key presses and checks walking distance, wall stop, zero-g drift, pause on lock loss, resume, and double `loadAct`. It saves `e2e/shots/engine.png`. `npm run e2e` runs the smoke test, then the engine test.
+
+## Render test
+
+`e2e/render.mjs` loads the sandbox and checks the 640x360 buffer at 1280x720 CSS size, at most 70 distinct values per colour channel, the 320x180 buffer at level 3, draw calls and triangles under budget. It saves `e2e/shots/render-fear.png` (fear 1) and `e2e/shots/render.png` (fear 0). `npm run e2e` runs it after the engine test.

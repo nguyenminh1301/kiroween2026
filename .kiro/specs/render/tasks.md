@@ -366,7 +366,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Commit only the files from this task
 
 - [ ] 8. End-to-end script and done-when checklist
-  - [ ] 8.1 Write the render e2e script
+  - [x] 8.1 Write the render e2e script
     - Create `e2e/render.mjs` using the smoke test's launch settings, viewport (1280x720) and error collection, against `process.env.GAME_URL ?? 'http://localhost:5173/?debug'`
     - Wait for Sandbox status `ready` through `window.__los`, no fixed waits, then call `render.setLevel(1)` and `render.auto(false)`
     - Check the canvas drawing buffer is 640x360 and its CSS size is 1280x720; screenshot and check each colour channel uses at most 70 distinct values; `setLevel(3)` and check 320x180; `render.auto(true)`; check `stats.calls` under 150 and `stats.triangles` under 150000; set `fear` to 1 in the store and save `e2e/shots/render-fear.png`, set it back to 0 and save `e2e/shots/render.png`
@@ -374,7 +374,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Update `package.json` so `npm run e2e` runs `smoke.mjs`, then `engine.mjs`, then `render.mjs`, and mention the script in `e2e/README.md`
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7, 16.8, 16.9, 16.10, 16.11_
 
-  - [ ] 8.2 Run the full done-when checklist, then commit this task's files
+  - [x] 8.2 Run the full done-when checklist, then commit this task's files
     - Do not start the dev server from the agent shell. Ask the user to run `npm run dev` in a separate terminal before `npm run e2e`
     - Run `npm run test`, `npm run lint`, `npm run build`, `npm run check-budget`, `npm run check-copy` and `npm run e2e`, fix any failure, and paste each command's summary line in the report
     - Confirm `smoke.mjs` and `engine.mjs` still pass, no dependency over 50 kB gzipped was added, first load is under 5 MB and `dist/` under 25 MB, `public/audio/` and `docs/reference/` are unchanged, no text was added under `src/content/`, and no commit or file contains a `Co-Authored-By` trailer or an AI model or vendor name
