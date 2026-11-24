@@ -97,23 +97,23 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Commit only the files from this task plus the spec folder
 
 - [ ] 2. Pure shader, snap, fog and option maths
-  - [ ] 2.1 Implement Bayer and quantize
+  - [x] 2.1 Implement Bayer and quantize
     - Create `src/render/bayer.ts` with `BAYER4`, `bayer4` (period 4, negative-safe, `(m + 0.5) / 16`) and `quantize` (63 levels, clamped input)
     - _Requirements: 6.8, 6.11, 6.12, 6.13, 6.14, 6.15_
 
-  - [ ] 2.2 Implement the pure shader step mirrors
+  - [x] 2.2 Implement the pure shader step mirrors
     - Create `src/render/ps1Math.ts` with the fringe offset and sample positions, the vignette multiplier, `toGamma`, `toLinear`, the grain term (`noise * 0.03` bound, per-pixel hash from a seed) and `grainSeed(gameTimeSeconds)` (`floor(t * 24)`)
     - _Requirements: 6.3, 6.4, 6.5, 6.6, 6.7, 6.9_
 
-  - [ ] 2.3 Implement vertex snap maths
+  - [x] 2.3 Implement vertex snap maths
     - Create `src/render/snap.ts` with `snapStep`, `snapClip` and `snapVertex` (unchanged when `w` is not positive, `z` and `w` untouched)
     - _Requirements: 7.2, 7.3, 7.7, 7.8, 7.9, 7.10, 7.11_
 
-  - [ ] 2.4 Implement the fog spec validator
+  - [x] 2.4 Implement the fog spec validator
     - Create `src/render/fogSpec.ts` with `FogSpec` and `isValidFogSpec` (finite, `0 <= near < far`)
     - _Requirements: 9.6, 9.7, 9.8, 9.9_
 
-  - [ ] 2.5 Implement the material option normalizer
+  - [x] 2.5 Implement the material option normalizer
     - Create `src/render/materialOptions.ts` with `MaterialOptions`, `NormalizedMaterialOptions`, `TextureName` and `normalizeMaterialOptions` (kind `lambert`, snap on, fog on, vertex colours off, seed 0, white)
     - _Requirements: 8.2, 8.4, 8.8, 8.13, 8.14_
 
@@ -145,7 +145,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - **Property 22: Grain seed is stable within a 1/24s window and changes across windows**
     - **Validates: Requirements 6.7**
 
-  - [ ]* 2.13 Write property test for vertex snap
+  - [x]* 2.13 Write property test for vertex snap
     - **Property 25: Vertex snap is grid-aligned, idempotent and bounded, and guards non-positive w**
     - **Validates: Requirements 7.8, 7.9, 7.10, 7.11**
 
@@ -157,7 +157,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - **Property 29: Option normalizer is idempotent**
     - **Validates: Requirements 8.13, 8.14**
 
-  - [ ] 2.16 Run `npm run test` and `npm run lint`, then commit this task's files
+  - [x] 2.16 Run `npm run test` and `npm run lint`, then commit this task's files
     - Commit message: `feat: add shader, snap, fog and material option maths`
     - Commit only the files from this task
 
