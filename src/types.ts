@@ -9,3 +9,17 @@ export type ActId =
 export type Vec3 = { x: number; y: number; z: number }
 
 export type MoveMode = 'walk' | 'zeroG' | 'seated'
+
+export type TensionState = 'CALM' | 'UNEASE' | 'STALK' | 'CHASE' | 'RELEASE'
+
+export type Speaker = 'CDR' | 'CMP' | 'CAPCOM' | 'LOS' | 'UNKNOWN' | 'PAD' | 'NARRATOR' | 'HORNET'
+
+export type Mood = 'whisper' | 'shout' | 'distant'
+
+/** The line currently shown by the radio. `speaker` is the id after any override. */
+export interface Subtitle {
+  speaker: Speaker
+  text: string
+  mood: Mood | null
+  key: number
+}

@@ -1,5 +1,5 @@
 import { createStore } from 'zustand/vanilla'
-import type { ActId, MoveMode } from '../types'
+import type { ActId, MoveMode, Subtitle, TensionState } from '../types'
 import { DEFAULT_SETTINGS, applySettings, type Settings } from './settings'
 
 export type Screen = 'title' | 'menu' | 'chapter' | 'play' | 'archive'
@@ -15,6 +15,10 @@ export interface GameState {
   anomaliesSeen: string[]
   settings: Settings
   fear: number
+  heartRate: number
+  holdingBreath: boolean
+  tension: TensionState
+  subtitle: Subtitle | null
   unlockedActs: ActId[]
   setScreen: (screen: Screen) => void
   setAct: (act: ActId | null) => void
@@ -26,6 +30,10 @@ export interface GameState {
   addAnomalySeen: (id: string) => void
   setSettings: (partial: Partial<Settings>) => void
   setFear: (fear: number) => void
+  setHeartRate: (bpm: number) => void
+  setHoldingBreath: (holding: boolean) => void
+  setTension: (tension: TensionState) => void
+  setSubtitle: (subtitle: Subtitle | null) => void
   setUnlockedActs: (ids: ActId[]) => void
 }
 
@@ -40,6 +48,10 @@ export const gameStore = createStore<GameState>()((set) => ({
   anomaliesSeen: [],
   settings: { ...DEFAULT_SETTINGS },
   fear: 0,
+  heartRate: 72,
+  holdingBreath: false,
+  tension: 'CALM',
+  subtitle: null,
   unlockedActs: ['act0-pad'],
   setScreen: (screen) => set({ screen }),
   setAct: (act) => set({ act }),
@@ -53,5 +65,10 @@ export const gameStore = createStore<GameState>()((set) => ({
   setSettings: (partial) => set((s) => ({ settings: applySettings(s.settings, partial) })),
   setFear: (fear) =>
     set((s) => (Number.isFinite(fear) ? { fear: Math.min(1, Math.max(0, fear)) } : s)),
+  setHeartRate: (bpm) =>
+    set({ heartRate: Number.isFinite(bpm) ? Math.min(180, Math.max(60, bpm)) : 60 }),
+  setHoldingBreath: (holdingBreath) => set({ holdingBreath }),
+  setTension: (tension) => set({ tension }),
+  setSubtitle: (subtitle) => set({ subtitle }),
   setUnlockedActs: (unlockedActs) => set({ unlockedActs: [...unlockedActs] }),
 }))
