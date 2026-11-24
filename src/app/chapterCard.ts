@@ -24,6 +24,10 @@ export function chapterBeforeStart(id: LoadableId, checkpoint: string, mod: Act_
     fxStore.getState().setCard(null)
     gameStore.getState().setPaused(false)
   }, cardDurationMs(intro))
-  cleanupRegistry.register(() => clearTimeout(timer))
+  cleanupRegistry.register(() => {
+    clearTimeout(timer)
+    // Unloaded during the card: game time must not stay stopped.
+    if (fxStore.getState().card) gameStore.getState().setPaused(false)
+  })
 }
 

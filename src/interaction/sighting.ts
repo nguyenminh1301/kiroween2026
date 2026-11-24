@@ -38,6 +38,8 @@ export function createSightingTracker(threshold: number = SIGHT_SECONDS): Sighti
   const done = new Set<string>()
   return {
     add(s) {
+      // A fresh registration (a reloaded act) can be sighted again.
+      done.delete(s.id)
       entries.set(s, 0)
       return () => {
         entries.delete(s)

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { ANOMALIES } from '../content/anomalies'
 import { FORM_LINE, MENUS } from '../content/menus'
 import { goScreen } from '../app/session'
@@ -6,6 +7,8 @@ import { useGame } from './hooks'
 export function Archive() {
   const seen = useGame((s) => s.anomaliesSeen)
   const m = MENUS.archive
+  const back = useRef<HTMLButtonElement>(null)
+  useEffect(() => back.current?.focus({ preventScroll: true }), [])
   const count = ANOMALIES.filter((a) => seen.includes(a.id)).length
   return (
     <div className="screen" data-screen="archive">
@@ -29,7 +32,7 @@ export function Archive() {
             </div>
           )
         })}
-        <button type="button" className="btn" autoFocus onClick={() => goScreen('title')}>
+        <button type="button" ref={back} className="btn" onClick={() => goScreen('title')}>
           {m.back}
         </button>
       </div>

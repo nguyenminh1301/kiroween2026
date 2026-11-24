@@ -31,4 +31,12 @@ describe('sighting tracker', () => {
     expect(t.update(1, eye, ahead)).toEqual(['a'])
     expect(t.update(1, eye, ahead)).toEqual([])
   })
+
+  it('can be sighted again after the act is registered anew', () => {
+    const t = createSightingTracker()
+    t.add(s)
+    expect(t.update(1, eye, ahead)).toEqual(['a'])
+    t.add(s)
+    expect(t.update(1, eye, ahead)).toEqual(['a'])
+  })
 })
