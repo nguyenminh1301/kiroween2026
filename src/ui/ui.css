@@ -241,3 +241,272 @@
   animation: none !important;
   transition: none !important;
 }
+
+/* ---------- in-game overlays ---------- */
+.keycap {
+  display: inline-block;
+  min-width: 22px;
+  padding: 1px 6px;
+  box-sizing: border-box;
+  text-align: center;
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(14, 13, 12, 0.6);
+}
+.dot-root {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 20;
+}
+.dot {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  transition: all 0.12s;
+}
+.dot.ring {
+  left: -12px;
+  top: -12px;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: 2px solid #fff;
+}
+.dot-verb {
+  position: absolute;
+  left: 16px;
+  top: -12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  text-shadow: 0 0 4px #000;
+}
+
+.dialogue {
+  position: fixed;
+  left: 50%;
+  bottom: 48px;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: min(760px, 88vw);
+  box-sizing: border-box;
+  padding: 12px 18px 14px;
+  background: rgba(14, 13, 12, 0.82);
+  border-left: 3px solid var(--accent);
+  font-family: var(--sans);
+  color: var(--ink);
+  line-height: 1.4;
+}
+.dialogue.narrator {
+  font-family: var(--type);
+}
+.dialogue.shout .dlg-text {
+  font-weight: 500;
+  text-transform: uppercase;
+}
+.dlg-name {
+  font-family: var(--mono);
+  font-size: 0.6em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.dlg-text .rest {
+  visibility: hidden;
+}
+
+.top-right {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 20;
+  max-width: min(520px, 46vw);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.objective,
+.hint-slip {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--paper-ink);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 27px, rgba(70, 100, 160, 0.25) 27px 28px), var(--paper);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+.objective {
+  width: 100%;
+  padding: 10px 14px;
+  transform: rotate(-0.6deg);
+  font-family: var(--type);
+  font-size: 21px;
+  line-height: 1.2;
+  animation: drop-in 0.5s ease-out;
+}
+.objective .check {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--paper-ink);
+}
+.objective .obj-text {
+  flex: 1;
+}
+.stamp-key {
+  flex: none;
+  padding: 1px 7px;
+  border: 2px solid var(--stamp);
+  color: var(--stamp);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.hint-slip {
+  padding: 7px 12px;
+  font-family: var(--type);
+  font-size: 15px;
+  line-height: 1.25;
+  transform: rotate(0.5deg);
+  animation: drop-in 0.4s ease-out;
+}
+@keyframes drop-in {
+  from { transform: translateY(-120%) rotate(-0.6deg); opacity: 0; }
+  to { transform: translateY(0) rotate(-0.6deg); opacity: 1; }
+}
+
+.wrist {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 20;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  background: rgba(14, 13, 12, 0.8);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+.fx-black {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 25;
+}
+.fx-flash {
+  position: fixed;
+  z-index: 26;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0.7) 35%, rgba(255, 255, 255, 0) 70%);
+}
+.fx-caption {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 40%;
+  z-index: 40;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 26px;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(233, 183, 64, 0.8), 0 0 28px rgba(233, 183, 64, 0.4);
+}
+.fx-dsky {
+  position: fixed;
+  left: 24px;
+  top: 24px;
+  z-index: 40;
+  padding: 12px 18px;
+  background: #020a04;
+  border: 1px solid #1d4a2a;
+  color: #7dffa0;
+  font-size: 24px;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 6px rgba(125, 255, 160, 0.6);
+}
+.fx-dsky .alarm {
+  margin-top: 8px;
+  color: #ff9a2e;
+  text-shadow: 0 0 6px rgba(255, 154, 46, 0.6);
+  animation: blink 0.8s steps(2, start) infinite;
+}
+@keyframes blink {
+  to { visibility: hidden; }
+}
+.fx-card {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  font-family: var(--sans);
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--ink);
+  text-align: center;
+}
+.fx-card p {
+  margin: 0;
+  max-width: 720px;
+}
+
+/* ---------- archive ---------- */
+.paper.archive {
+  width: min(820px, 100%);
+  max-height: 92vh;
+  padding: 26px 36px 30px;
+}
+.anomaly {
+  border: 1px solid rgba(36, 33, 27, 0.45);
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.anomaly.noticed {
+  border: 2px solid #b9822a;
+  background: rgba(233, 183, 64, 0.14);
+}
+.anomaly .tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a5a10;
+}
+.anomaly.missed .tag {
+  color: rgba(36, 33, 27, 0.6);
+}
+.anomaly.missed .seen {
+  opacity: 0.5;
+}
+.anomaly a {
+  align-self: flex-start;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--stamp);
+}

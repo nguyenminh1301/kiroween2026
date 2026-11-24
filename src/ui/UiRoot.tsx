@@ -5,6 +5,8 @@ import { gateReason } from '../app/flow'
 import { loader } from '../app/loader'
 import { isDebugUrl } from '../engine/inputRuntime'
 import { useFx, useGame } from './hooks'
+import { Archive } from './Archive'
+import { Dialogue, Dot, FxLayer, TopRight, Wrist } from './Overlays'
 import { Chapters, Credits, Headphones, MessageScreen, PauseMenu, Settings, Title, Warning } from './Screens'
 import './ui.css'
 
@@ -37,14 +39,24 @@ export function UiRoot() {
   else if (screen === 'chapters') body = <Chapters />
   else if (screen === 'settings') body = <Settings />
   else if (screen === 'credits') body = <Credits />
+  else if (screen === 'archive') body = <Archive />
   else if (screen === 'game') {
     body = (
       <>
+        <Dot />
+        <TopRight />
+        <Wrist />
+        <Dialogue />
         {status === 'loading' ? <div className="loading-line">{MENUS.loading}</div> : null}
         {paused && !card ? <PauseMenu /> : null}
       </>
     )
   }
 
-  return <div className={`ui-root${reduced ? ' reduced' : ''}`}>{body}</div>
+  return (
+    <div className={`ui-root${reduced ? ' reduced' : ''}`}>
+      {screen === 'game' && !reason ? <FxLayer /> : null}
+      {body}
+    </div>
+  )
 }
