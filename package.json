@@ -15,7 +15,7 @@
     "lint": "eslint --no-error-on-unmatched-pattern src scripts && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "check-budget": "node scripts/check-budget.mjs",
     "check-copy": "node scripts/check-copy.mjs",
-    "e2e": "node e2e/smoke.mjs && node e2e/engine.mjs && node e2e/render.mjs"
+    "e2e": "node e2e/smoke.mjs && node e2e/engine.mjs && node e2e/render.mjs && node e2e/audio.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
