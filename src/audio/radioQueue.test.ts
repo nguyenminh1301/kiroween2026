@@ -14,7 +14,7 @@ function setup() {
   let subtitle: Subtitle | null = null
   const radio = createRadioQueue({
     lines,
-    seconds: (l) => l.seconds ?? 1,
+    seconds: (_id, l) => l.seconds ?? 1,
     start: (id) => {
       log.push(`start ${id}`)
       return { stop: () => log.push(`stop ${id}`) }

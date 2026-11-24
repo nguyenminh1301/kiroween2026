@@ -24,7 +24,7 @@ export interface LineHandle {
 export interface RadioDeps {
   lines: Record<string, Line>
   /** Seconds the line stays up. Called when the line starts. */
-  seconds(line: Line, opts: SayOptions, speaker: Speaker): number
+  seconds(id: string, line: Line, opts: SayOptions, speaker: Speaker): number
   /** Start the sound of the line. May return null (no audio). */
   start(id: string, line: Line, opts: SayOptions, speaker: Speaker): LineHandle | null
   setSubtitle(subtitle: Subtitle | null): void
@@ -85,7 +85,7 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
     const speaker = item.opts.speaker ?? item.line.speaker
     let seconds = 2.4
     guard(() => {
-      seconds = deps.seconds(item.line, item.opts, speaker)
+      seconds = deps.seconds(item.id, item.line, item.opts, speaker)
     })
     let handle: LineHandle | null = null
     guard(() => {
