@@ -124,7 +124,7 @@ export function Scene() {
       <PlayerCamera />
       <hemisphereLight args={['#9db7c9', '#4b4840', 1.0]} />
       <directionalLight color="#ffd8a8" intensity={1.3} position={[-60, 20, -100]} />
-      <directionalLight color="#8fa8c8" intensity={0.25} position={[60, 30, 80]} />
+      <directionalLight color="#8fa8c8" intensity={0.4} position={[60, 30, 80]} />
       <pointLight color="#ffd9a0" intensity={2.5} distance={7} decay={1.5} position={[0, 2.3, -7.5]} />
 
       <primitive object={sky.mesh} />

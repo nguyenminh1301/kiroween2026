@@ -8,5 +8,5 @@ Eight tasks. Each ends with `npm run test`, `npm run lint` and one conventional 
 - [x] 4. Act 0 content, layout data, crowd logic, beat machine. Tests: crowd aim rule, beat order on a fake clock (req 4, 5).
 - [x] 5. Scene: walkway, White Room, Saturn V, ground, sky, lights, boot prints (req 2.1 to 2.4, 2.8).
 - [x] 6. Crowd (one instanced call) and pad crew figures (req 2.5 to 2.7).
-- [ ] 7. Runtime wiring: start, collision, ambience, cheers, interactables, sighting, hand-off (req 2.9, 3, 4).
-- [ ] 8. `e2e/act0.mjs`, budget check, all six checks (req 2.10).
+- [x] 7. Runtime wiring: start, collision, ambience, cheers, interactables, sighting, hand-off (req 2.9, 3, 4).
+- [x] 8. `e2e/act0.mjs`, budget check, all six checks (req 2.10).

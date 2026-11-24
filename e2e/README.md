@@ -31,3 +31,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 ## UI test
 
 `e2e/ui.mjs` takes the origin from `GAME_URL`. Without `?debug` it clicks Continue and Click to start, checks the title, the six chapter buttons, and that a volume of 0.5 survives a reload. With `?debug` it checks Start, the chapter card for act 1 (and none for act 3 at `wp1`), the sandbox switch, objective and `test-box` anomaly, the pause menu and the Archive. Screenshots go to `e2e/shots/ui-*.png`. `npm run e2e` runs it last.
+
+## Act 0 test
+
+`e2e/act0.mjs` loads `act0-pad` and checks draw calls and triangles at the start. It waits for the wave objective, looks down over the right railing (target is WAVE), presses E, and checks the objective becomes the boarding line. It walks into the White Room with real W key presses, checks pad3 was said and `extra-bootprints` was seen, aims at the hatch, presses E and waits for `act1-launch`. Screenshots go to `e2e/shots/act0-start.png`, `act0-wave.png` and `act0-room.png`. `npm run e2e` runs it last.
