@@ -347,7 +347,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Commit only the files from this task
 
 - [ ] 7. Sandbox retexture
-  - [ ] 7.1 Rebuild the sandbox look with the material factory
+  - [x] 7.1 Rebuild the sandbox look with the material factory
     - Update `src/acts/sandbox/scene.tsx` (and `logic.ts` only if needed): every mesh material from `createMaterial`, at least four distinct textures, `applyFog` with `{ color: '#3a3a3a', near: 6, far: 25 }`, repeated props drawn with `InstancedMesh`, at most one dynamic light, no player-facing text
     - Register one cleanup that calls `disposeMaterial` on every created material and `clearFog`; keep the texture cache
     - Keep collision boxes, ground function, zero-g zone and seat unchanged so `engine-core` checks and Properties 53 and 54 still pass
@@ -361,7 +361,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Load, play a few steps and unload the sandbox: `systemCount`, patched material count and fog return to baseline, texture cache kept, scaler level unchanged
     - _Requirements: 4.12, 9.4, 12.6, 15.3, 15.4, 15.6_
 
-  - [ ] 7.4 Run `npm run test` and `npm run lint`, then commit this task's files
+  - [x] 7.4 Run `npm run test` and `npm run lint`, then commit this task's files
     - Commit message: `feat: apply PS1 look to the sandbox act`
     - Commit only the files from this task
 
