@@ -50,12 +50,15 @@ export function applySettings(current: Settings, partial: Partial<Settings>): Se
 export interface SavedShape {
   settings: Settings
   unlockedActs: ActId[]
+  /** Act 5 was finished once. Omitted when false. */
+  finished?: boolean
 }
 
 export function serializeSaved(saved: SavedShape): string {
   return JSON.stringify({
     settings: { ...saved.settings },
     unlockedActs: [...saved.unlockedActs],
+    finished: saved.finished === true,
   })
 }
 
@@ -105,5 +108,6 @@ export function parseSaved(raw: string | null): SavedShape {
   return {
     settings: sanitizeSettings(o.settings),
     unlockedActs: sanitizeUnlocked(o.unlockedActs),
+    ...(o.finished === true ? { finished: true } : {}),
   }
 }

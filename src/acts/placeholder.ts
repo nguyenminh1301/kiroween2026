@@ -1,3 +1,4 @@
+import { CHAPTER_INTROS } from '../content/chapters'
 import type { Act_Module } from '../engine/actLoader'
 import type { ActId } from '../types'
 
@@ -11,6 +12,7 @@ export function createPlaceholderAct(id: ActId, checkpoints: string[]): Act_Modu
   return {
     id,
     checkpoints,
+    intro: CHAPTER_INTROS[id],
     Scene: EmptyScene,
     start() {
       // Nothing to set up yet.

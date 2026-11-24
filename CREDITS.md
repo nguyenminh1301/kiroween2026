@@ -52,9 +52,11 @@ Recordings in `public/audio/`, trimmed, converted to mono MP3 and loudness-norma
 
 ## Fonts
 
-A later spec will add these fonts.
+Loaded from Google Fonts in `index.html`.
 
 | Font | License |
 |------|---------|
 | Jost | OFL-1.1 |
 | IBM Plex Mono | OFL-1.1 |
+| Courier Prime | OFL-1.1 |
+| Special Elite | Apache-2.0 |

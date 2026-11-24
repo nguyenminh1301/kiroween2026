@@ -11,12 +11,14 @@ export interface Act_Module {
   id: LoadableId
   /** First entry is the act start. */
   checkpoints: string[]
+  /** Chapter card lines, shown when the act loads at its first checkpoint. */
+  intro?: string[]
   Scene: ComponentType
   start(checkpoint: string): void
 }
 
 export interface LoaderState {
-  status: 'idle' | 'loading' | 'ready' | 'error'
+  status: 'idle' | 'loading' | 'ready' | 'error' | 'finished'
   act: LoadableId | null
   checkpoint: string | null
 }
@@ -34,11 +36,17 @@ export interface ActLoaderDeps {
   allowed: (id: LoadableId) => boolean
   /** Engine reset run after the act cleanups. Defaults to `resetOnUnload` (Timeline, Focus, moveMode, objective, target). */
   onUnload?: () => void
+  /** Runs after the previous act is cleaned up and before `start()`. */
+  beforeStart?: (id: LoadableId, checkpoint: string, mod: Act_Module) => void
 }
 
 export interface ActLoader {
   getState(): LoaderState
   loadAct(id: LoadableId, checkpoint?: string): Promise<void>
+  /** Unload the current act and go idle. */
+  unload(): void
+  /** Unload the current act, set the finished flag and report status 'finished'. */
+  finish(): void
   /** The module of the currently active act, or null. */
   getModule(): Act_Module | null
   subscribe(listener: () => void): () => void
@@ -90,6 +98,7 @@ export function createActLoader(deps: ActLoaderDeps): ActLoader {
 
     const resolved = resolveCheckpoint(mod.checkpoints, checkpoint)
     try {
+      deps.beforeStart?.(id, resolved, mod)
       mod.start(resolved)
     } catch (err) {
       console.error('act start failed', err)
@@ -106,6 +115,17 @@ export function createActLoader(deps: ActLoaderDeps): ActLoader {
   return {
     getState: () => state,
     loadAct,
+    unload() {
+      latestToken++
+      unloadCurrent()
+      setState({ status: 'idle', act: null, checkpoint: null })
+    },
+    finish() {
+      latestToken++
+      unloadCurrent()
+      store.getState().setFinished(true)
+      setState({ status: 'finished', act: null, checkpoint: null })
+    },
     getModule: () => activeModule,
     subscribe(listener) {
       listeners.add(listener)

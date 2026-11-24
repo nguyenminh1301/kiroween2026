@@ -1,8 +1,30 @@
 import { createStore } from 'zustand/vanilla'
+import type { Verb } from '../content/verbs'
 import type { ActId, MoveMode, Subtitle, TensionState } from '../types'
 import { DEFAULT_SETTINGS, applySettings, type Settings } from './settings'
 
-export type Screen = 'title' | 'menu' | 'chapter' | 'play' | 'archive'
+export type Screen =
+  | 'gate'
+  | 'warning'
+  | 'headphones'
+  | 'title'
+  | 'chapters'
+  | 'settings'
+  | 'credits'
+  | 'archive'
+  | 'game'
+
+/** The checklist line shown at the top right. `markers` are interactable ids that show a world marker. */
+export interface Objective {
+  text: string
+  keys?: string
+  markers?: string[]
+}
+
+export interface Target {
+  id: string
+  verb: Verb
+}
 
 export interface GameState {
   screen: Screen
@@ -10,8 +32,8 @@ export interface GameState {
   checkpoint: string | null
   paused: boolean
   moveMode: MoveMode
-  objective: string | null
-  target: string | null
+  objective: Objective | null
+  target: Target | null
   anomaliesSeen: string[]
   settings: Settings
   fear: number
@@ -20,13 +42,15 @@ export interface GameState {
   tension: TensionState
   subtitle: Subtitle | null
   unlockedActs: ActId[]
+  /** True once act 5 has been finished. Saved. */
+  finished: boolean
   setScreen: (screen: Screen) => void
   setAct: (act: ActId | null) => void
   setCheckpoint: (checkpoint: string | null) => void
   setPaused: (paused: boolean) => void
   setMoveMode: (mode: MoveMode) => void
-  setObjective: (objective: string | null) => void
-  setTarget: (target: string | null) => void
+  setObjective: (objective: Objective | null) => void
+  setTarget: (target: Target | null) => void
   addAnomalySeen: (id: string) => void
   setSettings: (partial: Partial<Settings>) => void
   setFear: (fear: number) => void
@@ -35,6 +59,8 @@ export interface GameState {
   setTension: (tension: TensionState) => void
   setSubtitle: (subtitle: Subtitle | null) => void
   setUnlockedActs: (ids: ActId[]) => void
+  setFinished: (finished: boolean) => void
+  resetAnomalies: () => void
 }
 
 export const gameStore = createStore<GameState>()((set) => ({
@@ -53,6 +79,7 @@ export const gameStore = createStore<GameState>()((set) => ({
   tension: 'CALM',
   subtitle: null,
   unlockedActs: ['act0-pad'],
+  finished: false,
   setScreen: (screen) => set({ screen }),
   setAct: (act) => set({ act }),
   setCheckpoint: (checkpoint) => set({ checkpoint }),
@@ -71,4 +98,6 @@ export const gameStore = createStore<GameState>()((set) => ({
   setTension: (tension) => set({ tension }),
   setSubtitle: (subtitle) => set({ subtitle }),
   setUnlockedActs: (unlockedActs) => set({ unlockedActs: [...unlockedActs] }),
+  setFinished: (finished) => set({ finished }),
+  resetAnomalies: () => set({ anomaliesSeen: [] }),
 }))

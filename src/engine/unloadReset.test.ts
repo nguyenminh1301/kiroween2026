@@ -24,8 +24,8 @@ describe('unload reset', () => {
         fc.boolean(),
         fc.boolean(),
         fc.constantFrom<MoveMode>('walk', 'zeroG', 'seated'),
-        fc.option(fc.string(), { nil: null }),
-        fc.option(fc.string(), { nil: null }),
+        fc.option(fc.record({ text: fc.string() }), { nil: null }),
+        fc.option(fc.record({ id: fc.string(), verb: fc.constant<'GRAB'>('GRAB') }), { nil: null }),
         (withTimeline, withFocus, mode, objective, target) => {
           const s = gameStore.getState()
           s.setMoveMode(mode)

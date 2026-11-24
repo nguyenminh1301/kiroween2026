@@ -20,7 +20,7 @@ export interface LosDebug {
   version: string
   store: typeof gameStore
   loader: {
-    state: { getState(): { status: 'idle' | 'loading' | 'ready' | 'error'; act: LoadableId | null; checkpoint: string | null } }
+    state: { getState(): { status: 'idle' | 'loading' | 'ready' | 'error' | 'finished'; act: LoadableId | null; checkpoint: string | null } }
     loadAct(id: LoadableId, checkpoint?: string): Promise<void>
   }
   player: {

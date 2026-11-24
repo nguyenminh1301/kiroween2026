@@ -2,6 +2,7 @@
 // clears, and the store fields an act may have changed go back to defaults.
 import { clearFocus } from '../interaction/Focus'
 import type { TimelinePlayer } from '../timeline/TimelinePlayer'
+import { clearFx } from './fx'
 import { gameStore } from './store'
 
 let activeTimeline: TimelinePlayer | null = null
@@ -41,4 +42,5 @@ export function resetOnUnload(deps: UnloadResetDeps = {}): void {
   s.setMoveMode('walk')
   s.setObjective(null)
   s.setTarget(null)
+  clearFx()
 }
