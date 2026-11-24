@@ -87,6 +87,9 @@ export function Title() {
         <path d={tracePath()} />
       </svg>
       <p className="title-tag">{m.tagline}</p>
+      <div className="title-stamp" aria-hidden="true">
+        {m.stamp}
+      </div>
       <div className="menu-list">
         {titleButtons(finished).map((b, i) => (
           <Btn

@@ -24,6 +24,7 @@ export const MENUS = {
   title: {
     name: GAME_TITLE,
     tagline: 'Apollo 11. July 1969.',
+    stamp: 'Classified',
     start: 'Start',
     chapters: 'Chapters',
     settings: 'Settings',

@@ -44,7 +44,8 @@ export function Dialogue() {
     <div className={cls.join(' ')} style={{ fontSize: 20 * scale }} data-testid="subtitle">
       {line ? (
         <div className="dlg-name" style={sub.speaker === 'UNKNOWN' ? { color: '#ff6a55' } : undefined}>
-          {line.name} {line.tags.join(' ')}
+          {line.name}
+          {line.tags.length ? <span className="dlg-tags">{line.tags.join(' ')}</span> : null}
         </div>
       ) : null}
       <div className="dlg-text">
