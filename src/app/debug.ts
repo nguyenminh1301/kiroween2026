@@ -6,6 +6,7 @@ import { markLockWasHeld, resumeGame } from '../engine/inputRuntime'
 import type { PlayerBody } from '../engine/playerBody'
 import { getPlayerBody, launchPlayer, updatePlayerBody } from '../engine/playerRuntime'
 import { gameStore } from '../engine/store'
+import { getInteractables } from '../interaction/interactables'
 import { focus } from '../interaction/Focus'
 import type { Vec3 } from '../types'
 import { adaptiveScaler } from '../render/adaptiveScaler'
@@ -29,6 +30,7 @@ export interface LosDebug {
     launch(dir: Vec3): void
   }
   focus(): boolean
+  interactables(): { id: string; verb: string; position: Vec3; enabled: boolean }[]
   lock: { markHeld(held?: boolean): void; resume(): void }
   sandbox: {
     /** Wall box and inner Z face, zero-g zone, or null when the sandbox is not loaded. */
@@ -68,6 +70,8 @@ export function installDebug(win: Window = window): void {
       launch: (dir) => launchPlayer(dir),
     },
     focus: () => focus.isFocusActive(),
+    interactables: () =>
+      getInteractables().map((i) => ({ id: i.id, verb: i.verb, position: { ...i.position }, enabled: i.enabled() })),
     lock: { markHeld: (held = true) => markLockWasHeld(held), resume: () => resumeGame() },
     sandbox: {
       info: () => getSandboxInfo(),
