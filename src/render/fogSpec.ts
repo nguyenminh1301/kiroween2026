@@ -1,5 +1,5 @@
 export interface FogSpec {
-  color: number
+  color: string | number
   near: number
   far: number
 }

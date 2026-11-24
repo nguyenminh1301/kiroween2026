@@ -6,6 +6,7 @@ import { PointerLockController } from '@/engine/PointerLockController'
 import { isDebugUrl } from '@/engine/inputRuntime'
 import { GAME_TITLE } from '@/content/menus'
 import { GameView, RenderRuntime } from '@/render/GameView'
+import { PS1Composer } from '@/render/PS1Composer'
 import { StatsBox } from '@/render/StatsBox'
 import { loader } from './loader'
 
@@ -31,6 +32,7 @@ export function App() {
             <color attach="background" args={['#000000']} />
             <FrameDriver />
             <RenderRuntime />
+            <PS1Composer />
             <Input />
             <PointerLockController />
             {Scene ? <Scene key={state.act} /> : null}

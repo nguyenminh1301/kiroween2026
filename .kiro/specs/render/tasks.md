@@ -308,21 +308,21 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Commit only the files from this task
 
 - [ ] 6. PS1 effect, fog and context loss
-  - [ ] 6.1 Write the PS1 fragment shader
+  - [x] 6.1 Write the PS1 fragment shader
     - Create `src/render/ps1Shader.ts` with GLSL in this order: fringe, vignette, gamma, grain, Bayer quantize to 63 levels, back to linear; GLSL `bayer4` and `quantize` written to mirror `bayer.ts`; uniforms `fringe`, `vignette`, `noise`, `seed`, `invRes`
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.8, 6.9_
 
-  - [ ] 6.2 Implement the PS1 effect and composer wiring
+  - [x] 6.2 Implement the PS1 effect and composer wiring
     - Create `src/render/PS1Effect.tsx`: `postprocessing` Effect whose `update()` reads `fear` and `reducedMotion` with `getState()`, calls `lookParams`, sets `seed` from `grainSeed(gameTime)` so grain freezes while paused, sets `invRes` from the current level; add one `EffectComposer` pass at the low-res buffer, no pass at CSS size
     - Wrap pass creation in try/catch: on failure log once with `console.error` and render without the effect
     - Measure frame time around the composer render and feed it to the scaler and stats; `calls` includes the effect pass
     - _Requirements: 1.5, 5.11, 6.1, 6.7, 6.10, 6.16, 6.17, 13.9, 14.3, 15.1_
 
-  - [ ] 6.3 Implement fog apply and clear
+  - [x] 6.3 Implement fog apply and clear
     - Create `src/render/fog.ts` with `applyFog(scene, renderer, spec)` (linear fog and clear colour; invalid spec logs once, keeps previous fog and returns false) and `clearFog` (no fog, black clear colour)
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.6_
 
-  - [ ] 6.4 Handle WebGL context loss
+  - [x] 6.4 Handle WebGL context loss
     - Create `src/render/contextLoss.ts`: log `webglcontextlost` once, pause per-frame work, resume on `webglcontextrestored`; register listeners through the listener helper; mount it from `src/render/GameView.tsx`
     - _Requirements: 15.5, 15.7_
 
@@ -342,7 +342,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Lost event logs once, restored event resumes, listeners removed on cleanup
     - _Requirements: 15.7_
 
-  - [ ] 6.9 Run `npm run test` and `npm run lint`, then commit this task's files
+  - [x] 6.9 Run `npm run test` and `npm run lint`, then commit this task's files
     - Commit message: `feat: add PS1 post effect, fog and context loss handling`
     - Commit only the files from this task
 
