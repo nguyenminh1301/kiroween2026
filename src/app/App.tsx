@@ -5,6 +5,8 @@ import { Input } from '@/engine/Input'
 import { PointerLockController } from '@/engine/PointerLockController'
 import { isDebugUrl } from '@/engine/inputRuntime'
 import { GAME_TITLE } from '@/content/menus'
+import { GameView, RenderRuntime } from '@/render/GameView'
+import { StatsBox } from '@/render/StatsBox'
 import { loader } from './loader'
 
 function useLoaderState() {
@@ -18,17 +20,24 @@ export function App() {
 
   return (
     <>
-      <Canvas
-        style={{ position: 'fixed', inset: 0 }}
-        camera={{ position: [0, 0, 3], fov: 60 }}
-        gl={{ antialias: false }}
-      >
-        <color attach="background" args={['#000000']} />
-        <FrameDriver />
-        <Input />
-        <PointerLockController />
-        {Scene ? <Scene key={state.act} /> : null}
-      </Canvas>
+      <GameView>
+        {(dpr) => (
+          <Canvas
+            style={{ position: 'absolute', inset: 0, imageRendering: 'pixelated' }}
+            camera={{ position: [0, 0, 3], fov: 60 }}
+            gl={{ antialias: false }}
+            dpr={dpr}
+          >
+            <color attach="background" args={['#000000']} />
+            <FrameDriver />
+            <RenderRuntime />
+            <Input />
+            <PointerLockController />
+            {Scene ? <Scene key={state.act} /> : null}
+          </Canvas>
+        )}
+      </GameView>
+      {isDebugUrl() ? <StatsBox /> : null}
       {showTitle ? (
         <div
           style={{

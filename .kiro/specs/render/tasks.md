@@ -256,21 +256,21 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Commit only the files from this task
 
 - [ ] 5. Low-res canvas, adaptive scaler and debug stats
-  - [ ] 5.1 Implement the adaptive scaler runtime
+  - [x] 5.1 Implement the adaptive scaler runtime
     - Create `src/render/adaptiveScaler.ts`: module-scoped scaler with injected `onLevelChange` and `isPaused`, 600-sample cap, discard non-finite and over-1000 ms samples, 500 ms decision cadence, `setLevel` (integers 0 to 3 only), `setAuto` (on clears buffer and resets `msSinceChange`), registered once through `addSystem` as pausable, level kept across act loads
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 4.12, 14.10, 14.11, 14.12, 15.5_
 
-  - [ ] 5.2 Implement live render stats and the stats box
+  - [x] 5.2 Implement live render stats and the stats box
     - Create `src/render/renderStats.ts`: live getters for `frameMs` (EMA of measured frame time), `calls`, `triangles` (from `gl.info`), `internalWidth`, `internalHeight` and `level`
     - Create `src/render/StatsBox.tsx`: shown only with `?debug`, green monospace on a dark box at top left, updates at most 4 times per second, `pointerEvents: none`, text lives in this module and not in `src/content/`
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 14.13, 14.14, 14.15, 14.16, 14.17, 14.18_
 
-  - [ ] 5.3 Wire the render debug contract
+  - [x] 5.3 Wire the render debug contract
     - Create `src/render/renderDebug.ts` with `installRenderDebug` (`setLevel`, `auto`)
     - Extend `src/app/debug.ts` inside the existing `?debug` guard with `stats` (live getters) and `render`, keeping `version` and every existing field
     - _Requirements: 14.1, 14.7, 14.8, 14.9, 14.16_
 
-  - [ ] 5.4 Implement the game view and low-res canvas
+  - [x] 5.4 Implement the game view and low-res canvas
     - Create `src/render/GameView.tsx`: letterboxed centred 16:9 view recomputed on window resize, black letterbox and black clear colour, `image-rendering: pixelated`, dpr from `dprFor` so the buffer equals the Internal_Resolution, resize on level change within one frame, Game_View resize does not change the level
     - Update `src/app/App.tsx` to mount `GameView`, the scaler (starting at level 1) and `StatsBox`, and to call `snapPatch.setResolution` on level change
     - _Requirements: 1.1, 1.3, 1.4, 1.6, 1.7, 1.8, 1.10, 2.3, 2.4, 2.5, 4.11, 13.9, 15.5_
@@ -299,11 +299,11 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - **Property 2: Device pixel ratio pins the drawing buffer to the Internal_Resolution**
     - **Validates: Requirements 1.6**
 
-  - [ ]* 5.11 Write unit tests for stats box and debug contract
+  - [x]* 5.11 Write unit tests for stats box and debug contract
     - `window.__los.stats` and `window.__los.render` shape with `?debug`, absent without it, `version` kept, stats read live, box throttle and `pointerEvents: none`, scaler level survives an act unload, paused time does not advance the scaler timers
     - _Requirements: 4.7, 4.12, 14.1, 14.7, 14.8, 14.9, 14.15, 14.16, 14.17_
 
-  - [ ] 5.12 Run `npm run test` and `npm run lint`, then commit this task's files
+  - [x] 5.12 Run `npm run test` and `npm run lint`, then commit this task's files
     - Commit message: `feat: add low-res canvas, adaptive scaler and debug stats`
     - Commit only the files from this task
 

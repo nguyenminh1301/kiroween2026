@@ -7,6 +7,10 @@ import { getPlayerBody, launchPlayer, updatePlayerBody } from '../engine/playerR
 import { gameStore } from '../engine/store'
 import { focus } from '../interaction/Focus'
 import type { Vec3 } from '../types'
+import { adaptiveScaler } from '../render/adaptiveScaler'
+import { installRenderDebug, type RenderDebug } from '../render/renderDebug'
+import { getRenderStats } from '../render/renderStats'
+import type { RenderStats } from '../render/stats'
 import { loader } from './loader'
 
 export const DEBUG_VERSION = '0.1.0'
@@ -33,6 +37,9 @@ export interface LosDebug {
     /** Number of live sandbox instances. Must be 0 or 1. */
     instances(): number
   }
+  /** Live render numbers. Each read returns the latest values. */
+  stats: RenderStats
+  render: RenderDebug
   /** Number of registered frame systems. */
   systemCount(): number
 }
@@ -65,6 +72,8 @@ export function installDebug(win: Window = window): void {
       timelineTime: () => getSandboxInfo()?.testTimelineTime() ?? null,
       instances: () => getSandboxInstances(),
     },
+    stats: getRenderStats(),
+    render: installRenderDebug(adaptiveScaler),
     systemCount: () => frameDriver.systemCount(),
   }
 }
