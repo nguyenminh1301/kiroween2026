@@ -10,6 +10,8 @@ export interface Pickable {
   enabled(): boolean
   /** Reach in metres from the eye. Defaults to 2.5. */
   reach?: number
+  /** When set, the item is hit exactly when this returns true, in place of the ray test. */
+  aim?(eye: Vec3, dir: Vec3): boolean
 }
 
 /** Distance along the ray where it first touches the sphere, or null for a miss. `dir` need not be unit length. */
@@ -42,6 +44,13 @@ export function pickTarget<T extends Pickable>(
   let bestT = Infinity
   for (const item of items) {
     if (!item.enabled()) continue
+    if (item.aim) {
+      if (item.aim(eye, dir) && bestT > 0) {
+        best = item
+        bestT = 0
+      }
+      continue
+    }
     const t = rayHitDistance(eye, dir, item.position, item.radius)
     if (t === null || t > (item.reach ?? defaultReach)) continue
     if (t < bestT) {
