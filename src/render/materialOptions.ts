@@ -10,6 +10,8 @@ export type TextureName =
   | 'whiteRoom'
   | 'rocketSkin'
   | 'fieldPatch'
+  | 'cabinPanel'
+  | 'earthCloud'
 
 export type MaterialKind = 'unlit' | 'lambert'
 

@@ -1,3 +1,5 @@
+import { drawCabinPanel } from './cabinPanel'
+import { drawEarthCloud } from './earthCloud'
 import { drawFieldPatch } from './fieldPatch'
 import { drawGratingPlate } from './gratingPlate'
 import type { PixelData } from './helpers'
@@ -25,6 +27,8 @@ export const TEXTURE_NAMES = [
   'whiteRoom',
   'rocketSkin',
   'fieldPatch',
+  'cabinPanel',
+  'earthCloud',
 ] as const
 
 export type ProcTextureName = (typeof TEXTURE_NAMES)[number]
@@ -41,6 +45,8 @@ const DRAWERS: Record<ProcTextureName, (seed: number) => PixelData> = {
   whiteRoom: drawWhiteRoom,
   rocketSkin: drawRocketSkin,
   fieldPatch: drawFieldPatch,
+  cabinPanel: drawCabinPanel,
+  earthCloud: drawEarthCloud,
 }
 
 export function drawTexture(name: string, seed: number): PixelData {

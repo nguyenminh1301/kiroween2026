@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { TEXTURE_NAMES, drawTexture } from './index'
 
 describe('procedural textures', () => {
-  it('has eleven names', () => {
-    expect(TEXTURE_NAMES.length).toBe(11)
+  it('has thirteen names', () => {
+    expect(TEXTURE_NAMES.length).toBe(13)
   })
 
   // Feature: render, Property 34: Texture determinism and dimension invariants
