@@ -210,16 +210,16 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - Commit only the files from this task
 
 - [ ] 4. Texture cache, snap patch and material factory
-  - [ ] 4.1 Implement the texture cache
+  - [x] 4.1 Implement the texture cache
     - Create `src/procgen/cacheKey.ts` (pure, distinct keys for distinct pairs)
     - Create `src/procgen/textureCache.ts`: canvas upload, cache by name and seed, same object on repeat, `DataTexture` fallback when no 2D context, `disposeAllTextures()` for tests, cache kept on act unload, no image files
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9_
 
-  - [ ] 4.2 Implement the vertex snap patch
+  - [x] 4.2 Implement the vertex snap patch
     - Create `src/render/snapPatch.ts`: `onBeforeCompile` injection after projection using a shared `uInvRes` uniform, per-level `customProgramCacheKey`, `setResolution`, `remove`, `patchedCount`, repeat `apply` on one material is a no-op
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.11_
 
-  - [ ] 4.3 Implement the material factory
+  - [x] 4.3 Implement the material factory
     - Create `src/render/materialFactory.ts` with `createMaterial` (only `MeshBasicMaterial` or `MeshLambertMaterial`, vertex colours, fog, nearest filters, no mipmaps, repeat wrap, sRGB, snap patch, no shadows) and `disposeMaterial` (removes from the snap patch, then disposes)
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.11, 8.12, 15.3, 15.4_
 
@@ -251,7 +251,7 @@ The order is: pure logic for resolution, fear and stats; pure shader, snap, fog 
     - **Property 41: Material/snap-patch lifecycle count returns to baseline**
     - **Validates: Requirements 15.4, 15.6**
 
-  - [ ] 4.11 Run `npm run test` and `npm run lint`, then commit this task's files
+  - [x] 4.11 Run `npm run test` and `npm run lint`, then commit this task's files
     - Commit message: `feat: add texture cache, snap patch and material factory`
     - Commit only the files from this task
 
