@@ -5,6 +5,11 @@ export type TextureName =
   | 'gratingPlate'
   | 'instrumentPanel'
   | 'regolith'
+  | 'padGrating'
+  | 'paintedSteel'
+  | 'whiteRoom'
+  | 'rocketSkin'
+  | 'fieldPatch'
 
 export type MaterialKind = 'unlit' | 'lambert'
 
