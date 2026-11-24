@@ -1,7 +1,7 @@
 import type { LoadableId } from '../engine/actLoader'
 import { getSandboxInfo, getSandboxInstances } from '../engine/debugInfo'
 import { frameDriver } from '../engine/frameDriver'
-import { markLockWasHeld } from '../engine/inputRuntime'
+import { markLockWasHeld, resumeGame } from '../engine/inputRuntime'
 import type { PlayerBody } from '../engine/playerBody'
 import { getPlayerBody, launchPlayer, updatePlayerBody } from '../engine/playerRuntime'
 import { gameStore } from '../engine/store'
@@ -24,7 +24,7 @@ export interface LosDebug {
     launch(dir: Vec3): void
   }
   focus(): boolean
-  lock: { markHeld(held?: boolean): void }
+  lock: { markHeld(held?: boolean): void; resume(): void }
   sandbox: {
     /** Wall box and inner Z face, zero-g zone, or null when the sandbox is not loaded. */
     info(): ReturnType<typeof getSandboxInfo>
@@ -59,7 +59,7 @@ export function installDebug(win: Window = window): void {
       launch: (dir) => launchPlayer(dir),
     },
     focus: () => focus.isFocusActive(),
-    lock: { markHeld: (held = true) => markLockWasHeld(held) },
+    lock: { markHeld: (held = true) => markLockWasHeld(held), resume: () => resumeGame() },
     sandbox: {
       info: () => getSandboxInfo(),
       timelineTime: () => getSandboxInfo()?.testTimelineTime() ?? null,
