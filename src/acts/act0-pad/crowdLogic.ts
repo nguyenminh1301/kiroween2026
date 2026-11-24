@@ -25,3 +25,10 @@ export function flashRate(excitement: number): number {
 export function cheerPeriod(waved: boolean): number {
   return waved ? 7 : 9
 }
+
+/** How far pad0's arm is raised at time `t`: a 1.5 s wave every 2.6 s, eased in and out. */
+export function padWaveAmount(t: number): number {
+  const ph = ((t % 2.6) + 2.6) % 2.6
+  if (ph > 1.5) return 0
+  return Math.min(1, ph / 0.25, (1.5 - ph) / 0.25)
+}
