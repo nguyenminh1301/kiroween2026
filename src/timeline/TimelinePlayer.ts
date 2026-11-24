@@ -1,6 +1,7 @@
 import { cleanupRegistry } from '../engine/cleanupRegistry'
 import { registerSystem } from '../engine/frameDriver'
 import { gameStore } from '../engine/store'
+import { trackTimeline } from '../engine/unloadReset'
 import {
   dueEvents,
   evaluateShot,
@@ -116,6 +117,7 @@ export class TimelinePlayer {
     if (this.unregister || this.done) return this
     this.unregister = registerSystem('timeline', TIMELINE_PRIORITY, (dt) => this.step(dt), { pausable: true })
     cleanupRegistry.register(() => this.stop())
+    trackTimeline(this)
     return this
   }
 
