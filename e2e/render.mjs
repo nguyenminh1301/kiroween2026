@@ -77,7 +77,11 @@ try {
   if (b1.w !== 640 || b1.h !== 360) errors.push(`buffer ${b1.w}x${b1.h}, expected 640x360`)
   if (b1.cssW !== 1280 || b1.cssH !== 720) errors.push(`css ${b1.cssW}x${b1.cssH}, expected 1280x720`)
 
+  // The objective strip is anti-aliased DOM text, not the 3D frame: hide it for the palette check.
+  const hud = await page.addStyleTag({ content: '.objective{visibility:hidden!important}' })
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
   const shot = await page.screenshot()
+  await hud.evaluate((el) => el.remove())
   const counts = await channelValues(page, shot)
   if (counts.some((n) => n > 70)) errors.push(`channel values ${counts.join(',')}, expected at most 70 each`)
 

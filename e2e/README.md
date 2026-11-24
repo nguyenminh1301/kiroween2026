@@ -27,3 +27,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 ## Audio test
 
 `e2e/audio.mjs` clicks the canvas to unlock audio and waits for 40 decoded names. It presses 1 for the radio line, checks the queue and the subtitle, pauses with Escape and checks the line is still showing 4 s later, then resumes. A second page blocks every `/audio/` request, presses 1 to 4 and checks there are no page errors and the subtitle still shows. `npm run e2e` runs it last.
+
+## UI test
+
+`e2e/ui.mjs` takes the origin from `GAME_URL`. Without `?debug` it clicks Continue and Click to start, checks the title, the six chapter buttons, and that a volume of 0.5 survives a reload. With `?debug` it checks Start, the chapter card for act 1 (and none for act 3 at `wp1`), the sandbox switch, objective and `test-box` anomaly, the pause menu and the Archive. Screenshots go to `e2e/shots/ui-*.png`. `npm run e2e` runs it last.

@@ -7,4 +7,4 @@
 - [x] 5. In-game overlays and fx layers
 - [x] 6. Archive screen
 - [x] 7. Sandbox additions
-- [ ] 8. `e2e/ui.mjs`, docs, final checks
+- [x] 8. `e2e/ui.mjs`, docs, final checks
