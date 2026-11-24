@@ -13,7 +13,9 @@ import { adaptiveScaler } from '../render/adaptiveScaler'
 import { installRenderDebug, type RenderDebug } from '../render/renderDebug'
 import { getRenderStats } from '../render/renderStats'
 import type { RenderStats } from '../render/stats'
+import type { Screen } from '../engine/store'
 import { loader } from './loader'
+import { goScreen } from './session'
 
 export const DEBUG_VERSION = '0.1.0'
 
@@ -44,6 +46,7 @@ export interface LosDebug {
   stats: RenderStats
   render: RenderDebug
   audio: { loaded(): string[]; playing(): string[]; radioQueue(): string[] }
+  ui: { go(screen: Screen): void }
   /** Number of registered frame systems. */
   systemCount(): number
 }
@@ -81,6 +84,7 @@ export function installDebug(win: Window = window): void {
     stats: getRenderStats(),
     render: installRenderDebug(adaptiveScaler),
     audio: { loaded: () => audio.loaded(), playing: () => audio.playing(), radioQueue: () => audio.radioQueue() },
+    ui: { go: (screen) => goScreen(screen) },
     systemCount: () => frameDriver.systemCount(),
   }
 }
