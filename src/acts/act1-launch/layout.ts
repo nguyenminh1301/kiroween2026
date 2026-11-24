@@ -4,7 +4,7 @@ import type { Vec3 } from '../../types'
 export const EYE: Vec3 = { x: 0.62, y: 1.17, z: 0.45 }
 /** Feet position for the seated body: the eye sits 1.65 m above it. */
 export const BODY_POS: Vec3 = { x: EYE.x, y: EYE.y - 1.65, z: EYE.z }
-export const START_PITCH = -0.25
+export const START_PITCH = 0.18
 
 export const DSKY_POS: Vec3 = { x: 0.28, y: 1.42, z: -1.02 }
 export const SWITCH_POS: Vec3 = { x: 0.62, y: 1.2, z: -0.98 }

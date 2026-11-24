@@ -16,4 +16,5 @@
 - Smoke is one `InstancedMesh` of 600 low-poly puffs, positions computed from age on the CPU per frame while the pad is visible.
 - A shot has a name, so the pure tests can ask which shot is active at a time.
 - The commander and Mike use head anchors `cdr` and `cmp`. The window focus target for `act1.earth` is the right side window.
+- The brief says the start pitch is 0.25 rad down, but the console centre (1.55 m) is above the eye (1.17 m), so a down pitch shows only the wall. The start pitch is +0.18 so the console fills the view.
 - Fear is set to 0.05 on start and reset on unload. One hemisphere light and one point light are used in the cabin, plus a sun light for outside shots.
