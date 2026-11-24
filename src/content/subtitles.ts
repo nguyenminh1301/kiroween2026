@@ -33,4 +33,21 @@ export const LINES: Record<string, Line> = {
     voiced: true,
     text: 'You are one of the three. Before you climb in, look down. They came for you.',
   },
+  'act0.pad1': {
+    speaker: 'PAD',
+    text: 'Hear that? Go to the rail and wave. Some of them drove all night for this.',
+  },
+  'act0.pad2': {
+    speaker: 'PAD',
+    mood: 'shout',
+    text: 'Ha! They saw you, Buzz! Okay, hero. Hatch is in the White Room, end of the arm.',
+  },
+  'act0.pad3': {
+    speaker: 'PAD',
+    text: 'Strange. I counted four sets of boot prints up here this morning.',
+  },
+  'act0.board': {
+    speaker: 'CDR',
+    text: 'There you are, Buzz. Strap in. We have a Moon to catch.',
+  },
 }
