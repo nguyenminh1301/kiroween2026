@@ -6,5 +6,5 @@
 - [x] 4. Screens, flow wiring, loader hooks, chapter card
 - [x] 5. In-game overlays and fx layers
 - [x] 6. Archive screen
-- [ ] 7. Sandbox additions
+- [x] 7. Sandbox additions
 - [ ] 8. `e2e/ui.mjs`, docs, final checks

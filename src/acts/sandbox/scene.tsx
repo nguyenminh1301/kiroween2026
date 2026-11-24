@@ -1,11 +1,12 @@
 import { useThree } from '@react-three/fiber'
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import { BoxGeometry, Matrix4, type InstancedMesh, type Material } from 'three'
 import type { Box } from '../../engine/collision'
 import { PlayerCamera } from '../../engine/PlayerCamera'
 import { applyFog, clearFog } from '../../render/fog'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { snapPatch } from '../../render/snapPatch'
+import { lightStore } from './lightState'
 import {
   CEILING,
   EAST_WALL,
@@ -17,8 +18,13 @@ import {
   RAMP_START_X,
   ROOM_HALF,
   SEAT_BACK,
+  RAIL_A,
+  RAIL_B,
   SEAT_BOX,
   SOUTH_WALL,
+  SWITCH_POS,
+  TEST_BOX_POS,
+  TEST_BOX_SIZE,
   WEST_WALL,
   ZERO_G_ZONE,
 } from './room'
@@ -89,6 +95,7 @@ const RAMP_CENTER_Y = RAMP_HEIGHT / 2 - (Math.cos(RAMP_ANGLE) * RAMP_THICKNESS) 
 export function Scene() {
   const scene = useThree((s) => s.scene)
   const gl = useThree((s) => s.gl)
+  const lightOn = useSyncExternalStore(lightStore.subscribe, () => lightStore.getState().on)
   const mats = useMemo(
     () => ({
       floor: createMaterial({ textureName: 'gratingPlate', textureSeed: 1 }),
@@ -98,6 +105,10 @@ export function Scene() {
       ramp: createMaterial({ textureName: 'regolith', textureSeed: 5 }),
       seat: createMaterial({ textureName: 'instrumentPanel', textureSeed: 6 }),
       zone: createMaterial({ kind: 'unlit', color: '#4a7aaa', snap: false }),
+      switchOn: createMaterial({ kind: 'unlit', color: '#e9b740', snap: false }),
+      switchOff: createMaterial({ kind: 'unlit', color: '#5a4a30', snap: false }),
+      rail: createMaterial({ kind: 'unlit', color: '#b8b8b0', snap: false }),
+      oddBox: createMaterial({ kind: 'unlit', color: '#c020a0', snap: false }),
     }),
     [],
   )
@@ -135,7 +146,7 @@ export function Scene() {
   return (
     <>
       <ambientLight intensity={0.9} />
-      <directionalLight position={[3, 6, 4]} intensity={0.9} />
+      <directionalLight position={[3, 6, 4]} intensity={lightOn ? 0.9 : 0.1} />
       <PlayerCamera />
 
       <mesh position={[0, -0.05, 0]} geometry={floorGeo} material={mats.floor} />
@@ -161,6 +172,15 @@ export function Scene() {
       <BoxMesh box={SEAT_BOX} material={mats.seat} />
       <BoxMesh box={SEAT_BACK} material={mats.seat} />
       <BoxMesh box={ZERO_G_ZONE} material={mats.zone} />
+      <mesh position={[SWITCH_POS.x, SWITCH_POS.y, SWITCH_POS.z - 0.05]} material={lightOn ? mats.switchOn : mats.switchOff}>
+        <boxGeometry args={[0.18, 0.3, 0.1]} />
+      </mesh>
+      <mesh position={[RAIL_A.x, RAIL_A.y, (RAIL_A.z + RAIL_B.z) / 2]} material={mats.rail}>
+        <boxGeometry args={[0.06, 0.06, Math.abs(RAIL_B.z - RAIL_A.z)]} />
+      </mesh>
+      <mesh position={[TEST_BOX_POS.x, TEST_BOX_POS.y, TEST_BOX_POS.z]} material={mats.oddBox}>
+        <boxGeometry args={[TEST_BOX_SIZE, TEST_BOX_SIZE, TEST_BOX_SIZE]} />
+      </mesh>
     </>
   )
 }

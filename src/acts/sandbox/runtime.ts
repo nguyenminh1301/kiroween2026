@@ -7,10 +7,15 @@ import { inputState } from '../../engine/inputRuntime'
 import { createBody, eyePosition } from '../../engine/playerBody'
 import { getPlayerBody, setPlayerBody, updatePlayerBody } from '../../engine/playerRuntime'
 import { addPlayerSystem } from '../../engine/playerSystem'
-import { addListener, addSystem, type ListenerTarget } from '../../engine/registerHelpers'
+import { addListener, addSystem, addTimeout, type ListenerTarget } from '../../engine/registerHelpers'
 import { gameStore } from '../../engine/store'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
+import { CHECKLISTS } from '../../content/checklists'
+import { TEST_CAPTION } from '../../content/test'
+import { fxStore } from '../../engine/fx'
 import { focus } from '../../interaction/Focus'
+import { registerHandrail, registerInteractable, registerSighting } from '../../interaction/interactables'
+import { lightStore } from './lightState'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
 import { canStartTestTimeline, isInsideZone, nextMoveMode } from './logic'
 import {
@@ -19,6 +24,12 @@ import {
   KNOCK_POS,
   NORTH_WALL,
   PLAYER_START,
+  RAIL_A,
+  RAIL_B,
+  SWITCH_POS,
+  SWITCH_RADIUS,
+  TEST_ANOMALY_ID,
+  TEST_BOX_POS,
   SEAT_EXIT_POS,
   SEAT_FORWARD_YAW,
   SEAT_POS,
@@ -43,6 +54,7 @@ export function startSandbox(): void {
     wallInnerZ: NORTH_WALL.max.z,
     zeroGZone: ZERO_G_ZONE,
     testTimelineTime: () => testTimeline?.time() ?? null,
+    lightOn: () => lightStore.getState().on,
   })
   cleanupRegistry.register(() => {
     focus.setBodyAccess(null)
@@ -50,7 +62,26 @@ export function startSandbox(): void {
     addSandboxInstance(-1)
     setPlayerBody(null)
     testTimeline = null
+    lightStore.setState({ on: true })
   })
+
+  // Interaction test pieces: a wall switch, a handrail run, a noticeable box and an objective.
+  lightStore.setState({ on: true })
+  registerInteractable({
+    id: 'switch',
+    verb: 'FLIP',
+    position: SWITCH_POS,
+    radius: SWITCH_RADIUS,
+    enabled: () => true,
+    use() {
+      lightStore.setState((s) => ({ on: !s.on }))
+      audio.play('switch')
+      gameStore.getState().setObjective(null)
+    },
+  })
+  registerHandrail({ id: 'rail', a: RAIL_A, b: RAIL_B })
+  registerSighting({ id: TEST_ANOMALY_ID, position: TEST_BOX_POS, radius: 0.5, maxDistance: 12 })
+  gameStore.getState().setObjective(CHECKLISTS['test.switch'])
 
   addPlayerSystem({ boxes: COLLISION_BOXES, ground: groundHeight, seatForwardYaw: SEAT_FORWARD_YAW })
 
@@ -106,6 +137,22 @@ export function startSandbox(): void {
         break
       case 'Digit4':
         audio.play('knock', { position: KNOCK_POS })
+        break
+      case 'Digit6': {
+        const fx = fxStore.getState()
+        fx.setBlackout(1)
+        fx.setFlashes([
+          { x: 0.3, y: 0.4 },
+          { x: 0.68, y: 0.55, size: 0.1 },
+        ])
+        addTimeout(() => fxStore.getState().clearFx(), 4)
+        break
+      }
+      case 'Digit7':
+        fxStore.getState().setCaption(TEST_CAPTION)
+        break
+      case 'Digit8':
+        fxStore.getState().setDsky({ prog: 63, verb: 16, noun: 68, alarm: 1202 })
         break
       case 'Digit5': {
         const s = gameStore.getState()

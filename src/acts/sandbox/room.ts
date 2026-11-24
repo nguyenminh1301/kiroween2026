@@ -68,3 +68,16 @@ export function groundHeight(x: number): number {
 }
 
 export const RAMP_ANGLE = Math.atan(RAMP_SLOPE)
+
+/** A wall switch on the north wall, at eye height. */
+export const SWITCH_POS: Vec3 = { x: 0, y: 1.65, z: -7.85 }
+export const SWITCH_RADIUS = 0.3
+
+/** A handrail run inside the zero-g zone, along Z. */
+export const RAIL_A: Vec3 = { x: -6, y: 1.2, z: -7 }
+export const RAIL_B: Vec3 = { x: -6, y: 1.2, z: -4 }
+
+/** A wrong-colored box the player can notice. Visual only. */
+export const TEST_BOX_POS: Vec3 = { x: 0, y: 1, z: 2 }
+export const TEST_BOX_SIZE = 0.8
+export const TEST_ANOMALY_ID = 'test-box'

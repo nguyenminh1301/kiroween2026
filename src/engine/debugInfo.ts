@@ -10,6 +10,8 @@ export interface SandboxInfo {
   zeroGZone: Box
   /** Timeline time in seconds of the latest test Timeline, or null if none was started. */
   testTimelineTime(): number | null
+  /** Whether the sandbox wall light is on. */
+  lightOn(): boolean
 }
 
 let sandboxInfo: SandboxInfo | null = null
