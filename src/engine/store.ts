@@ -1,21 +1,8 @@
 import { createStore } from 'zustand/vanilla'
 import type { ActId, MoveMode } from '../types'
+import { DEFAULT_SETTINGS, applySettings, type Settings } from './settings'
 
 export type Screen = 'title' | 'menu' | 'chapter' | 'play' | 'archive'
-
-export interface Settings {
-  sensitivity: number
-  volume: number
-  subtitleScale: number
-  reducedMotion: boolean
-}
-
-export const DEFAULT_SETTINGS: Settings = {
-  sensitivity: 1,
-  volume: 1,
-  subtitleScale: 1,
-  reducedMotion: false,
-}
 
 export interface GameState {
   screen: Screen
@@ -60,6 +47,6 @@ export const gameStore = createStore<GameState>()((set) => ({
   setTarget: (target) => set({ target }),
   addAnomalySeen: (id) =>
     set((s) => (s.anomaliesSeen.includes(id) ? s : { anomaliesSeen: [...s.anomaliesSeen, id] })),
-  setSettings: (partial) => set((s) => ({ settings: { ...s.settings, ...partial } })),
+  setSettings: (partial) => set((s) => ({ settings: applySettings(s.settings, partial) })),
   setUnlockedActs: (unlockedActs) => set({ unlockedActs: [...unlockedActs] }),
 }))
