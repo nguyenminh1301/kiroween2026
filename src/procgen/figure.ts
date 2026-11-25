@@ -37,7 +37,9 @@ export interface Figure {
 const HIP_Y = 0.95
 const NECK_Y = 1.53
 
-const SUIT = { pressure: '#f2ebdd', coverall: '#e6e1d2' }
+const SUIT = { pressure: '#f2ebdd', coverall: '#f4f0e6' }
+const PATCH = '#5a5648'
+const POCKET = '#d6d0bf'
 const BOOT = '#6d6a62'
 const GLOVE = '#cfc7b4'
 const BELT = '#4a463c'
@@ -87,10 +89,24 @@ export function buildFigure(opts: FigureOptions = {}): Figure {
     return o
   }
 
-  const hips = bone(root, 0, HIP_Y, 0, [box(0.34, 0.2, 0.2, suitColor, 0, 0.0, 0), box(0.35, 0.05, 0.21, BELT, 0, 0.12, 0)])
+  const cover = opts.suit === 'coverall'
+  const hips = bone(root, 0, HIP_Y, 0, [
+    box(0.34, 0.2, 0.2, suitColor, 0, 0.0, 0),
+    box(0.35, 0.06, 0.21, BELT, 0, 0.12, 0),
+    // Belt buckle and two hip pockets on the coverall.
+    ...(cover ? [box(0.06, 0.05, 0.22, '#b8b2a2', 0, 0.12, 0), box(0.09, 0.1, 0.03, POCKET, 0.13, -0.02, 0.11), box(0.09, 0.1, 0.03, POCKET, -0.13, -0.02, 0.11)] : []),
+  ])
   const spine = bone(hips, 0, 0.1, 0, [
     box(0.38, 0.5, 0.22, suitColor, 0, 0.3, 0),
-    ...(opts.suit === 'coverall' ? [] : [box(0.14, 0.14, 0.04, '#b8b2a2', 0, 0.38, 0.13)]),
+    ...(cover
+      ? [
+          // Chest pockets and two dark oil patches.
+          box(0.1, 0.1, 0.03, POCKET, 0.1, 0.4, 0.12),
+          box(0.1, 0.1, 0.03, POCKET, -0.1, 0.4, 0.12),
+          box(0.12, 0.08, 0.03, PATCH, -0.08, 0.2, 0.12),
+          box(0.07, 0.12, 0.23, PATCH, 0.12, 0.14, 0),
+        ]
+      : [box(0.14, 0.14, 0.04, '#b8b2a2', 0, 0.38, 0.13)]),
   ])
   const neckY = NECK_Y - HIP_Y - 0.1
   const headParts: BufferGeometry[] = helmet
@@ -113,10 +129,10 @@ export function buildFigure(opts: FigureOptions = {}): Figure {
     const shoulder = bone(spine, sx * 0.245, neckY - 0.06, 0, [cyl(0.075, 0.075, 0.1, suitColor, 0, 0, 0)])
     const upper = bone(shoulder, 0, 0, 0, [cyl(0.065, 0.055, 0.3, suitColor, 0, -0.15, 0)])
     const elbow = bone(upper, 0, -0.3, 0, [])
-    bone(elbow, 0, 0, 0, [cyl(0.055, 0.05, 0.27, suitColor, 0, -0.135, 0), box(0.09, 0.1, 0.07, GLOVE, 0, -0.32, 0)])
+    bone(elbow, 0, 0, 0, [cyl(0.055, 0.05, 0.27, suitColor, 0, -0.135, 0), box(0.09, 0.1, 0.07, GLOVE, 0, -0.32, 0), ...(cover ? [box(0.12, 0.07, 0.12, PATCH, 0, -0.04, 0)] : [])])
     const hip = bone(hips, sx * 0.1, -0.08, 0, [cyl(0.095, 0.075, 0.43, suitColor, 0, -0.215, 0)])
     const knee = bone(hip, 0, -0.45, 0, [])
-    bone(knee, 0, 0, 0, [cyl(0.075, 0.065, 0.3, suitColor, 0, -0.15, 0), box(0.12, 0.1, 0.27, BOOT, 0, -0.3, 0.05)])
+    bone(knee, 0, 0, 0, [cyl(0.075, 0.065, 0.3, suitColor, 0, -0.15, 0), box(0.12, 0.1, 0.27, BOOT, 0, -0.3, 0.05), ...(cover ? [box(0.14, 0.08, 0.14, PATCH, 0, -0.03, 0.02)] : [])])
     return { shoulder, elbow, hip, knee }
   }
   const L = side(1)

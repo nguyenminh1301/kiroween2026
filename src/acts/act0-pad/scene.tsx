@@ -11,7 +11,7 @@ import { Crowd } from './crowd'
 import { PadCrew } from './crew'
 
 const FOG = { color: '#c8b49a', near: 120, far: 700 }
-const GROUND_Y = -100
+const GROUND_Y = -75
 
 /** One merged geometry per material, so the walkway and the room cost a handful of draw calls. */
 function buildStatics() {
@@ -125,7 +125,7 @@ export function Scene() {
       <hemisphereLight args={['#9db7c9', '#4b4840', 1.0]} />
       <directionalLight color="#ffd8a8" intensity={1.3} position={[-60, 20, -100]} />
       <directionalLight color="#8fa8c8" intensity={0.4} position={[60, 30, 80]} />
-      <pointLight color="#ffd9a0" intensity={2.5} distance={7} decay={1.5} position={[0, 2.3, -7.5]} />
+      <pointLight color="#ffe2b0" intensity={5} distance={16} decay={1.4} position={[0, 2.3, -5.2]} />
 
       <primitive object={sky.mesh} />
       <primitive object={sun.mesh} />

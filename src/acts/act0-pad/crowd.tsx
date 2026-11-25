@@ -6,7 +6,7 @@ import { act0State } from './state'
 import { flashRate } from './crowdLogic'
 
 export const CROWD_COUNT = 4000
-const GROUND_Y = -100
+const GROUND_Y = -75
 const CROWD_PRIORITY = 700
 
 const VERT = /* glsl */ `
@@ -90,8 +90,9 @@ function build(count: number) {
   for (let i = 0; i < count; i++) {
     const side = rng() < 0.5 ? -1 : 1
     const u = rng()
-    const x = side * (45 + 215 * u * u)
-    const z = (rng() - 0.45) * 280
+    const far = i % 3 !== 0
+    const x = far ? side * (35 + 120 * u) : side * (45 + 215 * u * u)
+    const z = far ? -120 - rng() * 150 : (rng() - 0.45) * 280
     m.makeTranslation(x, GROUND_Y, z)
     mesh.setMatrixAt(i, m)
     for (let k = 0; k < 4; k++) seeds[i * 4 + k] = rng()

@@ -25,7 +25,7 @@ export interface BeatDeps {
 }
 
 export const START_DELAY = 0.8
-export const CROWD_FOCUS: Vec3 = { x: 110, y: -100, z: -10 }
+export const CROWD_FOCUS: Vec3 = { x: 110, y: -75, z: -10 }
 export const ROOM_FOCUS: Vec3 = { x: 0, y: 1.3, z: -7 }
 export const PERIODIC_CHEER = 0.7
 
