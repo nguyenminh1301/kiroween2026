@@ -1,6 +1,6 @@
 import { audio } from '../audio'
 import type { LoadableId } from '../engine/actLoader'
-import { getSandboxInfo, getSandboxInstances } from '../engine/debugInfo'
+import { getAct4Info, getSandboxInfo, getSandboxInstances, type Act4Info } from '../engine/debugInfo'
 import { frameDriver } from '../engine/frameDriver'
 import { markLockWasHeld, resumeGame } from '../engine/inputRuntime'
 import type { PlayerBody } from '../engine/playerBody'
@@ -53,6 +53,8 @@ export interface LosDebug {
   ui: { go(screen: Screen): void }
   /** Act 3 only: phase, alert, noise, hearing threshold and the creature. Null in other acts. */
   readonly director: DirectorSnapshot | null
+  /** Act 4 only: phase, timeline time, carried item, tasks done and the creature. Null in other acts. */
+  readonly act4: Act4Info | null
   /** Number of registered frame systems. */
   systemCount(): number
 }
@@ -97,6 +99,9 @@ export function installDebug(win: Window = window): void {
     ui: { go: (screen) => goScreen(screen) },
     get director() {
       return getDirector()
+    },
+    get act4() {
+      return getAct4Info()
     },
     systemCount: () => frameDriver.systemCount(),
   }

@@ -34,3 +34,22 @@ export function addSandboxInstance(delta: 1 | -1): void {
 export function getSandboxInstances(): number {
   return sandboxInstances
 }
+
+/** Act 4 numbers for `window.__los.act4`. */
+export interface Act4Info {
+  phase: string
+  /** Seconds into the current timeline (descent or liftoff), else 0. */
+  time: number
+  landerY: number
+  carrying: string | null
+  done: string[]
+  creature: { x: number; z: number; phase: string } | null
+}
+
+let act4Source: (() => Act4Info) | null = null
+
+export function setAct4Source(fn: (() => Act4Info) | null): void {
+  act4Source = fn
+}
+
+export const getAct4Info = (): Act4Info | null => (act4Source ? act4Source() : null)
