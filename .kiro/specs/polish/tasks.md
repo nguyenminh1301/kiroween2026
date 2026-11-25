@@ -8,4 +8,4 @@
 - [x] 6. E2E state waits and a stable chain (req 2.1)
 - [x] 7. `switch.mjs` with pause checks (req 3.1, 3.2)
 - [x] 8. `idle.mjs`, blocked audio run, reduced motion, perf table (req 3.3 to 3.6)
-- [ ] 9. Review pass against reference shots and copy pass (req 4.1)
+- [x] 9. Review pass against reference shots and copy pass (req 4.1)

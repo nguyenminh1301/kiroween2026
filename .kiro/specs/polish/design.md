@@ -12,3 +12,11 @@ Work is grouped by area. Each visual change is compared with the named reference
 - `switch.mjs` and `idle.mjs` are new e2e scripts added to `npm run e2e`. The missing-audio run is a mode of `playthrough.mjs` (`BLOCK_AUDIO=1`) run by `npm run e2e` after the normal one.
 - Perf stats are logged by `playthrough.mjs` at three points per act and checked against budgets.
 - Where an item says "fix anything else that reads worse" the changes are listed in the final report.
+
+## Decisions made during the work
+- Idle hint: an app-level frame system (`src/ui/idleHint.ts`) shows a hint slip after 20 s without input while an objective is on screen, and clears it on the next input. Needed for req 3.3, since the existing hints only show once for 6 s.
+- Debug contract additions (never renames): `gameTime()`, `shake()`, `look()`, `flicker()`.
+- Reduced motion also scales flame and plasma flicker by 0.3 (`flickerScale`) and dims the sleep flashes with CSS.
+- Pushes in the act 3 chase scripts wait for the velocity to change (bounded at 1.5 s) instead of a fixed settle. The playthrough accepts that a push near the hatch may already use it.
+- Voiced lines (`act0.intro1`, `act0.intro2`, `act5.end`) are not reworded, because `public/audio/` may not change and the text must match the recording.
+- Act 4 regolith and ambient light were raised after the review against `play-act4-surface.png`; the flag cloth and ground read too dark.
