@@ -16,9 +16,9 @@ export function drawEarthCloud(seed: number): PixelData {
     const g = 1 + (rng() - 0.5) * 0.03
     const l = land(x, y)
     let c = lerp(DEEP, OCEAN, Math.min(1, l * 1.6))
-    if (l > 0.62) c = LAND
+    if (l > 0.7) c = LAND
     const k = cloud(x + 40, y + 17)
-    if (k > 0.56) c = lerp(c, CLOUD, Math.min(1, (k - 0.56) * 9))
+    if (k > 0.68) c = lerp(c, CLOUD, Math.min(1, (k - 0.68) * 9))
     return scale(c, g)
   })
 }

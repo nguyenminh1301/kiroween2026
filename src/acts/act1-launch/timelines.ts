@@ -13,6 +13,10 @@ export interface NamedShot extends Shot {
 export const PAD_X = 3000
 export const SPACE_X = -3000
 export const TLI_Z = 1200
+/** Height of the stacks above the Earth's top point in the space set. */
+export const SPACE_Y = 150
+/** Height of the rocket base above the pad ground. */
+export const PAD_BASE_Y = 18
 export const LIFTOFF_AT = 4.5
 export const IGNITION_AT = 3.5
 export const STAGING_AT = 10
@@ -36,7 +40,7 @@ export const LAUNCH_SHOTS: NamedShot[] = [
     to: 3.3,
     fov: 55,
     far: 6000,
-    cam: (u) => ({ position: v(PAD_X + lerp(-170, -150, u), 24, 330), lookAt: v(PAD_X, 48, 0) }),
+    cam: (u) => ({ position: v(PAD_X + lerp(-130, -110, u), 28, 230), lookAt: v(PAD_X, 62, 0) }),
   },
   {
     name: 'padLow',
@@ -46,7 +50,7 @@ export const LAUNCH_SHOTS: NamedShot[] = [
     fov: 75,
     far: 6000,
     cam: (_u, t) =>
-      ({ position: v(PAD_X + 70, 6, 60), lookAt: v(PAD_X, 12 + rocketHeight(t) + 40, 0) }),
+      ({ position: v(PAD_X + 70, 6, 60), lookAt: v(PAD_X, PAD_BASE_Y + rocketHeight(t) + 40, 0) }),
   },
   {
     name: 'staging',
@@ -55,7 +59,7 @@ export const LAUNCH_SHOTS: NamedShot[] = [
     to: 12.6,
     fov: 60,
     far: 9000,
-    cam: (u) => ({ position: v(SPACE_X + lerp(60, 50, u), 12, 90), lookAt: v(SPACE_X, -6, 0) }),
+    cam: (u) => ({ position: v(SPACE_X + lerp(60, 50, u), SPACE_Y + 12, 90), lookAt: v(SPACE_X, SPACE_Y - 8, 0) }),
   },
 ]
 
@@ -68,8 +72,8 @@ export const TLI_SHOTS: NamedShot[] = [
     fov: 60,
     far: 9000,
     cam: (u) => ({
-      position: v(SPACE_X + lerp(40, 28, u), 150 + lerp(8, 2, u), TLI_Z + 55),
-      lookAt: v(SPACE_X, 145, TLI_Z),
+      position: v(SPACE_X + lerp(40, 28, u), SPACE_Y + lerp(50, 44, u), TLI_Z + 55),
+      lookAt: v(SPACE_X, SPACE_Y - 6, TLI_Z),
     }),
   },
 ]
