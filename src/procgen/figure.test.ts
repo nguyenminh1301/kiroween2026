@@ -26,3 +26,13 @@ describe('figure builder', () => {
     f.dispose()
   })
 })
+
+describe('sleeping pose', () => {
+  it('tips the head forward and lets the arms drift', async () => {
+    const { poseFor } = await import('./figurePose')
+    const p = poseFor('sleeping', 0)
+    expect(p.bones.neck[0]).toBeGreaterThan(0.4)
+    expect(p.bones.shoulderL[0]).toBeLessThan(-0.2)
+    expect(p.bones.elbowL[0]).toBeLessThan(-0.3)
+  })
+})

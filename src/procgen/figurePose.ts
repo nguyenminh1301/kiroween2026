@@ -1,5 +1,5 @@
 // Pure pose math for the figure. No Three.js imports. A figure faces +z, so its right side is -x.
-export type PoseKind = 'standing' | 'wave' | 'seated' | 'resting'
+export type PoseKind = 'standing' | 'wave' | 'seated' | 'resting' | 'sleeping'
 
 export type BoneName =
   | 'spine'
@@ -68,6 +68,16 @@ export function poseFor(kind: PoseKind, t: number, amount = 1): PoseResult {
       p.bones.elbowL = [-0.5, 0, 0]
       p.bones.elbowR = [-0.5, 0, 0]
       p.bones.neck = [0.3, 0, 0]
+      break
+    }
+    case 'sleeping': {
+      // Zipped into a bag in zero g: head tipped forward, arms loose and drifting.
+      p.bones.spine = [0.12 + Math.sin(t * 0.9) * 0.01, 0, 0]
+      p.bones.neck = [0.55 + Math.sin(t * 0.7) * 0.03, 0, 0]
+      p.bones.shoulderL = [-0.45 + Math.sin(t * 0.8) * 0.12, 0, 0.35 + Math.sin(t * 0.6) * 0.1]
+      p.bones.shoulderR = [-0.35 + Math.sin(t * 0.8 + 1.5) * 0.12, 0, -0.35 - Math.sin(t * 0.6 + 1) * 0.1]
+      p.bones.elbowL = [-0.55 + Math.sin(t * 0.9) * 0.1, 0, 0]
+      p.bones.elbowR = [-0.45 + Math.sin(t * 0.9 + 2) * 0.1, 0, 0]
       break
     }
     case 'resting': {

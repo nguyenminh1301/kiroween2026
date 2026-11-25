@@ -13,7 +13,9 @@ import {
   IcosahedronGeometry,
   InstancedMesh,
   Matrix4,
+  CylinderGeometry,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   PlaneGeometry,
   Quaternion,
   SphereGeometry,
@@ -122,8 +124,8 @@ function Flame({ level, radius, length, glow = 0 }: FlameProps) {
 
 /** Up to 600 low-poly puffs of smoke and steam pouring out along both sides of the trench and rising. */
 function Smoke() {
-  const geo = useMemo(() => new IcosahedronGeometry(1, 0), [])
-  const mat = useMemo(() => new MeshBasicMaterial({ color: '#ffffff', fog: false }), [])
+  const geo = useMemo(() => new IcosahedronGeometry(1, 1), [])
+  const mat = useMemo(() => new MeshLambertMaterial({ color: '#ffffff', emissive: '#7a766c', fog: false }), [])
   const mesh = useRef<InstancedMesh>(null)
   const seeds = useMemo(() => {
     const rng = createRng(77)
@@ -154,8 +156,10 @@ function Smoke() {
         const [r1, r2, r3] = seeds[i]
         const side = i % 2 ? 1 : -1
         const fade = a > SMOKE_LIFE - 1.5 ? (SMOKE_LIFE - a) / 1.5 : 1
-        p.set(side * (6 + a * (7 + r1 * 14)), 3 + a * (1.2 + r2 * 2.4) + r2 * 4, (r3 - 0.5) * (14 + a * 5))
-        s.setScalar((2 + a * 1.2 + r2 * 1.5) * fade)
+        // Puffs roll out along the trench, then lift and thin out.
+        const roll = 1 - Math.exp(-a * 0.9)
+        p.set(side * (5 + roll * (22 + r1 * 40)), 2 + roll * (3 + r2 * 4) + a * (0.6 + r2 * 1.4), (r3 - 0.5) * (12 + a * 4))
+        s.setScalar((1.2 + a * 0.55 + r2 * 1.2) * fade)
         mx.compose(p, q, s)
         m.setMatrixAt(i, mx)
       }
@@ -195,6 +199,21 @@ function PadSet() {
     () => ({
       slab: new BoxGeometry(110, 3, 110).translate(0, -1.5, 0),
       trench: new BoxGeometry(150, 0.2, 14).translate(0, 0.05, 0),
+      trenchWalls: mergeStatic([
+        new BoxGeometry(150, 5, 3).translate(0, 2.5, 8.5),
+        new BoxGeometry(150, 5, 3).translate(0, 2.5, -8.5),
+        // Flame deflector under the engines.
+        new BoxGeometry(16, 3, 14).rotateZ(0.5).translate(0, 1, 0),
+      ]),
+      service: mergeStatic([
+        new SphereGeometry(9, 8, 6).translate(-70, 9, -85),
+        new SphereGeometry(9, 8, 6).translate(-70, 9, -62),
+        new CylinderGeometry(3, 3, 22, 6).translate(70, 11, -70),
+        new BoxGeometry(24, 10, 18).translate(-110, 5, 40),
+        new BoxGeometry(2, 30, 2).translate(-95, 15, -30),
+        new BoxGeometry(2, 30, 2).translate(95, 15, -30),
+        new BoxGeometry(4, 2, 40).translate(0, 1, 95),
+      ]),
       ground: new PlaneGeometry(9000, 9000).rotateX(-Math.PI / 2).translate(0, -3.2, 0),
       legs: (() => {
         const g = [
@@ -234,6 +253,8 @@ function PadSet() {
       <mesh geometry={geo.ground} material={mat.ground} />
       <mesh geometry={geo.slab} material={mat.pad} />
       <mesh geometry={geo.trench} material={mat.trench} />
+      <mesh geometry={geo.trenchWalls} material={mat.pad} />
+      <mesh geometry={geo.service} material={mat.leg} />
       <mesh geometry={geo.legs} material={mat.leg} />
       <mesh geometry={tower} material={mat.tower} position={[-40, 0, 0]} />
       <group ref={rocket} position={[0, PAD_BASE_Y, 0]}>

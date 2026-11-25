@@ -38,9 +38,9 @@ export const LAUNCH_SHOTS: NamedShot[] = [
     view: 'pad',
     from: 0,
     to: 3.3,
-    fov: 55,
+    fov: 50,
     far: 6000,
-    cam: (u) => ({ position: v(PAD_X + lerp(-130, -110, u), 28, 230), lookAt: v(PAD_X, 62, 0) }),
+    cam: (u) => ({ position: v(PAD_X + lerp(-105, -90, u), 24, 175), lookAt: v(PAD_X - 10, 58, 0) }),
   },
   {
     name: 'padLow',

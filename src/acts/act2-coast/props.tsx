@@ -89,10 +89,12 @@ function triangle(scale: number): BufferGeometry {
 
 function sleeperBag(x: number, z: number, wallSign: number): BufferGeometry {
   const parts: BufferGeometry[] = [
-    cbox(0.5, 1.0, 0.5, '#8c8a78', x, 0.65, z),
+    // Zipped up to the chest.
+    cbox(0.5, 1.2, 0.5, '#8c8a78', x, 0.75, z),
     cbox(0.52, 0.06, 0.52, '#6d6a5a', x, 0.35, z),
-    cbox(0.52, 0.06, 0.52, '#6d6a5a', x, 0.8, z),
-    cbox(0.03, 0.8, 0.04, '#b9b5a2', x - wallSign * 0.26, 0.7, z),
+    cbox(0.52, 0.06, 0.52, '#6d6a5a', x, 0.9, z),
+    cbox(0.52, 0.05, 0.52, '#5d5a4c', x, 1.33, z),
+    cbox(0.03, 1.0, 0.04, '#b9b5a2', x - wallSign * 0.26, 0.85, z),
   ]
   return mergeColored(parts)
 }
@@ -191,8 +193,8 @@ export function Props({ cmFar }: { cmFar: number }) {
     const tilt = new Quaternion().setFromEuler(new Euler(-Math.PI / 2 + 0.5, 0, 0.2))
     const v = new Vector3()
     return registerSystem('act2-props', PROP_PRIORITY, (_dt, t) => {
-      figures.cdr.setPose('standing', t * 0.3)
-      figures.cmp.setPose('standing', t * 0.3 + 2)
+      figures.cdr.setPose('sleeping', t * 0.3)
+      figures.cmp.setPose('sleeping', t * 0.3 + 2)
       figures.cdr.root.position.y = figures.cy + Math.sin(t * 0.7) * 0.04
       figures.cmp.root.position.y = figures.my + Math.sin(t * 0.7 + 2) * 0.04
       const pg = penRef.current
