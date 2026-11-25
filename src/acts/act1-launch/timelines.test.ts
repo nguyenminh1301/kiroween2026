@@ -63,7 +63,7 @@ describe('launch timeline', () => {
   it('has the shot windows', () => {
     const at = (t: number) => shotAt(LAUNCH_SHOTS, t)?.name ?? null
     expect([2, 4, 6, 11, 14].map(at)).toEqual(['padFar', null, 'padLow', 'staging', null])
-    expect(LAUNCH_SHOTS.map((s) => s.fov)).toEqual([55, 75, 60])
+    expect(LAUNCH_SHOTS.map((s) => s.fov)).toEqual([50, 75, 60])
   })
 
   it('shakes, climbs and sounds the alarm on schedule', () => {
