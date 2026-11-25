@@ -9,4 +9,4 @@ Eight tasks. Each ends with `npm run test`, `npm run lint` and one commit. The f
 - [x] 5. Scene assembly and per-frame updates (sky, engine, alarm, views) (req 1.5, 1.6, 2.5).
 - [x] 6. Runtime wiring: start, interactables, sighting, launch and TLI timelines, hand-off (req 3, 4, 5, 6).
 - [x] 7. `e2e/act1.mjs` and the `npm run e2e` chain.
-- [ ] 8. Budget check against the reference shots and the six checks (req 7.2).
+- [x] 8. Budget check against the reference shots and the six checks (req 7.2).
