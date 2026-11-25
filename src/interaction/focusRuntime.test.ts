@@ -37,6 +37,23 @@ function setup() {
 }
 
 describe('focus runtime', () => {
+  it('a scripted look never lasts longer than 1.5 s, whatever it asks for', () => {
+    const t = setup()
+    t.controller.focusOn({ x: 0, y: 1.65, z: 10 }, 4)
+    for (let i = 0; i < 29; i++) t.driver.step(0.05)
+    expect(t.controller.isFocusActive()).toBe(true)
+    for (let i = 0; i < 2; i++) t.driver.step(0.05)
+    expect(t.controller.isFocusActive()).toBe(false)
+    expect(t.provider.fn).toBeNull()
+  })
+
+  it('the default look also ends within 1.5 s', () => {
+    const t = setup()
+    t.controller.focusOn({ x: 0, y: 1.65, z: 10 })
+    for (let i = 0; i < 31; i++) t.driver.step(0.05)
+    expect(t.controller.isFocusActive()).toBe(false)
+  })
+
   // Feature: engine-core, Property 44: Focus time does not advance while paused
   // **Validates: Requirements 15.10**
   it('Property 44: only unpaused steps advance the Focus', () => {

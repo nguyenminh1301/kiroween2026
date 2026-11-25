@@ -10,13 +10,16 @@ import { clearFocus as clearFocusState, startFocus, stepFocus, type FocusState }
 /** After player movement, before the timeline (500), so a Shot can still override the view. */
 export const FOCUS_PRIORITY = 200
 
+/** A scripted look turns the view for at most this long. Walking is never blocked. */
+export const MAX_LOOK_SECONDS = 1.5
+
 export interface FocusBodyAccess {
   get(): PlayerBody | null
   set(body: PlayerBody): void
 }
 
 export interface FocusController {
-  /** Turn toward `target` over `seconds` (default 2). With `hold`, keep facing it until cleared. Replaces any running Focus. */
+  /** Turn toward `target` over `seconds` (at most 1.5, the default). With `hold`, keep facing it until cleared. Replaces any running Focus. */
   focusOn(target: Vec3 | (() => Vec3), seconds?: number, hold?: boolean): void
   clearFocus(): void
   /** True while a scripted camera move runs. Backs the debug contract `focus()`. */
@@ -62,12 +65,17 @@ export function createFocusController(deps: FocusControllerDeps = {}): FocusCont
   }
 
   return {
-    focusOn(target, seconds = 2, hold = false) {
+    focusOn(target, seconds = MAX_LOOK_SECONDS, hold = false) {
       const body = access?.get() ?? null
       if (!body) return
       const targetFn = typeof target === 'function' ? target : () => target
       // Start from the current, possibly mid-turn, view.
-      state = startFocus({ yaw: body.yaw, pitch: body.pitch }, targetFn, seconds, hold)
+      state = startFocus(
+        { yaw: body.yaw, pitch: body.pitch },
+        targetFn,
+        Math.min(seconds, MAX_LOOK_SECONDS),
+        hold,
+      )
       installProvider(isActive)
       if (!unregister) {
         unregister = register('focus', FOCUS_PRIORITY, tick, { pausable: true })
