@@ -82,4 +82,42 @@ export const LINES: Record<string, Line> = {
     speaker: 'CAPCOM',
     text: 'Apollo 11, Houston. You are on your way. Get some rest, it is a long drive.',
   },
+  'act2.night': {
+    speaker: 'CMP',
+    text: 'Neil and I are turning in. Do not stay down there all night, Buzz.',
+  },
+  'act2.out': {
+    speaker: 'CDR',
+    text: 'Houston wants that lander fault checked before we sleep. Float down and take a look.',
+  },
+  'act2.breaker': {
+    speaker: 'CDR',
+    mood: 'distant',
+    text: 'Engine arm breaker. The knob snapped off. Find something to push it in with.',
+  },
+  'act2.pen': {
+    speaker: 'CDR',
+    mood: 'distant',
+    text: 'A pen. That will do. Push the breaker in with it.',
+  },
+  'act2.fixed': {
+    speaker: 'CDR',
+    mood: 'distant',
+    text: 'That did it. Come on back up, we are turning in.',
+  },
+  'act2.longer': {
+    speaker: 'CMP',
+    text: 'You were gone a while. That tunnel is three pushes. Did you get lost in there?',
+  },
+  'act2.sleep': { speaker: 'CDR', text: 'Lights out. Get in your bag, Buzz. Big day tomorrow.' },
+  'act2.flashes': {
+    speaker: 'CMP',
+    mood: 'whisper',
+    text: 'You see the flashes too? Every time I shut my eyes.',
+  },
+  'act2.breath': {
+    speaker: 'CMP',
+    mood: 'whisper',
+    text: 'Who is breathing like that? There are only three of us in here.',
+  },
 }
