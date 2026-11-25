@@ -62,7 +62,7 @@ try {
   // 4: every audio request blocked. No errors, subtitle still shows.
   const blocked = await browser.newPage({ viewport: { width: 1280, height: 720 } })
   blocked.on('pageerror', (e) => errors.push(`pageerror (blocked): ${e.message}`))
-  await blocked.route((u) => new URL(u).pathname.startsWith('/audio/'), (r) => r.abort())
+  await blocked.route((u) => new URL(u).pathname.includes('/audio/'), (r) => r.abort())
   await ready(blocked)
   await blocked.click('canvas')
   for (const key of ['Digit1', 'Digit2', 'Digit3', 'Digit4']) await blocked.keyboard.press(key)

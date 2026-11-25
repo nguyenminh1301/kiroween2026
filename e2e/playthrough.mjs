@@ -38,7 +38,7 @@ try {
   })
   if (blockAudio) {
     await page.route(
-      (u) => new URL(u).pathname.startsWith('/audio/'),
+      (u) => new URL(u).pathname.includes('/audio/'),
       (r) => {
         blockedRequests++
         return r.abort()

@@ -4,6 +4,7 @@ import { LINES } from '../content/subtitles'
 import { gameStore } from '../engine/store'
 import type { Vec3 } from '../types'
 import { SAMPLE_NAMES, voKey, voicedIds } from './sampleNames'
+import { assetUrl } from './assetUrl'
 
 export type BusName = 'ambience' | 'sfx' | 'voice' | 'body'
 
@@ -113,8 +114,8 @@ async function loadOne(key: string, url: string): Promise<void> {
 function startLoading(): void {
   if (loadStarted) return
   loadStarted = true
-  for (const name of SAMPLE_NAMES) void loadOne(name, `/audio/${name}.mp3`)
-  for (const id of voicedIds(LINES)) void loadOne(voKey(id), `/audio/vo/${id}.mp3`)
+  for (const name of SAMPLE_NAMES) void loadOne(name, assetUrl(`audio/${name}.mp3`))
+  for (const id of voicedIds(LINES)) void loadOne(voKey(id), assetUrl(`audio/vo/${id}.mp3`))
 }
 
 export const engine = {
