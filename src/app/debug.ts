@@ -14,6 +14,7 @@ import { installRenderDebug, type RenderDebug } from '../render/renderDebug'
 import { getRenderStats } from '../render/renderStats'
 import type { RenderStats } from '../render/stats'
 import type { Screen } from '../engine/store'
+import { getActiveTimeline } from '../engine/unloadReset'
 import { loader } from './loader'
 import { goScreen } from './session'
 
@@ -32,6 +33,8 @@ export interface LosDebug {
     launch(dir: Vec3): void
   }
   focus(): boolean
+  /** Time in seconds of the running Timeline, or null when none runs. */
+  timeline(): number | null
   interactables(): { id: string; verb: string; position: Vec3; enabled: boolean }[]
   lock: { markHeld(held?: boolean): void; resume(): void }
   sandbox: {
@@ -73,6 +76,10 @@ export function installDebug(win: Window = window): void {
       launch: (dir) => launchPlayer(dir),
     },
     focus: () => focus.isFocusActive(),
+    timeline: () => {
+      const t = getActiveTimeline()
+      return t && !t.finished ? t.time() : null
+    },
     interactables: () =>
       getInteractables().map((i) => ({ id: i.id, verb: i.verb, position: { ...i.position }, enabled: i.enabled() })),
     lock: { markHeld: (held = true) => markLockWasHeld(held), resume: () => resumeGame() },
