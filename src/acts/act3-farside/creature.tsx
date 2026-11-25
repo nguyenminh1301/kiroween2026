@@ -105,7 +105,7 @@ function build(mat: Mesh['material']): Bones {
 }
 
 /** Pose the bones for the current animation. `t` is time in seconds, `phase` the gait phase. */
-export function pose(b: Bones, anim: 'walk' | 'freeze' | 'crawl', t: number, phase: number): void {
+function pose(b: Bones, anim: 'walk' | 'freeze' | 'crawl', t: number, phase: number): void {
   const s = Math.sin(phase)
   const c = Math.cos(phase)
   b.cables.forEach((cb, i) => {
