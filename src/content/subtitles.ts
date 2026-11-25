@@ -228,4 +228,28 @@ export const LINES: Record<string, Line> = {
     speaker: 'CMP',
     text: 'Eagle, Columbia. I have you in the sextant. Come on up, I kept your seats warm.',
   },
+  'act5.entry': { speaker: 'CDR', text: 'Entry interface. Here comes the atmosphere. Hang on.' },
+  'act5.blackout': {
+    speaker: 'CMP',
+    text: 'There goes the radio. For three minutes nobody can hear us.',
+  },
+  'act5.radar': { speaker: 'CAPCOM', text: 'Apollo 11, Houston. We have you on radar. Welcome back.' },
+  'act5.mains': {
+    speaker: 'CDR',
+    text: 'Three good mains. Mike, look out the window. That is ocean.',
+  },
+  'act5.splash': {
+    speaker: 'CMP',
+    mood: 'shout',
+    text: 'Splashdown! We are down! Buzz, we are home!',
+  },
+  'act5.hornet': {
+    speaker: 'HORNET',
+    text: 'Columbia, Hornet. Swimmers are in the water. Stay put, we are coming to get you.',
+  },
+  'act5.end': {
+    speaker: 'NARRATOR',
+    voiced: true,
+    text: 'Three men came home from the Moon. What came up with them stayed there, burned.',
+  },
 }

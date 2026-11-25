@@ -5,6 +5,7 @@ export const HUD = {
   distant: '(far away)',
   alarm: 'PROG ALARM',
   dsky: { prog: 'PROG', verb: 'VERB', noun: 'NOUN' },
+  heliMarkings: { name: 'NAVY', number: '66' },
   burnRoutine: 'BURN_BABY_BURN--MASTER_IGNITION_ROUTINE',
   caught: 'It found you. Back to the last checkpoint.',
   meter: {
