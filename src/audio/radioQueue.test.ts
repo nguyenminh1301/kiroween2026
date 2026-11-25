@@ -101,4 +101,54 @@ describe('radio queue', () => {
     expect(started).toBe(1)
     expect(sub()?.speaker).toBe('UNKNOWN')
   })
+
+  it('drops queued lines of earlier beats and cuts the playing one', () => {
+    const log: string[] = []
+    let sub: Subtitle | null = null
+    const radio = createRadioQueue({
+      lines,
+      seconds: (_id, l) => l.seconds ?? 1,
+      start: (id) => {
+        log.push(`start ${id}`)
+        return { stop: () => log.push(`stop ${id}`), fadeOut: (s) => log.push(`fade ${id} ${s}`) }
+      },
+      setSubtitle: (s) => {
+        sub = s
+      },
+    })
+    const done: string[] = []
+    void radio.say('a').then(() => done.push('a'))
+    void radio.say('b').then(() => done.push('b'))
+    radio.setBeat(1)
+    expect(log).toEqual(['start a', 'fade a 0.5'])
+    expect(sub).toBeNull()
+    expect(radio.ids()).toEqual([])
+    return Promise.resolve().then(() => {
+      expect(done.sort()).toEqual(['a', 'b'])
+      void radio.say('c')
+      expect(radio.ids()).toEqual(['c'])
+      expect(sub?.text).toBe('three')
+    })
+  })
+
+  it('keeps lines queued in the new beat', () => {
+    const { radio, advance, sub } = setup()
+    void radio.say('a')
+    radio.setBeat(1)
+    void radio.say('b')
+    void radio.say('c', { beat: 1 })
+    radio.setBeat(1)
+    advance(0.5)
+    expect(radio.ids()).toContain('c')
+    expect(sub()?.text).toBe('two')
+  })
+
+  it('never queues a line twice', () => {
+    const { radio } = setup()
+    void radio.say('a')
+    void radio.say('b')
+    void radio.say('b')
+    void radio.say('a')
+    expect(radio.ids()).toEqual(['a', 'b'])
+  })
 })

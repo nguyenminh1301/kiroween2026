@@ -13,10 +13,17 @@ export interface SayOptions {
   speaker?: Speaker
   /** Called when the line appears. */
   onStart?: () => void
+  /** The beat that queued the line. Defaults to the current beat. */
+  beat?: number
 }
+
+/** A line from an earlier beat that is cut short fades out in this many seconds. */
+export const BEAT_FADE_SECONDS = 0.5
 
 export interface LineHandle {
   stop(): void
+  /** End the sound softly within `seconds`. Without it the queue calls `stop`. */
+  fadeOut?(seconds: number): void
   pause?(): void
   resume?(): void
 }
@@ -34,6 +41,7 @@ interface Item {
   id: string
   line: Line
   opts: SayOptions
+  beat: number
   resolve: () => void
 }
 
@@ -51,6 +59,13 @@ export interface RadioQueue {
   ids(): string[]
   pauseAudio(): void
   resumeAudio(): void
+  /** The current beat. Starts at 0. */
+  beat(): number
+  /**
+   * Move to a later beat. Queued lines of earlier beats are dropped, a playing line of an
+   * earlier beat fades out within 0.5 s and its subtitle goes at once. Their promises resolve.
+   */
+  setBeat(beat: number): void
   /** End the current line and drop the queue. Every pending promise resolves. */
   clear(): void
 }
@@ -60,6 +75,7 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
   let current: Current | null = null
   let gap = 0
   let key = 0
+  let beat = 0
 
   const guard = (fn: () => void): void => {
     try {
@@ -75,6 +91,17 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
     current = null
     gap = LINE_GAP
     guard(() => c.handle?.stop())
+    guard(() => deps.setSubtitle(null))
+    c.item.resolve()
+  }
+
+  function cutCurrent(): void {
+    const c = current
+    if (!c) return
+    current = null
+    gap = 0
+    const h = c.handle
+    guard(() => (h?.fadeOut ? h.fadeOut(BEAT_FADE_SECONDS) : h?.stop()))
     guard(() => deps.setSubtitle(null))
     c.item.resolve()
   }
@@ -114,7 +141,12 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
       const line = deps.lines[id]
       if (!line) return Promise.resolve()
       return new Promise<void>((resolve) => {
-        const item: Item = { id, line, opts, resolve }
+        const item: Item = { id, line, opts, beat: opts.beat ?? beat, resolve }
+        // A line is never queued twice: it is already waiting or playing.
+        if (!opts.urgent && (current?.item.id === id || queue.some((q) => q.id === id))) {
+          resolve()
+          return
+        }
         if (opts.urgent) {
           endCurrent()
           dropQueue()
@@ -139,6 +171,21 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
       if (gap <= 0) startNext()
     },
 
+    beat: () => beat,
+
+    setBeat(next) {
+      if (!(next > beat)) return
+      beat = next
+      const keep: Item[] = []
+      for (const i of queue) {
+        if (i.beat < beat) i.resolve()
+        else keep.push(i)
+      }
+      queue = keep
+      if (current && current.item.beat < beat) cutCurrent()
+      if (!current && gap <= 0) startNext()
+    },
+
     ids() {
       return [...(current ? [current.item.id] : []), ...queue.map((i) => i.id)]
     },
@@ -157,6 +204,7 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
       endCurrent()
       dropQueue()
       gap = 0
+      beat = 0
     },
   }
 }

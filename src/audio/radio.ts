@@ -92,15 +92,31 @@ function start(id: string, line: Line, opts: SayOptions, speaker: Speaker): Line
       if (!buf || !out) break
       let offset = 0
       let startedAt = now
+      let playing: AudioBufferSourceNode | null = null
+      const gain = ctx.createGain()
+      gain.connect(out.input)
       const play = (): void => {
         const s = ctx.createBufferSource()
         s.buffer = buf
-        s.connect(out.input)
+        s.connect(gain)
+        playing = s
         s.start(0, offset)
         startedAt = ctx.currentTime
         stops.push(() => s.stop())
       }
       play()
+      handle.fadeOut = (seconds) => {
+        const t = ctx.currentTime
+        gain.gain.cancelScheduledValues(t)
+        gain.gain.setValueAtTime(gain.gain.value, t)
+        gain.gain.linearRampToValueAtTime(0, t + seconds)
+        try {
+          playing?.stop(t + seconds + 0.02)
+        } catch {
+          /* already stopped */
+        }
+        untrack()
+      }
       handle.pause = () => {
         offset = Math.min(buf.duration, offset + (ctx.currentTime - startedAt))
         stopAll()
@@ -145,8 +161,22 @@ const queue = createRadioQueue({
   setSubtitle: (s) => gameStore.getState().setSubtitle(s),
 })
 
+/**
+ * Say a line and run `done` when it ends. `done` is skipped when the beat moved on meanwhile,
+ * because then the line was dropped or cut and the chain it belongs to is stale.
+ */
+function sayThen(id: string, opts: SayOptions, done: () => void): void {
+  const b = queue.beat()
+  void queue.say(id, { ...opts, beat: opts.beat ?? b }).then(() => {
+    if (queue.beat() === b) done()
+  })
+}
+
 export const radio = {
   say: queue.say,
+  sayThen,
+  beat: queue.beat,
+  setBeat: queue.setBeat,
   tick: queue.tick,
   ids: queue.ids,
   clear: queue.clear,

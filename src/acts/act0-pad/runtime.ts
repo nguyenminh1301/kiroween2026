@@ -67,11 +67,12 @@ export function startAct0(): void {
   const deps: BeatDeps = {
     say(id, opts, done) {
       void radio
-        .say(id, { urgent: opts.urgent, onStart: opts.onStart, position: LINE_POSITION[id] })
+        .say(id, { urgent: opts.urgent, beat: opts.beat, onStart: opts.onStart, position: LINE_POSITION[id] })
         .then(() => {
           if (alive) done()
         })
     },
+    setBeat: (n) => radio.setBeat(n),
     focusOn: (target, seconds) => focus.focusOn(target, seconds),
     headOf,
     setObjective: (key) => gameStore.getState().setObjective(key ? CHECKLISTS[key] : null),

@@ -9,11 +9,15 @@ export interface SayOptions {
   /** Clear the queue and say this line now. */
   urgent?: boolean
   onStart?: () => void
+  /** The beat that said the line. */
+  beat?: number
 }
 
 export interface BeatDeps {
   /** Say a line. `done` runs when it ends (or is dropped). */
   say(id: string, opts: SayOptions, done: () => void): void
+  /** A new beat started: queued lines of earlier beats are dropped. */
+  setBeat?(beat: number): void
   focusOn(target: Vec3 | (() => Vec3), seconds?: number): void
   headOf(name: string): () => Vec3
   setObjective(key: ObjectiveKey | null): void
@@ -47,10 +51,16 @@ export function createBeats(deps: BeatDeps): Beats {
   let inRoom = false
   let boarded = false
   let cheerLeft = cheerPeriod(false)
+  let beat = 0
+  const go = (n: number): void => {
+    beat = n
+    deps.setBeat?.(n)
+  }
 
   const say = (id: string, opts: SayOptions, done: () => void = () => {}): void => {
-    deps.say(id, opts, () => {
-      if (!boarded || id === 'act0.board') done()
+    const b = beat
+    deps.say(id, { ...opts, beat: b }, () => {
+      if (b === beat && (!boarded || id === 'act0.board')) done()
     })
   }
 
@@ -59,8 +69,11 @@ export function createBeats(deps: BeatDeps): Beats {
     deps.showHint('walk')
     say('act0.intro1', {}, () =>
       say('act0.intro2', { onStart: () => deps.focusOn(CROWD_FOCUS) }, () =>
-        say('act0.pad1', { onStart: () => deps.focusOn(deps.headOf('pad0')) }, () => {
-          if (!waved) deps.setObjective('act0Wave')
+        say('act0.pad1', {
+          onStart: () => {
+            deps.focusOn(deps.headOf('pad0'))
+            if (!waved) deps.setObjective('act0Wave')
+          },
         }),
       ),
     )
@@ -83,6 +96,7 @@ export function createBeats(deps: BeatDeps): Beats {
       deps.cheer(1)
       if (waved) return
       waved = true
+      go(1)
       cheerLeft = cheerPeriod(true)
       deps.setObjective('act0Board')
       say('act0.pad2', { onStart: () => deps.focusOn(ROOM_FOCUS) })
@@ -90,6 +104,7 @@ export function createBeats(deps: BeatDeps): Beats {
     enterRoom() {
       if (inRoom || boarded) return
       inRoom = true
+      go(2)
       say('act0.pad3', { onStart: () => deps.focusOn(deps.headOf('pad1')) })
     },
     board() {

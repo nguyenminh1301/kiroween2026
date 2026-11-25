@@ -36,6 +36,7 @@ import {
   START_POS,
   TUNNEL_VIEW,
 } from './layout'
+import { createAct2Beats, type ObjectiveKey } from './beats'
 import { createPhases } from './phases'
 import { createSleepTimer } from './sleepTimer'
 import { act2State, resetAct2State, setCmFar } from './state'
@@ -43,8 +44,6 @@ import { act2State, resetAct2State, setCmFar } from './state'
 const LOGIC_PRIORITY = 300
 /** Before the player step (100), so the eased body enters the tunnel without a collision. */
 const GUIDE_PRIORITY = 90
-
-type ObjectiveKey = 'act2Out' | 'act2Fix' | 'act2Push' | 'act2Back' | 'act2Sleep' | 'act2Eyes'
 
 export function startAct2(): void {
   resetAct2State()
@@ -68,11 +67,6 @@ export function startAct2(): void {
   gameStore.getState().setHeartRate(76)
 
   const phases = createPhases()
-  const say = (id: string, onStart?: () => void, done: () => void = () => {}): void => {
-    void radio.say(id, { onStart }).then(() => {
-      if (alive) done()
-    })
-  }
   const setObjective = (key: ObjectiveKey | null): void =>
     gameStore.getState().setObjective(key ? CHECKLISTS[key] : null)
 
@@ -84,12 +78,18 @@ export function startAct2(): void {
   }
   buildRails()
 
+  const beats = createAct2Beats({
+    radio,
+    alive: () => alive,
+    focusOn: (t, secs) => focus.focusOn(t, secs),
+    headOf,
+    setObjective,
+    outView: OUT_VIEW,
+    breakerPos: BREAKER_POS,
+    tunnelView: TUNNEL_VIEW,
+  })
   setObjective('act2Out')
-  addTimeout(() => {
-    say('act2.night', () => focus.focusOn(headOf('cmp'), 1.2), () =>
-      say('act2.out', () => focus.focusOn(OUT_VIEW, 1.5)),
-    )
-  }, 1)
+  addTimeout(() => beats.begin(), 1)
 
   // Positions that move with `cmFar` are mutated in place.
   const bagPosition = { ...bagPos(act2State.cmFar) }
@@ -104,8 +104,7 @@ export function startAct2(): void {
       if (!phases.takePen()) return
       audio.play('click')
       act2State.penHeld = true
-      setObjective('act2Push')
-      say('act2.pen')
+      beats.takePen()
     },
   })
   registerInteractable({
@@ -125,15 +124,14 @@ export function startAct2(): void {
       setCmFar(far)
       Object.assign(bagPosition, bagPos(far))
       buildRails()
-      setObjective('act2Back')
+      beats.fixBreaker()
       gameStore.getState().setTension('UNEASE')
-      say('act2.fixed', () => focus.focusOn(TUNNEL_VIEW, 1.5))
     },
   })
 
   const timer = createSleepTimer({
     rng: Math.random,
-    whisper: (id) => say(id),
+    whisper: (id) => beats.say(id),
     setBlackout: (v) => fxStore.getState().setBlackout(v),
     setFlashes: (f) => fxStore.getState().setFlashes(f),
     breathe: () => audio.play('breathe', { position: breathPos(act2State.cmFar) }),
@@ -166,7 +164,7 @@ export function startAct2(): void {
         pitch: 0,
         mode: 'seated',
       })
-      setObjective('act2Eyes')
+      beats.enterBag()
       void showHint('sleep')
     },
   })
@@ -195,8 +193,7 @@ export function startAct2(): void {
       const z = body.pos.z
       if (phases.phase() === 'outbound') {
         if (z < LANDER_ENTRY_Z && phases.crossLander()) {
-          setObjective('act2Fix')
-          say('act2.breaker', () => focus.focusOn(BREAKER_POS, 1.5))
+          beats.crossLander()
         }
         if (!shownPush) {
           const eye = eyePosition(body)
@@ -207,11 +204,7 @@ export function startAct2(): void {
         }
       } else if (phases.phase() === 'return' && z > act2State.cmFar && phases.crossCm()) {
         gameStore.getState().addAnomalySeen('tunnel-longer')
-        say('act2.longer', () => focus.focusOn(headOf('cmp'), 1.2), () =>
-          say('act2.sleep', () => focus.focusOn(headOf('cdr'), 1.2), () => {
-            if (!phases.inBag()) setObjective('act2Sleep')
-          }),
-        )
+        beats.crossCm()
       }
       if (phases.inBag()) timer.tick(dt, inputState.held.closeEyes)
     },

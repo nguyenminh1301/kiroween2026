@@ -27,7 +27,7 @@ function setup() {
 }
 
 describe('act 0 beats', () => {
-  it('runs the intro lines, then pad1, then the wave objective', () => {
+  it('runs the intro lines, then pad1 with the wave objective', () => {
     const { beats, log, end, run } = setup()
     run(0.5)
     expect(log).toEqual([])
@@ -36,10 +36,10 @@ describe('act 0 beats', () => {
     end('act0.intro1')
     expect(log.slice(-2)).toEqual(['say:act0.intro2', 'focus'])
     end('act0.intro2')
-    expect(log.slice(-2)).toEqual(['say:act0.pad1', 'focus'])
-    expect(log).not.toContain('obj:act0Wave')
+    // The objective shows when the pad1 line starts, not when it ends.
+    expect(log.slice(-3)).toEqual(['say:act0.pad1', 'focus', 'obj:act0Wave'])
     end('act0.pad1')
-    expect(log.at(-1)).toBe('obj:act0Wave')
+    expect(log.filter((l) => l === 'obj:act0Wave').length).toBe(1)
     expect(beats.state().waved).toBe(false)
   })
 
@@ -47,10 +47,18 @@ describe('act 0 beats', () => {
     const { beats, log, end, run } = setup()
     run(1)
     end('act0.intro1')
-    end('act0.intro2')
     beats.wave()
+    end('act0.intro2')
     end('act0.pad1')
     expect(log).not.toContain('obj:act0Wave')
+  })
+
+  it('drops the old chain when the beat changes', () => {
+    const { beats, log, end, run } = setup()
+    run(1)
+    beats.wave()
+    end('act0.intro1')
+    expect(log).not.toContain('say:act0.intro2')
   })
 
   it('gives act0Board and pad2 once, then only cheers', () => {
