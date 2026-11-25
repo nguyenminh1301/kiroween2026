@@ -213,7 +213,7 @@ try {
   await teleport3(0, -12.6)
   await wait(() => window.__los.store.getState().anomaliesSeen.includes('impostor-capcom'), null, 30000)
   check(await seen('impostor-capcom'), 'impostor-capcom noticed')
-  await subtitle('That is not Houston', 20000)
+  await subtitle('That is not Houston', 60000)
   await teleport3(0, -37.5)
   await page.waitForTimeout(300)
   await teleport3(0, -38.3)

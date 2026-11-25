@@ -121,7 +121,7 @@ try {
   await teleport(0, -12.6)
   await subtitle('how many crew aboard', 20000)
   check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('impostor-capcom')), 'impostor anomaly')
-  await subtitle('That is not Houston', 20000)
+  await subtitle('That is not Houston', 60000)
   await teleport(0, -16.6)
   await page.keyboard.down('Space')
   for (let i = 0; i < 10; i++) {

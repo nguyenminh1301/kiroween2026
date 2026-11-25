@@ -24,5 +24,7 @@ Work is grouped by area. Each visual change is compared with the named reference
 ## E2E on SwiftShader: slow and timing-sensitive scripts
 Measured in the closing run against a dev server on port 5180 (headless Chromium, SwiftShader).
 - Slow: `idle.mjs` (about 6 min, it waits out real idle timers), `playthrough.mjs` (about 3 min, 4 to 5 min with `BLOCK_AUDIO=1`), `switch.mjs` (about 2.5 min), `act3.mjs`, `act4.mjs` and `act5.mjs` (about 1.5 to 2 min each).
-- Timing-sensitive: `act3.mjs` chase. Its "still running, not caught" check failed once and passed on the rerun; the monster can close in when SwiftShader frames are slow.
+- Timing-sensitive: `act3.mjs` chase and its `wp0 set` check. They failed in two full chains while the machine load average was about 9, and passed in every standalone run. A logged standalone run kept the chase gap at 6 (its maximum) with 16.7 ms frames, so the failures come from slow frames under load, not from the script's steps.
+- Timing-sensitive: the "That is not Houston" line in `playthrough.mjs` and `act3.mjs`. It starts only after the impostor line ends, and once took over 20 s under load with audio blocked. The wait is now 60 s.
+- Full chain time: about 20 minutes on an idle machine, about 28 minutes under load.
 - Fixed in this run: `playthrough.mjs` act 2 pen grab missed when drift from the last push carried the body out of reach. It now stops the body before the grab and retries once on objective state. Its act 3 impostor call was missed when a single teleport jumped over the z = -12 line with no frame in between; it now steps across in two moves with a game-time wait and waits on the `impostor-capcom` anomaly flag.
