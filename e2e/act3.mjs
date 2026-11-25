@@ -65,7 +65,7 @@ try {
   })
   // One real E press. Waits for the push to show in the velocity, and presses again if it did not.
   const push = async (yaw) => {
-    for (let tries = 0; tries < 4; tries++) {
+    for (let tries = 0; tries < 2; tries++) {
       await unfocused()
       const before = await speed()
       await page.evaluate((yaw) => window.__los.player.set({ yaw, pitch: 0 }), yaw)
@@ -74,7 +74,7 @@ try {
         .waitForFunction((b) => {
           const v = window.__los.player.body.vel
           return Math.abs(Math.hypot(v.x, v.y, v.z) - b) > 0.05
-        }, before, { timeout: 4000, polling: 50 })
+        }, before, { timeout: 1500, polling: 25 })
         .then(() => true, () => false)
       if (ok) {
         pushes++

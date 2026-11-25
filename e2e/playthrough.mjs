@@ -95,7 +95,7 @@ try {
       .waitForFunction((b) => {
         const v = window.__los.player.body.vel
         return Math.abs(Math.hypot(v.x, v.y, v.z) - b) > 0.05
-      }, before, { timeout: Math.max(settle, 4000), polling: 50 })
+      }, before, { timeout: 1500, polling: 25 })
       .catch(() => {})
   }
 
@@ -208,11 +208,19 @@ try {
   await wait(() => window.__los.director.state.phase === 'chase', null, 30000)
   await objective('Run', 5000)
   await unfocused()
-  for (let i = 0; i < 60 && (await z()) < 1.4; i++) {
+  for (let i = 0; i < 200 && (await z()) < 1.4; i++) {
     if ((await page.evaluate(() => window.__los.director.state.phase)) !== 'chase') break
     await push(Math.PI, 450)
   }
-  await useAt('act3:hatch', 'GRAB')
+  // A push near the hatch can already use it. Either act 3 ends by itself, or the hatch is ready to use.
+  await wait(
+    () =>
+      window.__los.loader.state.getState().act !== 'act3-farside' ||
+      (!window.__los.focus() && window.__los.interactables().find((i) => i.id === 'act3:hatch')?.enabled),
+    null,
+    60000,
+  )
+  if (await page.evaluate(() => window.__los.loader.state.getState().act === 'act3-farside')) await useAt('act3:hatch', 'GRAB')
 
   // Act 4.
   stage = 'act4'
@@ -303,6 +311,12 @@ try {
 } catch (e) {
   errors.push(`script (${stage}): ${e.message.split('\n')[0]} at ${(e.stack.match(/playthrough.mjs:(\d+)/g) ?? []).join(' ')}`)
   try {
+    const dump = await browser.contexts()[0]?.pages()[0]?.evaluate(() => {
+      const l = window.__los.loader.state.getState()
+      const s = window.__los.store.getState()
+      return JSON.stringify({ act: l.act, status: l.status, focus: window.__los.focus(), paused: s.paused, mode: s.moveMode, pos: window.__los.player.body?.pos, phase: window.__los.director?.state?.phase, timeline: window.__los.timeline(), objective: s.objective?.text })
+    })
+    errors.push(`state at failure: ${dump}`)
     await browser.contexts()[0]?.pages()[0]?.screenshot({ path: join(shotDir, 'playthrough-fail.png') })
   } catch {
     /* no page */
