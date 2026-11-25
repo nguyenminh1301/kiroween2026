@@ -8,4 +8,4 @@
 - [x] 6. Shared creature model and act 4 creature view (req 2.3, 5.1)
 - [x] 7. Runtime wiring: descent, EVA, tasks, emerge, run, ladder, liftoff, hand-off (req 2, 3, 4, 5, 6)
 - [x] 8. `e2e/act4.mjs`, added to `npm run e2e`, and screenshots (req 7.2)
-- [ ] 9. Final checks: test, lint, build, check-budget, check-copy, e2e
+- [x] 9. Final checks: test, lint, build, check-budget, check-copy, e2e
