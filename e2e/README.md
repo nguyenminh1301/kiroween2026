@@ -39,3 +39,9 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 ## Act 4 test
 
 `e2e/act4.mjs` loads `act4-moon` at `start` and takes shots at 3 s, 9 s and 20 s of the descent. It waits for the surface and `act4Tasks`, does the sample, the flag and the seismometer with real W and E presses, waits for the creature and the `act4Run` objective, jumps with SPACE, climbs the ladder and checks `burn-baby-burn` and the load of `act5-home`. It then loads `run`, stands still and checks it is caught and restarted at `run`. Screenshots go to `e2e/shots/act4-*.png`. `npm run e2e` runs it last.
+
+## Act 5 and the full playthrough
+
+`e2e/act5.mjs` loads act 5, saves `e2e/shots/act5-tNNs.png` every 9 s (compare with `docs/reference/shots/ref-act5-*.png`), checks the voiced `act5.end`, the fade and the Archive count, then quits to title mid-timeline and checks nothing is left playing.
+
+`e2e/playthrough.mjs` runs last. It goes to the title screen, presses Start and plays every act with the act scripts' steps, saving `e2e/shots/playthrough-<act>.png`, then checks the Archive shows 6 / 6 and the title screen has the Archive button. It takes about 8 minutes on SwiftShader.

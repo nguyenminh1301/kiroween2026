@@ -23,3 +23,7 @@ entryClose entry 5-12 | entryFade entry 20-26 | mains ocean 31-37 fov 62 | drop 
 
 ## Events
 0.8 act5.entry+focus CDR | 12.3 windows #ff7a2a + reentry | 13.2 static, act5.blackout+focus CMP | 17.5 sky #ffa25a | 19.5 sky #5e8fc8 | 21 chute | 26.3 act5.radar | 28.2 chute | 29 act5.mains+focus CDR | 30.5 sky #8fb6dd | 45.1 splash + act5.splash | 50 act5.hornet | 52 horn | 62 act5.end | 69.5 fade 2 s, then completeAct at 71.5.
+
+## E2E notes
+- The playthrough waits for each anomaly instead of checking at a fixed time: on SwiftShader the burn sighting can land after 3.2 s of liftoff. All six are noticed in one run, so no act needed a fix.
+- The playthrough leaves the Archive with Enter on its focused Back button, since pointer lock from Start can swallow mouse clicks.

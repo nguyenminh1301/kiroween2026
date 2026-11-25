@@ -6,4 +6,4 @@
 - [x] 4. Ocean set: sea, chutes, splash, collar, Hornet, destroyer (req 1.4, 1.5)
 - [x] 5. Sea King helicopter model (req 1.5)
 - [x] 6. Runtime wiring, audio, fade, hand-off to the Archive, quit test (req 2.1, 2.5, 2.6, 4.1)
-- [ ] 7. `e2e/act5.mjs`, `e2e/playthrough.mjs`, anomaly check, final checks (req 4.2, 5.2)
+- [x] 7. `e2e/act5.mjs`, `e2e/playthrough.mjs`, anomaly check, final checks (req 4.2, 5.2)
