@@ -26,7 +26,7 @@ export function Console() {
   const lampMat = useMemo(() => createMaterial({ kind: 'unlit', vertexColors: true, snap: false }), [])
   const dsky = useMemo(() => createDskyTexture(act1State.dsky), [])
   const dskyMat = useMemo(() => new MeshBasicMaterial({ map: dsky.texture }), [dsky])
-  const dskyGeo = useMemo(() => new PlaneGeometry(0.09, 0.1125), [])
+  const dskyGeo = useMemo(() => new PlaneGeometry(0.13, 0.1625), [])
   const needleGeo = useMemo(() => {
     const g = new BoxGeometry(0.006, 0.05, 0.004)
     g.translate(0, 0.025, 0)

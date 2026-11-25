@@ -53,7 +53,7 @@ export function toLocal(i: number, p: { x: number; y: number; z: number }): Vect
 
 /** The spots, as the panel that holds each one and the local position on it. */
 export const SPOTS = {
-  dsky: { panel: MIDDLE, radius: 0.1 },
+  dsky: { panel: MIDDLE, radius: 0.13 },
   sw: { panel: MIDDLE + 1, radius: 0.08 },
   o2: { panel: MIDDLE - 1, radius: 0.09 },
 }
@@ -187,7 +187,7 @@ export function buildConsole(): ConsoleGeometry {
   {
     const place = (panel: number, p: { x: number; y: number; z: number }) => ({ M: panelMatrix(panel), l: toLocal(panel, p) })
     const d = place(SPOTS.dsky.panel, DSKY_POS)
-    const g1 = new BoxGeometry(0.11, 0.135, 0.02)
+    const g1 = new BoxGeometry(0.15, 0.185, 0.02)
     g1.translate(d.l.x, d.l.y, 0.02)
     body.push(finish(g1, d.M, '#55524a'))
     const s = place(SPOTS.sw.panel, SWITCH_POS)
