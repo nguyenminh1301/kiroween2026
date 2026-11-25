@@ -31,10 +31,10 @@ export const SITES = {
 
 /** Flat zones: height is exactly 0 inside `inner`, blends to raw terrain by `outer`. */
 const ZONES = [
-  { x: 0, z: 0, inner: 6, outer: 9 },
-  { x: SITES.flag.x, z: SITES.flag.z, inner: 2, outer: 5 },
-  { x: SITES.sample.x, z: SITES.sample.z, inner: 2, outer: 5 },
-  { x: SITES.seismo.x, z: SITES.seismo.z, inner: 2, outer: 5 },
+  { x: 0, z: 0, inner: 6, outer: 10 },
+  { x: SITES.flag.x, z: SITES.flag.z, inner: 2, outer: 6 },
+  { x: SITES.sample.x, z: SITES.sample.z, inner: 2, outer: 6 },
+  { x: SITES.seismo.x, z: SITES.seismo.z, inner: 2, outer: 6 },
 ] as const
 
 const smooth = (t: number): number => {
@@ -89,7 +89,7 @@ function parts() {
     const r = 2.5 + rng() * rng() * 7
     const x = (rng() * 2 - 1) * (HALF - 4)
     const z = (rng() * 2 - 1) * (HALF - 4)
-    const depth = r * (0.12 + rng() * 0.1)
+    const depth = r * (0.05 + rng() * 0.06)
     if (PITS.some((p) => Math.hypot(p.x - x, p.z - z) < p.r * 1.45 + r * 1.45 + 1)) continue
     craters.push({ x, z, r, depth, rim: depth * 0.35 })
   }

@@ -15,6 +15,30 @@ describe('terrain', () => {
     }
   })
 
+  it('has no step along a line from the lander out 15 m', () => {
+    for (const a of [0, 0.7, 1.4, 2.1, 2.8, 3.5, 4.2, 5, 5.7]) {
+      let prev = groundAt(0, 0)
+      for (let d = 0.5; d <= 15; d += 0.5) {
+        const h = groundAt(Math.cos(a) * d, Math.sin(a) * d)
+        expect(Math.abs(h - prev)).toBeLessThanOrEqual(0.15)
+        prev = h
+      }
+    }
+  })
+
+  it('has no step leaving the task sites', () => {
+    for (const s of Object.values(SITES)) {
+      for (let a = 0; a < 6.3; a += 0.45) {
+        let prev = groundAt(s.x, s.z)
+        for (let d = 0.5; d <= 6; d += 0.5) {
+          const h = groundAt(s.x + Math.cos(a) * d, s.z + Math.sin(a) * d)
+          expect(Math.abs(h - prev)).toBeLessThanOrEqual(0.15)
+          prev = h
+        }
+      }
+    }
+  })
+
   it('has pits lower than their rims', () => {
     for (const p of PITS) {
       let rim = -Infinity
