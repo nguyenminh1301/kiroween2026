@@ -639,3 +639,25 @@
 .reduced .fx-figure {
   opacity: 0.35;
 }
+
+.lock-prompt {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 95;
+  padding: 14px 28px;
+  font: inherit;
+  font-size: 18px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #f2ebdd;
+  background: rgba(10, 8, 6, 0.82);
+  border: 1px solid rgba(242, 235, 221, 0.6);
+  cursor: pointer;
+}
+.lock-prompt:hover,
+.lock-prompt:focus-visible {
+  background: rgba(40, 30, 20, 0.92);
+  outline: none;
+}

@@ -1,6 +1,7 @@
 import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
 import { registerSystem } from './frameDriver'
+import { fxStore } from './fx'
 import {
   isDebugUrl,
   isPlaying,
@@ -35,6 +36,7 @@ export function PointerLockController() {
 
     const onLockChange = () => {
       lockRuntime.lockChangeAtMs = nowMs()
+      gameStore.getState().setPointerLocked(document.pointerLockElement !== null)
       if (document.pointerLockElement) {
         lockRuntime.locked = true
         lockRuntime.wasHeld = true
@@ -65,7 +67,7 @@ export function PointerLockController() {
     // Menus, system screens and pause need a free cursor: let go of the lock when one shows.
     const releaseIfMenu = () => {
       const s = gameStore.getState()
-      if (shouldHoldLock(s.screen, s.paused) || !document.pointerLockElement) return
+      if (shouldHoldLock(s.screen, s.paused, fxStore.getState().card !== null) || !document.pointerLockElement) return
       lockRuntime.wasHeld = false // a deliberate release is not a lock loss
       try {
         document.exitPointerLock()
@@ -75,6 +77,7 @@ export function PointerLockController() {
     }
     releaseIfMenu()
     const unsubscribe = gameStore.subscribe(releaseIfMenu)
+    const unsubscribeFx = fxStore.subscribe(releaseIfMenu)
 
     canvas.addEventListener('click', onClick)
     document.addEventListener('pointerlockchange', onLockChange)
@@ -102,6 +105,7 @@ export function PointerLockController() {
       document.removeEventListener('visibilitychange', onVisibility)
       unregister()
       unsubscribe()
+      unsubscribeFx()
       setLockTarget(null)
     }
   }, [canvas])

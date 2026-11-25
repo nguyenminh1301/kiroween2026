@@ -60,7 +60,29 @@ export function createPauseCollector(): PauseCollector {
   }
 }
 
-/** The pointer lock may be held only in the game and while not paused. Menus and system screens need a free cursor. */
-export function shouldHoldLock(screen: string, paused: boolean): boolean {
-  return screen === 'game' && !paused
+/**
+ * The pointer lock stays held in the game, also through a chapter card (paused, card up) and
+ * act changes. It is released for pause, title, chapters, settings, credits and the Archive.
+ */
+export function shouldHoldLock(screen: string, paused: boolean, card = false): boolean {
+  return screen === 'game' && (!paused || card)
+}
+
+export interface LockPromptInputs {
+  screen: string
+  paused: boolean
+  card: boolean
+  locked: boolean
+  /** The lock was taken for real at least once. */
+  everLocked: boolean
+  debug: boolean
+}
+
+/**
+ * Show "Click to continue" when the game runs without the lock. Under ?debug the prompt waits
+ * for a first real lock, so scripts that never lock are not covered.
+ */
+export function needsLockPrompt(i: LockPromptInputs): boolean {
+  if (i.screen !== 'game' || i.paused || i.card || i.locked) return false
+  return i.everLocked || !i.debug
 }

@@ -1,9 +1,34 @@
 import { useEffect, useState } from 'react'
 import { HUD } from '../content/hud'
 import { VERB_LABELS } from '../content/verbs'
+import { MENUS } from '../content/menus'
 import { METER_TICK } from '../engine/fx'
+import { isDebugUrl, lockRuntime, requestLock } from '../engine/inputRuntime'
+import { needsLockPrompt } from '../engine/pointerLock'
 import { useFx, useGame } from './hooks'
 import { nameLine, revealCount } from './dialogue'
+
+/** Centered prompt shown when the game runs without the pointer lock. A click takes it back. */
+export function LockPrompt() {
+  const screen = useGame((s) => s.screen)
+  const paused = useGame((s) => s.paused)
+  const locked = useGame((s) => s.pointerLocked)
+  const card = useFx((s) => s.card)
+  const show = needsLockPrompt({
+    screen,
+    paused,
+    card: card !== null,
+    locked,
+    everLocked: lockRuntime.everLocked,
+    debug: isDebugUrl(),
+  })
+  if (!show) return null
+  return (
+    <button type="button" className="lock-prompt" data-lock-prompt onClick={() => requestLock()}>
+      {MENUS.clickToContinue}
+    </button>
+  )
+}
 
 export function Dot() {
   const target = useGame((s) => s.target)

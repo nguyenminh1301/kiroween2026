@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { createPauseCollector, nextPaused, shouldHoldLock, type LockInputs } from './pointerLock'
+import { createPauseCollector, needsLockPrompt, nextPaused, shouldHoldLock, type LockInputs } from './pointerLock'
 
 const RUNS = { numRuns: 200 }
 
@@ -58,5 +58,24 @@ describe('shouldHoldLock', () => {
     for (const s of ['title', 'chapters', 'settings', 'credits', 'archive', 'warning', 'headphones', 'gate'] as const) {
       expect(shouldHoldLock(s, false)).toBe(false)
     }
+  })
+})
+
+describe('lock through chapter cards', () => {
+  it('keeps the lock while a chapter card holds the game paused', () => {
+    expect(shouldHoldLock('game', true, true)).toBe(true)
+    expect(shouldHoldLock('game', true, false)).toBe(false)
+    expect(shouldHoldLock('title', true, true)).toBe(false)
+  })
+
+  it('prompts only in game, unpaused, with no card and no lock', () => {
+    const base = { screen: 'game', paused: false, card: false, locked: false, everLocked: true, debug: true }
+    expect(needsLockPrompt(base)).toBe(true)
+    expect(needsLockPrompt({ ...base, locked: true })).toBe(false)
+    expect(needsLockPrompt({ ...base, paused: true })).toBe(false)
+    expect(needsLockPrompt({ ...base, card: true })).toBe(false)
+    expect(needsLockPrompt({ ...base, screen: 'title' })).toBe(false)
+    expect(needsLockPrompt({ ...base, everLocked: false })).toBe(false)
+    expect(needsLockPrompt({ ...base, everLocked: false, debug: false })).toBe(true)
   })
 })

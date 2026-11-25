@@ -6,7 +6,7 @@ import { loader } from '../app/loader'
 import { isDebugUrl } from '../engine/inputRuntime'
 import { useFx, useGame } from './hooks'
 import { Archive } from './Archive'
-import { Dialogue, Dot, FxLayer, NoiseMeterBar, TopRight, Wrist } from './Overlays'
+import { Dialogue, Dot, LockPrompt, FxLayer, NoiseMeterBar, TopRight, Wrist } from './Overlays'
 import { Chapters, Credits, Headphones, MessageScreen, PauseMenu, Settings, Title, Warning } from './Screens'
 import './ui.css'
 
@@ -48,6 +48,7 @@ export function UiRoot() {
         <Wrist />
         <NoiseMeterBar />
         <Dialogue />
+        <LockPrompt />
         {status === 'loading' ? <div className="loading-line">{MENUS.loading}</div> : null}
         {paused && !card ? <PauseMenu /> : null}
       </>

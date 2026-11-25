@@ -47,6 +47,7 @@ export const MENUS = {
     quit: 'Quit to title',
   },
   loading: 'Loading',
+  clickToContinue: 'Click to continue',
   credits: {
     title: 'Credits',
     lines: [

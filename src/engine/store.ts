@@ -31,6 +31,8 @@ export interface GameState {
   act: ActId | null
   checkpoint: string | null
   paused: boolean
+  /** The browser pointer lock is held. Set by the pointer lock controller. */
+  pointerLocked: boolean
   moveMode: MoveMode
   objective: Objective | null
   target: Target | null
@@ -48,6 +50,7 @@ export interface GameState {
   setAct: (act: ActId | null) => void
   setCheckpoint: (checkpoint: string | null) => void
   setPaused: (paused: boolean) => void
+  setPointerLocked: (locked: boolean) => void
   setMoveMode: (mode: MoveMode) => void
   setObjective: (objective: Objective | null) => void
   setTarget: (target: Target | null) => void
@@ -68,6 +71,7 @@ export const gameStore = createStore<GameState>()((set) => ({
   act: null,
   checkpoint: null,
   paused: false,
+  pointerLocked: false,
   moveMode: 'walk',
   objective: null,
   target: null,
@@ -84,6 +88,7 @@ export const gameStore = createStore<GameState>()((set) => ({
   setAct: (act) => set({ act }),
   setCheckpoint: (checkpoint) => set({ checkpoint }),
   setPaused: (paused) => set({ paused }),
+  setPointerLocked: (pointerLocked) => set({ pointerLocked }),
   setMoveMode: (moveMode) => set({ moveMode }),
   setObjective: (objective) => set({ objective }),
   setTarget: (target) => set({ target }),

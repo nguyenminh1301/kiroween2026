@@ -21,8 +21,9 @@ export function chapterBeforeStart(id: LoadableId, checkpoint: string, mod: Act_
   fxStore.getState().setCard(intro)
   gameStore.getState().setPaused(true)
   const timer = setTimeout(() => {
-    fxStore.getState().setCard(null)
+    // Unpause first: a paused game with no card would release the pointer lock.
     gameStore.getState().setPaused(false)
+    fxStore.getState().setCard(null)
   }, cardDurationMs(intro))
   cleanupRegistry.register(() => {
     clearTimeout(timer)
