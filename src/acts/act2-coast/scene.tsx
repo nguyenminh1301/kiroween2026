@@ -3,6 +3,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { PlayerCamera } from '../../engine/PlayerCamera'
 import { applyFog, clearFog } from '../../render/fog'
 import { getCmFar, subscribeCmFar } from './state'
+import { Props } from './props'
 import { Shell } from './shell'
 
 const FOG = { color: '#a8a496', near: 7, far: 22 }
@@ -21,6 +22,7 @@ export function Scene() {
       <PlayerCamera />
       <hemisphereLight args={['#f1eee4', '#8d887a', 1.15]} />
       <Shell cmFar={cmFar} />
+      <Props cmFar={cmFar} />
     </>
   )
 }

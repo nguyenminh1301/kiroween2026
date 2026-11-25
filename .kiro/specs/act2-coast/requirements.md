@@ -9,7 +9,7 @@ Chapter 3, evening of day three, zero gravity. The player floats from the comman
 1.4 The CM room shall have a warm white ceiling light at its middle, the commander asleep on the left wall at `cmFar` + 1.2, Mike asleep on the right wall at `cmFar` + 2.4 (no helmets, eyes down, bobbing), and the player's empty unzipped bag on the left wall at `cmFar` + 2.75.
 1.5 `cmFar` shall start at 1.5 and become 3.0 when the breaker is fixed. The tunnel, its hatch ring, the CM room, the figures, the rails and the collision boxes shall all be rebuilt for the new value while the player is in the lander.
 1.6 Collision shall keep the tunnel passable: a capsule at the tunnel centre line shall be free at every z from -3 to `cmFar`.
-1.7 Handrails shall run at x = -1.1 to 1.1 (clamped to 0.4 inside the tunnel), y = 1.6, every 1.5 m from `cmFar` + 2.7 down to the lander. Each is a PULL target and is removed once the player is in the bag.
+1.7 Handrails shall run as a left and a right bar at x = -1.1 and 1.1 (0.4 inside the tunnel), y = 1.6, every 1.5 m from `cmFar` + 2.7 down to the lander. Each is a PULL target and is removed once the player is in the bag.
 
 ## 2. Start and ambience
 2.1 When the act starts, the player shall be at (0, 0.3, 3.5) facing -z in zero-g mode, with the ship bed, hum 1, breathing on, fear 0.1 and heart rate 76.

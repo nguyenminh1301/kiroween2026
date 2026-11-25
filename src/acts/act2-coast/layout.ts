@@ -59,12 +59,20 @@ export interface RailSpec {
   b: Vec3
 }
 
-/** Rail bars across the room. Inside the tunnel they are clamped to stay within the walls. */
+/** A rail bar length along z. Rails come in a left and a right pair at each z step. */
+export const RAIL_LENGTH = 1
+
+/** Rail bars along the side walls, a pair at each z. Inside the tunnel they stay inside the walls. */
 export function rails(cmFar: number): RailSpec[] {
-  return railZs(cmFar).map((z, i) => {
+  const out: RailSpec[] = []
+  railZs(cmFar).forEach((z, i) => {
     const half = inTunnel(z, cmFar) ? 0.4 : 1.1
-    return { id: `rail${i}`, a: { x: -half, y: RAIL_Y, z }, b: { x: half, y: RAIL_Y, z } }
+    const z0 = z - RAIL_LENGTH / 2
+    const z1 = z + RAIL_LENGTH / 2
+    out.push({ id: `rail${i}l`, a: { x: -half, y: RAIL_Y, z: z0 }, b: { x: -half, y: RAIL_Y, z: z1 } })
+    out.push({ id: `rail${i}r`, a: { x: half, y: RAIL_Y, z: z0 }, b: { x: half, y: RAIL_Y, z: z1 } })
   })
+  return out
 }
 
 const box = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number): Box => ({

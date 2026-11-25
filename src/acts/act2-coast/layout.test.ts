@@ -13,10 +13,12 @@ describe('act 2 layout', () => {
     expect(railZs(1.5)).toEqual([4.2, 2.7, 1.2, -0.3, -1.8, -3.3])
     expect(railZs(3)).toEqual([5.7, 4.2, 2.7, 1.2, -0.3, -1.8, -3.3])
     const r = rails(1.5)
-    expect(r[0].a).toEqual({ x: -1.1, y: 1.6, z: 4.2 })
-    expect(r[0].b).toEqual({ x: 1.1, y: 1.6, z: 4.2 })
-    // Inside the tunnel the bar stays inside the walls.
-    expect(r[3].b.x).toBe(0.4)
+    expect(r).toHaveLength(12)
+    expect(r[0].a).toEqual({ x: -1.1, y: 1.6, z: 3.7 })
+    expect(r[1].a).toEqual({ x: 1.1, y: 1.6, z: 3.7 })
+    expect(r[0].b.z).toBe(4.7)
+    // Inside the tunnel the bars stay inside the walls.
+    expect(r[7].a.x).toBe(0.4)
     expect(inTunnel(-0.3, 1.5)).toBe(true)
   })
 
