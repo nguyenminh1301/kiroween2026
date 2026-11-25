@@ -87,7 +87,8 @@ const RAW_SHOTS: NamedShot[] = [
     far: 6000,
     cam: (_u, t) => {
       const y = height(t)
-      return { position: v(1.5, y - 7, 2.5), lookAt: v(0, y + 40, 0) }
+      // Well below and off to the side, so the capsule base stays small and all three canopies show.
+      return { position: v(2, y - 14, 30), lookAt: v(0, y + 24, 0) }
     },
   },
   {
@@ -130,9 +131,10 @@ const RAW_SHOTS: NamedShot[] = [
     to: 72,
     fov: 58,
     far: 6000,
+    // Close on the Sea King over the capsule, with the carrier far behind it.
     cam: (u) => ({
-      position: v(lerp(26, 150, u), lerp(7, 85, u), lerp(34, 170, u)),
-      lookAt: v(lerp(2, 20, u), lerp(8, 12, u), lerp(0, -140, u)),
+      position: v(lerp(-17, -13, u), lerp(8, 10, u), lerp(24, 19, u)),
+      lookAt: v(lerp(7, 9, u), lerp(11, 11.5, u), lerp(5, 4, u)),
     }),
   },
 ]

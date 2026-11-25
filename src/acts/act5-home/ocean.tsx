@@ -21,6 +21,7 @@ import {
   Vector3,
   type Group,
 } from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { registerSystem } from '../../engine/frameDriver'
 import { createRng } from '../../procgen/rng'
 import { buildSkyDome } from '../../procgen/skyDome'
@@ -128,7 +129,15 @@ export function OceanSet() {
       drogue: canopyGeo(DROGUE_R),
       mainLines: chuteLines(mainC, MAIN_R, rimYOf(MAIN_R), 24),
       drogueLines: chuteLines(drogueC, DROGUE_R, rimYOf(DROGUE_R), 12),
-      ring: new RingGeometry(1.7, 2.6, 24).rotateX(-Math.PI / 2),
+      // A broken ring: twelve arcs with gaps between them.
+      ring: mergeGeometries(
+        Array.from({ length: 12 }, (_, i) => {
+          const len = (Math.PI * 2) / 12
+          const gap = i % 3 === 0 ? 0.55 : 0.2
+          return new RingGeometry(1.8 + (i % 2) * 0.25, 2.4 + (i % 2) * 0.3, 2, 1, i * len, len * (1 - gap)).rotateX(-Math.PI / 2)
+        }),
+        false,
+      ),
       collar: new TorusGeometry(2.2, 0.35, 6, 14).rotateX(Math.PI / 2),
       spray: new IcosahedronGeometry(1, 0),
       glint: new CircleGeometry(1, 4).rotateX(-Math.PI / 2),
@@ -184,9 +193,11 @@ export function OceanSet() {
       if (ring.current) {
         ring.current.visible = sp > 0
         ring.current.position.y = wave + 0.15
-        const k = 1 + sp * 4.5
+        // A few metres wide, widening a little and fading out.
+        const k = 1 + Math.min(1, sp * 2) * 0.9
         ring.current.scale.set(k, 1, k)
-        foamMat.opacity = 0.95 - sp * 0.35
+        ring.current.rotation.y = sp * 0.5
+        foamMat.opacity = Math.max(0, 0.9 - sp * 0.9)
       }
       if (collar.current) {
         const c = collarProgress(t)

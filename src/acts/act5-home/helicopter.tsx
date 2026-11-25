@@ -38,7 +38,7 @@ export function Helicopter() {
     }),
     [],
   )
-  const hullMat = useMemo(() => new MeshLambertMaterial({ color: '#7d8388' }), [])
+  const hullMat = useMemo(() => new MeshLambertMaterial({ color: '#8d9398', emissive: '#40454a' }), [])
   const bladeMat = useMemo(() => new MeshLambertMaterial({ color: '#2a2d30' }), [])
   const stencil = useMemo(() => {
     const map = stencilTexture([HUD.heliMarkings.name, HUD.heliMarkings.number])
