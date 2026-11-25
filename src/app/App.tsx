@@ -7,6 +7,7 @@ import { isDebugUrl } from '@/engine/inputRuntime'
 import { Markers } from '@/interaction/Markers'
 import { UiRoot } from '@/ui/UiRoot'
 import { GameView, RenderRuntime } from '@/render/GameView'
+import { RenderBoundary } from '@/render/RenderBoundary'
 import { PS1Composer } from '@/render/PS1Composer'
 import { StatsBox } from '@/render/StatsBox'
 import { TitleBackdrop } from '@/render/TitleBackdrop'
@@ -30,6 +31,7 @@ export function App() {
 
   return (
     <>
+      <RenderBoundary>
       <GameView>
         {(dpr) => (
           <Canvas
@@ -49,6 +51,7 @@ export function App() {
           </Canvas>
         )}
       </GameView>
+      </RenderBoundary>
       {isDebugUrl() ? <StatsBox /> : null}
       <UiRoot />
     </>

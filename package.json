@@ -15,7 +15,7 @@
     "lint": "eslint --no-error-on-unmatched-pattern src scripts && tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "check-budget": "node scripts/check-budget.mjs",
     "check-copy": "node scripts/check-copy.mjs",
-    "e2e": "node e2e/smoke.mjs && node e2e/engine.mjs && node e2e/render.mjs && node e2e/audio.mjs && node e2e/ui.mjs && node e2e/act0.mjs && node e2e/walk.mjs && node e2e/lock.mjs && node e2e/act1.mjs && node e2e/act2.mjs && node e2e/rails.mjs && node e2e/act3.mjs && node e2e/act4.mjs && node e2e/act5.mjs && node e2e/switch.mjs && node e2e/idle.mjs && node e2e/playthrough.mjs && BLOCK_AUDIO=1 node e2e/playthrough.mjs"
+    "e2e": "node e2e/smoke.mjs && node e2e/engine.mjs && node e2e/render.mjs && node e2e/audio.mjs && node e2e/ui.mjs && node e2e/act0.mjs && node e2e/walk.mjs && node e2e/lock.mjs && node e2e/act1.mjs && node e2e/act2.mjs && node e2e/rails.mjs && node e2e/act3.mjs && node e2e/act4.mjs && node e2e/act5.mjs && node e2e/nowebgl.mjs && node e2e/switch.mjs && node e2e/idle.mjs && node e2e/playthrough.mjs && BLOCK_AUDIO=1 node e2e/playthrough.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",

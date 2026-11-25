@@ -33,6 +33,8 @@ export interface GameState {
   paused: boolean
   /** The browser pointer lock is held. Set by the pointer lock controller. */
   pointerLocked: boolean
+  /** The renderer could not start (no WebGL). Menus still work, the game shows a message. */
+  renderFailed: boolean
   moveMode: MoveMode
   objective: Objective | null
   target: Target | null
@@ -51,6 +53,7 @@ export interface GameState {
   setCheckpoint: (checkpoint: string | null) => void
   setPaused: (paused: boolean) => void
   setPointerLocked: (locked: boolean) => void
+  setRenderFailed: (failed: boolean) => void
   setMoveMode: (mode: MoveMode) => void
   setObjective: (objective: Objective | null) => void
   setTarget: (target: Target | null) => void
@@ -72,6 +75,7 @@ export const gameStore = createStore<GameState>()((set) => ({
   checkpoint: null,
   paused: false,
   pointerLocked: false,
+  renderFailed: false,
   moveMode: 'walk',
   objective: null,
   target: null,
@@ -89,6 +93,7 @@ export const gameStore = createStore<GameState>()((set) => ({
   setCheckpoint: (checkpoint) => set({ checkpoint }),
   setPaused: (paused) => set({ paused }),
   setPointerLocked: (pointerLocked) => set({ pointerLocked }),
+  setRenderFailed: (renderFailed) => set({ renderFailed }),
   setMoveMode: (moveMode) => set({ moveMode }),
   setObjective: (objective) => set({ objective }),
   setTarget: (target) => set({ target }),

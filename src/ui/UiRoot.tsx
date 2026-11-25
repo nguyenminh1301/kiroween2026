@@ -28,7 +28,10 @@ export function UiRoot() {
   const reduced = useGame((s) => s.settings.reducedMotion)
   const card = useFx((s) => s.card)
   const status = useSyncExternalStore(loader.subscribe, () => loader.getState().status)
-  const reason = isDebugUrl() ? null : gateReason(env)
+  const renderFailed = useGame((s) => s.renderFailed)
+  const envReason = isDebugUrl() ? null : gateReason(env)
+  // A renderer that cannot start only blocks the game itself. Menus work on black.
+  const reason = envReason ?? (renderFailed && screen === 'game' ? 'noWebgl' : null)
 
   let body: React.ReactNode = null
   if (reason) body = <MessageScreen title={MENUS[reason].title} body={MENUS[reason].body} />
