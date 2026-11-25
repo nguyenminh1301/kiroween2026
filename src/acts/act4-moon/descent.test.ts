@@ -1,0 +1,54 @@
+import { describe, expect, it } from 'vitest'
+import { DESCENT_DURATION, DESCENT_SHOTS, descentEvents, dustLevel, landerHeight, plumeOn } from './descent'
+import { selectShot, sortedEvents, dueEvents } from '../../timeline/timeline'
+
+describe('descent', () => {
+  it('follows 40 * (1 - t/22)^1.6', () => {
+    expect(landerHeight(0)).toBe(40)
+    expect(landerHeight(11)).toBeCloseTo(40 * 0.5 ** 1.6, 6)
+    expect(landerHeight(22)).toBe(0)
+    expect(landerHeight(24)).toBe(0)
+  })
+
+  it('shows the plume above 0.02 m and dust below 10 m', () => {
+    expect(plumeOn(0.03)).toBe(true)
+    expect(plumeOn(0.01)).toBe(false)
+    expect(dustLevel(12)).toBe(0)
+    expect(dustLevel(5)).toBeCloseTo(0.5)
+    expect(dustLevel(0)).toBe(1)
+  })
+
+  it('covers 0 to 24 s with outside shots', () => {
+    for (let t = 0; t < DESCENT_DURATION; t += 0.5) expect(selectShot(DESCENT_SHOTS, t)).not.toBeNull()
+    expect(selectShot(DESCENT_SHOTS, 8)?.fov).toBe(80)
+    expect(selectShot(DESCENT_SHOTS, 20)?.fov).toBe(60)
+  })
+
+  it('runs the DSKY and radio events at their times', () => {
+    const log: string[] = []
+    const def = {
+      duration: DESCENT_DURATION,
+      events: descentEvents({
+        say: (id) => log.push(`say:${id}`),
+        dsky: (r) => log.push(`dsky:${r.prog}/${r.verb}/${r.noun}/${r.alarm}`),
+        beep: () => log.push('beep'),
+      }),
+    }
+    const at = (t: number): void => {
+      log.length = 0
+      dueEvents(def, 0, 0, t).forEach((e) => e.run())
+    }
+    at(0.5)
+    expect(log).toEqual(['dsky:63/16/68/null', 'say:act4.go'])
+    at(4)
+    expect(log.slice(-3)).toEqual(['dsky:63/16/68/1202', 'beep', 'say:act4.alarm'])
+    at(8)
+    expect(log.slice(-2)).toEqual(['dsky:64/6/63/null', 'say:act4.goalarm'])
+    at(11)
+    expect(log.slice(-2)).toEqual(['dsky:64/6/63/1201', 'beep'])
+    at(21.5)
+    expect(log).toContain('say:act4.sixty')
+    expect(log.at(-1)).toBe('say:act4.contact')
+    expect(sortedEvents(def).map((e) => e.at)).toEqual([0, 0.5, 4, 8, 11, 13, 17, 21.5])
+  })
+})
