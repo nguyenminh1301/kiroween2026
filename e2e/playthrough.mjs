@@ -153,10 +153,18 @@ try {
   for (let i = 0; i < 100 && (await z()) > -3.2; i++) await push(0, 1500)
   if ((await z()) > -3.2) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
   await objective('Find something to push')
-  const pen = await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act2:pen').position)
-  if (Math.abs(pen.z - (await z())) > 2) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
+  // Stop any drift left from the pushes, so the pen stays in reach while E is pressed.
+  const holdNearPen = () =>
+    page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 }, vel: { x: 0, y: 0, z: 0 } }))
+  await unfocused()
+  await holdNearPen()
   await useAt('act2:pen', 'GRAB')
-  await objective('Push the breaker in')
+  const penTaken = () => wait(() => window.__los.store.getState().objective?.text?.includes('Push the breaker in'), null, 20000).then(() => true, () => false)
+  if (!(await penTaken())) {
+    await holdNearPen()
+    await useAt('act2:pen', 'GRAB')
+    await objective('Push the breaker in')
+  }
   await unfocused()
   await page.evaluate(() => window.__los.player.set({ pos: { x: -0.2, y: 0.3, z: -4.4 } }))
   await useAt('act2:breaker', 'GRAB')
@@ -197,8 +205,13 @@ try {
   await page.waitForTimeout(1500)
   await page.keyboard.press('KeyE')
   await wait(() => window.__los.store.getState().moveMode === 'zeroG', null, 30000)
+  // The impostor call fires when a frame sees the body cross z = -12, so step across it.
+  await unfocused()
+  await teleport3(0, -11.5)
+  const t0 = await page.evaluate(() => window.__los.gameTime())
+  await wait((t) => window.__los.gameTime() > t + 0.2, t0, 30000)
   await teleport3(0, -12.6)
-  await subtitle('how many crew aboard', 30000)
+  await wait(() => window.__los.store.getState().anomaliesSeen.includes('impostor-capcom'), null, 30000)
   check(await seen('impostor-capcom'), 'impostor-capcom noticed')
   await subtitle('That is not Houston', 20000)
   await teleport3(0, -37.5)

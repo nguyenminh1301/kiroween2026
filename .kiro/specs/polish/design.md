@@ -20,3 +20,9 @@ Work is grouped by area. Each visual change is compared with the named reference
 - Pushes in the act 3 chase scripts wait for the velocity to change (bounded at 1.5 s) instead of a fixed settle. The playthrough accepts that a push near the hatch may already use it.
 - Voiced lines (`act0.intro1`, `act0.intro2`, `act5.end`) are not reworded, because `public/audio/` may not change and the text must match the recording.
 - Act 4 regolith and ambient light were raised after the review against `play-act4-surface.png`; the flag cloth and ground read too dark.
+
+## E2E on SwiftShader: slow and timing-sensitive scripts
+Measured in the closing run against a dev server on port 5180 (headless Chromium, SwiftShader).
+- Slow: `idle.mjs` (about 6 min, it waits out real idle timers), `playthrough.mjs` (about 3 min, 4 to 5 min with `BLOCK_AUDIO=1`), `switch.mjs` (about 2.5 min), `act3.mjs`, `act4.mjs` and `act5.mjs` (about 1.5 to 2 min each).
+- Timing-sensitive: `act3.mjs` chase. Its "still running, not caught" check failed once and passed on the rerun; the monster can close in when SwiftShader frames are slow.
+- Fixed in this run: `playthrough.mjs` act 2 pen grab missed when drift from the last push carried the body out of reach. It now stops the body before the grab and retries once on objective state. Its act 3 impostor call was missed when a single teleport jumped over the z = -12 line with no frame in between; it now steps across in two moves with a game-time wait and waits on the `impostor-capcom` anomaly flag.
