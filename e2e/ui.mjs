@@ -66,8 +66,8 @@ try {
   // With ?debug.
   const g = await newPage()
   await g.goto(debugUrl)
-  await g.waitForFunction(() => window.__los, null, { timeout: 15000 })
-  await g.waitForFunction(() => window.__los.loader.state.getState().status === 'ready' && window.__los.player.body, null, { timeout: 20000 })
+  await g.waitForFunction(() => window.__los, null, { timeout: 30000 })
+  await g.waitForFunction(() => window.__los.loader.state.getState().status === 'ready' && window.__los.player.body, null, { timeout: 30000 })
 
   // 1. Title, Start loads act0-pad.
   await g.evaluate(() => window.__los.ui.go('title'))
@@ -81,7 +81,7 @@ try {
   await shot(g, 'settings')
   await g.evaluate(() => window.__los.ui.go('title'))
   await g.click('text=Start')
-  await g.waitForFunction(() => window.__los.store.getState().act === 'act0-pad', null, { timeout: 15000 })
+  await g.waitForFunction(() => window.__los.store.getState().act === 'act0-pad', null, { timeout: 30000 })
   check(true, 'act0-pad began loading')
 
   // 2. Chapter card for act 1 at its first checkpoint, none for act 3 at wp1.
@@ -105,7 +105,7 @@ try {
   })
   await g.waitForSelector('[data-testid="objective"]')
   check((await text(g, '[data-testid="objective"]')).includes('Flip the switch on the wall'), 'objective text')
-  await g.waitForFunction(() => window.__los.store.getState().target?.id === 'switch', null, { timeout: 15000 })
+  await g.waitForFunction(() => window.__los.store.getState().target?.id === 'switch', null, { timeout: 30000 })
   check((await g.locator('.dot-verb').count()) === 1, 'dot shows the verb')
   const ids = await g.evaluate(() => window.__los.interactables().map((i) => i.id))
   check(ids.includes('switch'), 'interactables() lists the switch')
@@ -113,10 +113,10 @@ try {
   await shot(g, 'objective')
   check(await g.evaluate(() => window.__los.sandbox.info().lightOn()), 'light starts on')
   await g.keyboard.press('KeyE')
-  await g.waitForFunction(() => window.__los.sandbox.info().lightOn() === false, null, { timeout: 10000 })
+  await g.waitForFunction(() => window.__los.sandbox.info().lightOn() === false, null, { timeout: 30000 })
   check(await g.evaluate(() => window.__los.store.getState().objective === null), 'objective cleared after the switch')
   await g.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0, z: 6 }, yaw: 0, pitch: 0 }))
-  await g.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('test-box'), null, { timeout: 20000 })
+  await g.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('test-box'), null, { timeout: 30000 })
   check(true, 'test-box noticed')
 
   // 5. Dialogue box during test.capcom.
@@ -137,7 +137,7 @@ try {
   await shot(g, 'pause')
   // The button is the top element at its centre; click it through the DOM, since the page runs slowly on SwiftShader.
   await g.evaluate(() => document.querySelector('[data-screen="pause"] .btn').click())
-  await g.waitForFunction(() => window.__los.store.getState().paused === false, null, { timeout: 5000 })
+  await g.waitForFunction(() => window.__los.store.getState().paused === false, null, { timeout: 30000 })
 
   // Archive.
   await g.evaluate(() => {

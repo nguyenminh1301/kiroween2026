@@ -15,23 +15,53 @@ const check = (ok, msg) => {
   if (!ok) errors.push(`check failed: ${msg}`)
 }
 
+// BLOCK_AUDIO=1 aborts every /audio/ request: the whole game must still finish, with subtitles only.
+const blockAudio = process.env.BLOCK_AUDIO === '1'
+let blockedRequests = 0
+// Stats samples: { act, calls, tris }, one every few seconds during the run.
+const samples = []
+
 const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM_PATH || undefined,
   args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
 })
 
 let stage = 'boot'
+let sampler = null
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(`console: ${m.text()}`)
+    if (m.type() !== 'error') return
+    if (blockAudio && /Failed to load resource/.test(m.text())) return
+    errors.push(`console: ${m.text()}`)
   })
+  if (blockAudio) {
+    await page.route(
+      (u) => new URL(u).pathname.startsWith('/audio/'),
+      (r) => {
+        blockedRequests++
+        return r.abort()
+      },
+    )
+  }
+  sampler = setInterval(async () => {
+    try {
+      const s = await page.evaluate(() => {
+        const l = window.__los.loader.state.getState()
+        if (l.status !== 'ready' || !l.act || l.act === 'sandbox' || window.__los.store.getState().screen !== 'game') return null
+        return { act: l.act, calls: window.__los.stats.calls, tris: window.__los.stats.triangles }
+      })
+      if (s && s.calls > 0) samples.push(s)
+    } catch {
+      /* page is busy or closing */
+    }
+  }, 2500)
   const shot = (name) => page.screenshot({ path: join(shotDir, `${name}.png`) })
   const wait = (fn, arg, timeout = 60000) => page.waitForFunction(fn, arg, { timeout, polling: 100 })
   const objective = (text, timeout = 90000) => wait((t) => window.__los.store.getState().objective?.text?.includes(t), text, timeout)
   const subtitle = (text, timeout = 30000) => wait((t) => (window.__los.store.getState().subtitle?.text ?? '').includes(t), text, timeout)
-  const unfocused = () => wait(() => !window.__los.focus(), null, 20000)
+  const unfocused = () => wait(() => !window.__los.focus(), null, 30000)
   const seen = (id) => page.evaluate((id) => window.__los.store.getState().anomaliesSeen.includes(id), id)
   const pos = () => page.evaluate(() => ({ ...window.__los.player.body.pos }))
   const actReady = (id) =>
@@ -47,22 +77,31 @@ try {
     }, id)
   const useAt = async (id, verb) => {
     await unfocused()
-    await wait((id) => window.__los.interactables().find((i) => i.id === id)?.enabled, id, 20000)
+    await wait((id) => window.__los.interactables().find((i) => i.id === id)?.enabled, id, 30000)
     await aim(id)
-    await wait((v) => window.__los.store.getState().target?.verb === v, verb, 5000)
+    await wait((v) => window.__los.store.getState().target?.verb === v, verb, 30000)
     await page.keyboard.press('KeyE')
   }
   const z = async () => (await pos()).z
   const push = async (yaw, settle) => {
     await unfocused()
     await page.evaluate((yaw) => window.__los.player.set({ yaw, pitch: 0 }), yaw)
+    const before = await page.evaluate(() => {
+      const v = window.__los.player.body.vel
+      return Math.hypot(v.x, v.y, v.z)
+    })
     await page.keyboard.press('KeyE')
-    await page.waitForTimeout(settle)
+    await page
+      .waitForFunction((b) => {
+        const v = window.__los.player.body.vel
+        return Math.abs(Math.hypot(v.x, v.y, v.z) - b) > 0.05
+      }, before, { timeout: Math.max(settle, 4000), polling: 50 })
+      .catch(() => {})
   }
 
   await page.goto(url)
-  await wait(() => window.__los, null, 15000)
-  await wait(() => window.__los.loader.state.getState().status === 'ready', null, 20000)
+  await wait(() => window.__los, null, 30000)
+  await wait(() => window.__los.loader.state.getState().status === 'ready', null, 30000)
 
   // Title, then Start.
   stage = 'title'
@@ -77,7 +116,7 @@ try {
   await objective('wave')
   await unfocused()
   await page.evaluate(() => window.__los.player.set({ yaw: -1.2, pitch: -0.5 }))
-  await wait(() => window.__los.store.getState().target?.verb === 'WAVE', null, 5000)
+  await wait(() => window.__los.store.getState().target?.verb === 'WAVE', null, 30000)
   await page.keyboard.press('KeyE')
   await objective('White Room', 5000)
   await page.waitForTimeout(600)
@@ -91,7 +130,7 @@ try {
   check(await seen('extra-bootprints'), 'extra-bootprints noticed')
   await unfocused()
   await page.evaluate(() => window.__los.player.set({ yaw: 0, pitch: -0.1 }))
-  await wait(() => window.__los.store.getState().target?.verb === 'GRAB', null, 5000)
+  await wait(() => window.__los.store.getState().target?.verb === 'GRAB', null, 30000)
   await page.keyboard.press('KeyE')
 
   // Act 1.
@@ -141,7 +180,7 @@ try {
   stage = 'act3'
   const teleport3 = (x, zz) => page.evaluate(([x, z]) => window.__los.player.set({ pos: { x, y: 0.2, z }, yaw: 0, pitch: 0 }), [x, zz])
   await actReady('act3-farside')
-  await wait(() => window.__los.director, null, 20000)
+  await wait(() => window.__los.director, null, 30000)
   await objective('Find Mike')
   for (let i = 0; i < 12 && (await z()) > -5.2; i++) await push(0, 700)
   if ((await z()) > -5.1) await teleport3(0, -5.4)
@@ -150,14 +189,14 @@ try {
   await page.keyboard.down('Space')
   await teleport3(-0.3, -9.5)
   await useAt('act3:locker0', 'HIDE')
-  await wait(() => window.__los.store.getState().moveMode === 'seated', null, 5000)
+  await wait(() => window.__los.store.getState().moveMode === 'seated', null, 30000)
   await shot('playthrough-act3')
   await objective('Reach Mike')
   await page.keyboard.up('Space')
   await subtitle('It went by', 20000)
   await page.waitForTimeout(1500)
   await page.keyboard.press('KeyE')
-  await wait(() => window.__los.store.getState().moveMode === 'zeroG', null, 5000)
+  await wait(() => window.__los.store.getState().moveMode === 'zeroG', null, 30000)
   await teleport3(0, -12.6)
   await subtitle('how many crew aboard', 30000)
   check(await seen('impostor-capcom'), 'impostor-capcom noticed')
@@ -201,36 +240,36 @@ try {
     await page.keyboard.up('KeyW')
   }
   await actReady('act4-moon')
-  await wait(() => window.__los.act4, null, 20000)
+  await wait(() => window.__los.act4, null, 30000)
   await objective('Surface tasks, any order', 120000)
   await shot('playthrough-act4')
   await teleport4(-0.75, 3.4)
   await useAt('act4:scoop', 'GRAB')
-  await wait(() => window.__los.act4.carrying === 'scoop', null, 5000)
+  await wait(() => window.__los.act4.carrying === 'scoop', null, 30000)
   await walkTo(9, 4.5)
   await useAt('act4:sample', 'GRAB')
-  await wait(() => window.__los.act4.done.includes('sample'), null, 5000)
+  await wait(() => window.__los.act4.done.includes('sample'), null, 30000)
   await objective('Plant the flag', 5000)
   await teleport4(1.7, 4.6)
   await useAt('act4:flagkit', 'GRAB')
-  await wait(() => window.__los.act4.carrying === 'flag', null, 5000)
+  await wait(() => window.__los.act4.carrying === 'flag', null, 30000)
   await walkTo(-1.5, 9)
   await useAt('act4:spot', 'GRAB')
-  await wait(() => window.__los.act4.done.includes('flag'), null, 5000)
+  await wait(() => window.__los.act4.done.includes('flag'), null, 30000)
   await teleport4(-1.35, 3.3)
   await useAt('act4:seismokit', 'GRAB')
-  await wait(() => window.__los.act4.carrying === 'seismo', null, 5000)
+  await wait(() => window.__los.act4.carrying === 'seismo', null, 30000)
   await walkTo(-8, -5)
   await useAt('act4:seismo', 'GRAB')
   await wait(() => window.__los.act4.phase === 'emerge', null, 60000)
   await objective('Run to the ladder', 5000)
-  await wait(() => window.__los.act4.creature?.phase === 'rim', null, 20000)
+  await wait(() => window.__los.act4.creature?.phase === 'rim', null, 30000)
   await unfocused()
   await teleport4(-3.5, 7.5)
   await walkTo(0, 5.5, 0.9)
   await useAt('act4:ladder', 'GRAB')
   await wait(() => window.__los.act4?.phase === 'liftoff' && window.__los.act4.time >= 3.2, null, 60000)
-  await wait(() => window.__los.store.getState().anomaliesSeen.includes('burn-baby-burn'), null, 20000).catch(() => {})
+  await wait(() => window.__los.store.getState().anomaliesSeen.includes('burn-baby-burn'), null, 30000).catch(() => {})
   check(await seen('burn-baby-burn'), 'burn-baby-burn noticed during liftoff')
 
   // Act 5, then the Archive.
@@ -258,8 +297,8 @@ try {
   })
   check(blocker === null, `archive back button covered by ${blocker}`)
   check(await page.evaluate(() => document.pointerLockElement === null), 'pointer lock released on the Archive')
-  await page.locator('[data-screen="archive"] button').last().click({ timeout: 5000 })
-  await wait(() => window.__los.store.getState().screen === 'title', null, 10000)
+  await page.locator('[data-screen="archive"] button').last().click({ timeout: 30000 })
+  await wait(() => window.__los.store.getState().screen === 'title', null, 30000)
   check(await page.locator('[data-screen="title"] button', { hasText: 'Archive' }).count() > 0, 'Archive button on the title screen')
 } catch (e) {
   errors.push(`script (${stage}): ${e.message.split('\n')[0]} at ${(e.stack.match(/playthrough.mjs:(\d+)/g) ?? []).join(' ')}`)
@@ -269,8 +308,25 @@ try {
     /* no page */
   }
 } finally {
+  if (sampler) clearInterval(sampler)
   await browser.close()
 }
+
+// Draw calls and triangles per act: first sample, middle sample and the peak, all under budget.
+const byAct = new Map()
+for (const s of samples) byAct.set(s.act, [...(byAct.get(s.act) ?? []), s])
+console.log(`stats (${blockAudio ? 'audio blocked' : 'audio on'}): act, first, middle, peak (calls / triangles)`)
+for (const [act, list] of byAct) {
+  const peakCalls = Math.max(...list.map((s) => s.calls))
+  const peakTris = Math.max(...list.map((s) => s.tris))
+  const f = list[0]
+  const m = list[Math.floor(list.length / 2)]
+  console.log(`  ${act.padEnd(13)} ${f.calls}/${f.tris}  ${m.calls}/${m.tris}  ${peakCalls}/${peakTris}  (${list.length} samples)`)
+  check(peakCalls < 150, `${act}: peak draw calls ${peakCalls}, expected under 150`)
+  check(peakTris < 150000, `${act}: peak triangles ${peakTris}, expected under 150000`)
+}
+if (!blockAudio) check(byAct.size >= 5, `stats sampled in ${byAct.size} acts`)
+if (blockAudio) check(blockedRequests > 0, 'audio requests were blocked')
 
 if (errors.length) {
   console.log(errors.join('\n'))

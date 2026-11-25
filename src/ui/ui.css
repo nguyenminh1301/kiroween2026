@@ -633,3 +633,9 @@
 .screen[data-screen='credits'] {
   background: rgba(8, 7, 6, 0.72);
 }
+
+/* Reduced motion: the sleep flashes stay but are softer. */
+.reduced .fx-flash,
+.reduced .fx-figure {
+  opacity: 0.35;
+}

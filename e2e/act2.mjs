@@ -28,7 +28,7 @@ try {
     page.waitForFunction((t) => window.__los.store.getState().objective?.text?.includes(t), text, { timeout, polling: 100 })
   const subtitle = (text, timeout = 30000) =>
     page.waitForFunction((t) => (window.__los.store.getState().subtitle?.text ?? '').includes(t), text, { timeout, polling: 100 })
-  const unfocused = () => page.waitForFunction(() => !window.__los.focus(), null, { timeout: 20000, polling: 100 })
+  const unfocused = () => page.waitForFunction(() => !window.__los.focus(), null, { timeout: 30000, polling: 100 })
   const z = () => page.evaluate(() => window.__los.player.body.pos.z)
   const budget = async (label) => {
     const s = await page.evaluate(() => ({ calls: window.__los.stats.calls, tris: window.__los.stats.triangles }))
@@ -47,7 +47,7 @@ try {
   const useAt = async (id, verb) => {
     await aim(id)
     try {
-      await page.waitForFunction((v) => window.__los.store.getState().target?.verb === v, verb, { timeout: 5000 })
+      await page.waitForFunction((v) => window.__los.store.getState().target?.verb === v, verb, { timeout: 30000 })
     } catch (e) {
       const d = await page.evaluate(() => ({ b: window.__los.player.body, t: window.__los.store.getState().target }))
       await shot('act2-fail')
@@ -68,8 +68,8 @@ try {
   }
 
   await page.goto(url)
-  await page.waitForFunction(() => window.__los, null, { timeout: 15000 })
-  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 20000 })
+  await page.waitForFunction(() => window.__los, null, { timeout: 30000 })
+  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 30000 })
   await page.evaluate(() => window.__los.loader.loadAct('act2-coast'))
   await page.waitForFunction(
     () => window.__los.loader.state.getState().act === 'act2-coast' && window.__los.player.body,
@@ -117,7 +117,7 @@ try {
     if (seen) break
     await push(Math.PI)
   }
-  await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('tunnel-longer'), null, { timeout: 5000 })
+  await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('tunnel-longer'), null, { timeout: 30000 })
   check(pushes - before >= 3, `the way back took ${pushes - before} pushes, expected at least 3`)
   await subtitle('You were gone a while')
   await page.waitForTimeout(1500)

@@ -178,3 +178,11 @@ describe('settings parsing', () => {
     })
   })
 })
+
+describe('flickerScale', () => {
+  it('is 1 normally and 0.3 with reduced motion', async () => {
+    const { flickerScale } = await import('./settings')
+    expect(flickerScale(false)).toBe(1)
+    expect(flickerScale(true)).toBeCloseTo(0.3)
+  })
+})

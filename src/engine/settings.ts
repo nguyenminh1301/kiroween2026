@@ -111,3 +111,9 @@ export function parseSaved(raw: string | null): SavedShape {
     ...(o.finished === true ? { finished: true } : {}),
   }
 }
+
+/** How much of a light or flame flicker is kept with reduced motion. */
+export const REDUCED_FLICKER_SCALE = 0.3
+
+/** Multiplier for flicker and flash amplitudes: 1 normally, softer with reduced motion. */
+export const flickerScale = (reducedMotion: boolean): number => (reducedMotion ? REDUCED_FLICKER_SCALE : 1)

@@ -18,6 +18,8 @@ import {
   type Group,
   type Mesh,
 } from 'three'
+import { flickerScale } from '../../engine/settings'
+import { gameStore } from '../../engine/store'
 import { registerSystem } from '../../engine/frameDriver'
 import { createRng } from '../../procgen/rng'
 import { buildSkyDome } from '../../procgen/skyDome'
@@ -133,7 +135,7 @@ export function EntrySet() {
         cap.rotation.z = TILT + Math.sin(time * 1.3) * 0.03
         cap.rotation.x = Math.sin(time * 0.9) * 0.04
       }
-      const flick = 1 + Math.sin(time * 23) * 0.05 + Math.sin(time * 37) * 0.04
+      const flick = 1 + (Math.sin(time * 23) * 0.05 + Math.sin(time * 37) * 0.04) * flickerScale(gameStore.getState().settings.reducedMotion)
       if (plasma.current) {
         plasma.current.visible = h > 0.02
         plasma.current.scale.set(2.9 * h * flick, 2.2 * h * flick, 2.9 * h * flick)

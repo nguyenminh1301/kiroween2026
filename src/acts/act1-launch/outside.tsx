@@ -23,6 +23,8 @@ import {
   type Group,
   type Material,
 } from 'three'
+import { flickerScale } from '../../engine/settings'
+import { gameStore } from '../../engine/store'
 import { registerSystem } from '../../engine/frameDriver'
 import { createRng } from '../../procgen/rng'
 import { buildSkyDome } from '../../procgen/skyDome'
@@ -104,8 +106,9 @@ function Flame({ level, radius, length, glow = 0 }: FlameProps) {
       if (!g) return
       const l = level()
       g.visible = l > 0.02
-      const flick = 1 + Math.sin(t * 47) * 0.06 + Math.sin(t * 31) * 0.05
-      g.scale.set(1 + 0.2 * Math.sin(t * 40), l * flick, 1 + 0.2 * Math.cos(t * 37))
+      const k = flickerScale(gameStore.getState().settings.reducedMotion)
+      const flick = 1 + (Math.sin(t * 47) * 0.06 + Math.sin(t * 31) * 0.05) * k
+      g.scale.set(1 + 0.2 * k * Math.sin(t * 40), l * flick, 1 + 0.2 * k * Math.cos(t * 37))
     })
     return () => {
       remove()

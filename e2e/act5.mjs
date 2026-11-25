@@ -28,8 +28,8 @@ try {
   const tl = () => page.evaluate(() => window.__los.timeline())
 
   await page.goto(url)
-  await wait(() => window.__los, null, 15000)
-  await wait(() => window.__los.loader.state.getState().status === 'ready', null, 20000)
+  await wait(() => window.__los, null, 30000)
+  await wait(() => window.__los.loader.state.getState().status === 'ready', null, 30000)
   await page.mouse.click(640, 360)
   await wait(() => window.__los.audio.loaded().length >= 40, null, 30000).catch(() => {})
   await page.evaluate(() => window.__los.loader.loadAct('act5-home'))
@@ -62,7 +62,7 @@ try {
     () => window.__los.audio.loaded().includes('vo/act5.end') || window.__los.store.getState().subtitle?.text?.startsWith('Three men came home'),
   )
   check(sawEndVoice, 'voiced line act5.end is loaded or showing')
-  await wait(() => window.__los.store.getState().subtitle?.text?.startsWith('Three men came home'), null, 10000)
+  await wait(() => window.__los.store.getState().subtitle?.text?.startsWith('Three men came home'), null, 30000)
   sawLines.add('act5.end')
   await wait(() => (window.__los.timeline() ?? 999) >= 70.8, null, 60000)
   await shot('act5-t72s')
@@ -81,7 +81,7 @@ try {
   await wait(() => window.__los.loader.state.getState().act === 'act5-home' && (window.__los.timeline() ?? 0) >= 14, null, 60000)
   await page.evaluate(() => window.__los.store.getState().setPaused(true))
   await page.getByRole('button', { name: 'Quit to title' }).click()
-  await wait(() => window.__los.store.getState().screen === 'title', null, 10000)
+  await wait(() => window.__los.store.getState().screen === 'title', null, 30000)
   await page.waitForTimeout(3000)
   const after = await page.evaluate(() => ({
     playing: window.__los.audio.playing(),

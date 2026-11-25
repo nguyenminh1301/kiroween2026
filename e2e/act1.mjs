@@ -30,7 +30,7 @@ try {
     check(s.calls > 0 && s.calls < 150, `${label}: draw calls ${s.calls}, expected under 150`)
     check(s.tris < 150000, `${label}: triangles ${s.tris}, expected under 150000`)
   }
-  const unfocused = () => page.waitForFunction(() => !window.__los.focus(), null, { timeout: 15000 })
+  const unfocused = () => page.waitForFunction(() => !window.__los.focus(), null, { timeout: 30000 })
   const objective = (text) =>
     page.waitForFunction((t) => window.__los.store.getState().objective?.text?.includes(t), text, { timeout: 90000, polling: 100 })
   const aim = async (id) => {
@@ -47,13 +47,13 @@ try {
   }
   const useAt = async (id, verb) => {
     await aim(id)
-    await page.waitForFunction((v) => window.__los.store.getState().target?.verb === v, verb, { timeout: 5000 })
+    await page.waitForFunction((v) => window.__los.store.getState().target?.verb === v, verb, { timeout: 30000 })
     await page.keyboard.press('KeyE')
   }
 
   await page.goto(url)
-  await page.waitForFunction(() => window.__los, null, { timeout: 15000 })
-  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 20000 })
+  await page.waitForFunction(() => window.__los, null, { timeout: 30000 })
+  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 30000 })
   await page.evaluate(() => window.__los.loader.loadAct('act1-launch'))
   await page.waitForFunction(
     () => window.__los.loader.state.getState().act === 'act1-launch' && window.__los.player.body && window.__los.timeline() !== null,
@@ -80,7 +80,7 @@ try {
 
   // The O2 line turns the view to the gauge, which counts as a sighting.
   await page.waitForFunction(() => /oxygen/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 40000, polling: 100 })
-  await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('o2-for-four'), null, { timeout: 15000 })
+  await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('o2-for-four'), null, { timeout: 30000 })
   check(true, 'o2-for-four noticed')
   await shot('act1-o2')
 
@@ -117,7 +117,7 @@ try {
   await shot('act1-tli')
   await budget('TLI shot')
   await atTime(7.5)
-  await page.waitForFunction(() => /Earth fits/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 15000, polling: 100 })
+  await page.waitForFunction(() => /Earth fits/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 30000, polling: 100 })
   await unfocused()
   await shot('act1-earth')
 

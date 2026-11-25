@@ -4,6 +4,8 @@ import { useThree } from '@react-three/fiber'
 import { useEffect, useMemo } from 'react'
 import { Mesh, PerspectiveCamera, PointLight } from 'three'
 import { registerSystem } from '../engine/frameDriver'
+import { flickerScale } from '../engine/settings'
+import { gameStore } from '../engine/store'
 import { buildCreature, poseCreature } from '../procgen/creatureModel'
 import { cbox, mergeColored, QuadBuilder, type P3 } from '../procgen/coloredGeo'
 import { applyFog, clearFog } from './fog'
@@ -91,7 +93,7 @@ export function TitleBackdrop() {
       cam.position.set(p.x, p.y, p.z)
       cam.rotation.set(0, p.yaw, p.roll, 'YXZ')
       lamp.position.set(0, 2.1, p.z - 6 + Math.sin(t * 0.7) * 0.2)
-      lamp.intensity = 14 + Math.sin(t * 5.1) * 1.2 + Math.sin(t * 13) * 0.6
+      lamp.intensity = 14 + (Math.sin(t * 5.1) * 1.2 + Math.sin(t * 13) * 0.6) * flickerScale(gameStore.getState().settings.reducedMotion)
       const k = creatureProgress(t)
       bones.root.visible = k !== null
       if (k === null) return

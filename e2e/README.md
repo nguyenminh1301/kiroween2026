@@ -45,3 +45,15 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 `e2e/act5.mjs` loads act 5, saves `e2e/shots/act5-tNNs.png` every 9 s (compare with `docs/reference/shots/ref-act5-*.png`), checks the voiced `act5.end`, the fade and the Archive count, then quits to title mid-timeline and checks nothing is left playing.
 
 `e2e/playthrough.mjs` runs last. It goes to the title screen, presses Start and plays every act with the act scripts' steps, saving `e2e/shots/playthrough-<act>.png`, then checks the Archive shows 6 / 6 and the title screen has the Archive button. It takes about 8 minutes on SwiftShader.
+
+## Switch test
+
+`e2e/switch.mjs` loads every act through the Chapters screen, pauses each one at a random moment for 3 s and checks that game time, the timeline, the subtitle, the radio queue, the creature and the player did not move, then resumes. It then loads act 3, 0, 3, 5, 1. After every load it checks that no looping sound of another act plays, that the frame system count equals the first load of that act, and that the count at the title is the same at the end as at the start. The last part checks reduced motion in the act 1 launch: shake is a quarter, fringe and grain are halved.
+
+## Idle test
+
+`e2e/idle.mjs` loads each act that waits for the player (acts 0 to 4, act 3 at `start`, act 4 at `tasks`), does nothing for 60 s of game time, and checks the objective and the idle hint are on screen, focus is off, the screen is not black, and the player has not moved. In act 3 the creature must still move and the phase must still be `sneak`.
+
+## Blocked audio
+
+`BLOCK_AUDIO=1 node e2e/playthrough.mjs` plays the whole game with every `/audio/` request aborted. Both playthrough runs print draw calls and triangles per act (first, middle and peak sample).

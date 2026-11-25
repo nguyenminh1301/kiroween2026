@@ -16,6 +16,8 @@ import {
   type Group,
   type Mesh,
 } from 'three'
+import { flickerScale } from '../../engine/settings'
+import { gameStore } from '../../engine/store'
 import { registerSystem } from '../../engine/frameDriver'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { FLAG_KIT, SCOOP_SPOT, SEISMO_KIT, STAGE_BOTTOM, STAGE_TOP } from './layout'
@@ -120,7 +122,7 @@ export function Lander() {
       const s = act4State
       if (root.current) root.current.position.y = s.landerY
       if (ascent.current) ascent.current.position.y = s.ascentRise
-      const flick = 0.92 + Math.sin(t * 40) * 0.08
+      const flick = 1 - 0.08 * flickerScale(gameStore.getState().settings.reducedMotion) * (1 - Math.sin(t * 40))
       if (plume.current) {
         plume.current.visible = s.plume
         const len = Math.min(7, 3 + s.landerY * 0.4, s.landerY + 0.4) * flick

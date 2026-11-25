@@ -15,6 +15,8 @@ import { installRenderDebug, type RenderDebug } from '../render/renderDebug'
 import { getRenderStats } from '../render/renderStats'
 import type { RenderStats } from '../render/stats'
 import type { Screen } from '../engine/store'
+import { lookParams } from '../render/fear'
+import { flickerScale } from '../engine/settings'
 import { getActiveTimeline } from '../engine/unloadReset'
 import { loader } from './loader'
 import { goScreen } from './session'
@@ -57,6 +59,14 @@ export interface LosDebug {
   readonly act4: Act4Info | null
   /** Number of registered frame systems. */
   systemCount(): number
+  /** Game time in seconds. It stands still while paused. */
+  gameTime(): number
+  /** Current camera shake amplitude in metres from the running Timeline, 0 when none. */
+  shake(): number
+  /** The vignette, fringe and grain levels the look pass uses now. */
+  look(): { vignette: number; fringe: number; noise: number }
+  /** Flicker multiplier: 1, or 0.3 with reduced motion. */
+  flicker(): number
 }
 
 export function isDebug(search: string): boolean {
@@ -104,5 +114,15 @@ export function installDebug(win: Window = window): void {
       return getAct4Info()
     },
     systemCount: () => frameDriver.systemCount(),
+    gameTime: () => frameDriver.getGameTime(),
+    shake: () => {
+      const t = getActiveTimeline()
+      return t && !t.finished ? t.shake() : 0
+    },
+    look: () => {
+      const g = gameStore.getState()
+      return lookParams(g.fear, g.settings.reducedMotion)
+    },
+    flicker: () => flickerScale(gameStore.getState().settings.reducedMotion),
   }
 }

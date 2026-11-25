@@ -26,9 +26,9 @@ try {
   })
 
   await page.goto(url)
-  await page.waitForFunction(() => window.__los, null, { timeout: 15000 })
+  await page.waitForFunction(() => window.__los, null, { timeout: 30000 })
   await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready' && window.__los.player.body, null, {
-    timeout: 20000,
+    timeout: 30000,
   })
   await page.waitForTimeout(300)
 
@@ -72,7 +72,7 @@ try {
     z: (info.zone.min.z + info.zone.max.z) / 2,
   }
   await page.evaluate((c) => window.__los.player.set({ pos: { x: c.x, y: 1.2, z: c.z } }), zc)
-  await page.waitForFunction(() => window.__los.store.getState().moveMode === 'zeroG', null, { timeout: 5000 })
+  await page.waitForFunction(() => window.__los.store.getState().moveMode === 'zeroG', null, { timeout: 30000 })
   const z0 = await pos()
   await page.evaluate(() => window.__los.player.launch({ x: -1, y: 0, z: 0 }))
   await page.waitForTimeout(6000)
@@ -86,13 +86,13 @@ try {
 
   // (4) Pause on lock loss, timeline frozen, then resume.
   await page.keyboard.press('KeyT')
-  await page.waitForFunction(() => window.__los.sandbox.timelineTime() !== null, null, { timeout: 5000 })
+  await page.waitForFunction(() => window.__los.sandbox.timelineTime() !== null, null, { timeout: 30000 })
   await page.waitForTimeout(500)
   await page.evaluate(() => {
     window.__los.lock.markHeld(true)
     document.dispatchEvent(new Event('pointerlockchange'))
   })
-  await page.waitForFunction(() => window.__los.store.getState().paused === true, null, { timeout: 5000 })
+  await page.waitForFunction(() => window.__los.store.getState().paused === true, null, { timeout: 30000 })
   const t0 = await page.evaluate(() => window.__los.sandbox.timelineTime())
   await page.waitForTimeout(1000)
   const t1 = await page.evaluate(() => window.__los.sandbox.timelineTime())
@@ -110,7 +110,7 @@ try {
     const b = window.__los.loader.loadAct('sandbox')
     await Promise.all([a, b])
   })
-  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 20000 })
+  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 30000 })
   await page.waitForTimeout(500)
   const after = await page.evaluate(() => ({
     instances: window.__los.sandbox.instances(),

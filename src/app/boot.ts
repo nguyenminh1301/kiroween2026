@@ -7,6 +7,7 @@ import { startInteraction } from '../interaction/interactionRuntime'
 import { readEnv } from './env'
 import { initialScreen } from './flow'
 import { loader } from './loader'
+import { startIdleHint } from '../ui/idleHint'
 import { playAct, restartCheckpoint, wireFinish } from './session'
 
 /** Runs once at startup, outside React so StrictMode cannot repeat it. */
@@ -15,6 +16,7 @@ export function boot(): void {
   installDebug()
   startInteraction()
   wireFinish()
+  startIdleHint()
   setCompleteHandler((_from, next) => {
     if (next) void playAct(next)
     else loader.finish()

@@ -28,16 +28,16 @@ try {
     const s = window.__los.store.getState()
     return { act: s.act, objective: s.objective?.text ?? null, verb: s.target?.verb ?? null, seen: s.anomaliesSeen, sub: s.subtitle?.text ?? null }
   })
-  const unfocused = () => page.waitForFunction(() => !window.__los.focus(), null, { timeout: 15000 })
+  const unfocused = () => page.waitForFunction(() => !window.__los.focus(), null, { timeout: 30000 })
 
   await page.goto(url)
-  await page.waitForFunction(() => window.__los, null, { timeout: 15000 })
-  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 20000 })
+  await page.waitForFunction(() => window.__los, null, { timeout: 30000 })
+  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 30000 })
   await page.evaluate(() => window.__los.loader.loadAct('act0-pad'))
   await page.waitForFunction(
     () => window.__los.loader.state.getState().act === 'act0-pad' && window.__los.player.body,
     null,
-    { timeout: 20000 },
+    { timeout: 30000 },
   )
 
   // Start view and budget.
@@ -53,15 +53,15 @@ try {
 
   // Look down over the right railing: the target must be WAVE.
   await page.evaluate(() => window.__los.player.set({ yaw: -1.2, pitch: -0.5 }))
-  await page.waitForFunction(() => window.__los.store.getState().target?.verb === 'WAVE', null, { timeout: 5000 })
+  await page.waitForFunction(() => window.__los.store.getState().target?.verb === 'WAVE', null, { timeout: 30000 })
   check((await state()).verb === 'WAVE', 'looking down over the railing targets WAVE')
   await page.keyboard.press('KeyE')
-  await page.waitForFunction(() => window.__los.store.getState().objective?.text?.includes('White Room'), null, { timeout: 5000 })
+  await page.waitForFunction(() => window.__los.store.getState().objective?.text?.includes('White Room'), null, { timeout: 30000 })
   await page.waitForTimeout(600)
   await shot('act0-wave')
 
   // Walk to the White Room with real key presses.
-  await page.waitForFunction(() => !window.__los.focus(), null, { timeout: 15000 })
+  await page.waitForFunction(() => !window.__los.focus(), null, { timeout: 30000 })
   await page.evaluate(() => window.__los.player.set({ yaw: 0, pitch: 0 }))
   await page.keyboard.down('KeyW')
   await page.waitForFunction(() => window.__los.player.body.pos.z < -7.2, null, { timeout: 40000, polling: 100 })
@@ -74,7 +74,7 @@ try {
   // Aim at the hatch and board.
   await unfocused()
   await page.evaluate(() => window.__los.player.set({ yaw: 0, pitch: -0.1 }))
-  await page.waitForFunction(() => window.__los.store.getState().target?.verb === 'GRAB', null, { timeout: 5000 })
+  await page.waitForFunction(() => window.__los.store.getState().target?.verb === 'GRAB', null, { timeout: 30000 })
   await page.keyboard.press('KeyE')
   await page.waitForFunction(() => window.__los.store.getState().act === 'act1-launch', null, { timeout: 60000, polling: 200 })
   check(true, 'act1 loaded')

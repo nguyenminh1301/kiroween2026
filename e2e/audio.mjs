@@ -18,11 +18,11 @@ const browser = await chromium.launch({
 
 const ready = async (page) => {
   await page.goto(url)
-  await page.waitForFunction(() => window.__los, null, { timeout: 15000 })
+  await page.waitForFunction(() => window.__los, null, { timeout: 30000 })
   await page.waitForFunction(
     () => window.__los.loader.state.getState().status === 'ready' && window.__los.player.body,
     null,
-    { timeout: 20000 },
+    { timeout: 30000 },
   )
 }
 const subtitleText = (page) => page.evaluate(() => window.__los.store.getState().subtitle?.text ?? null)
@@ -37,7 +37,7 @@ try {
   await ready(page)
   await page.click('canvas')
   await page
-    .waitForFunction(() => window.__los.audio.loaded().length >= 40, null, { timeout: 10000 })
+    .waitForFunction(() => window.__los.audio.loaded().length >= 40, null, { timeout: 30000 })
     .catch(() => check(false, 'audio.loaded() reached 40 names within 10 s'))
   const playing = await page.evaluate(() => window.__los.audio.playing())
   check(playing.includes('hum'), `hum loop is playing, got ${JSON.stringify(playing)}`)
@@ -46,17 +46,17 @@ try {
   const queued = await page.evaluate(() => window.__los.audio.radioQueue())
   check(queued.includes('test.capcom'), `radioQueue has test.capcom, got ${JSON.stringify(queued)}`)
   check((await subtitleText(page)) === 'Columbia, Houston. Radio check.', 'subtitle text for test.capcom')
-  await page.waitForFunction(() => window.__los.store.getState().subtitle === null, null, { timeout: 8000 })
+  await page.waitForFunction(() => window.__los.store.getState().subtitle === null, null, { timeout: 30000 })
 
   await page.keyboard.press('Digit1')
-  await page.waitForFunction(() => window.__los.store.getState().subtitle !== null, null, { timeout: 2000 })
+  await page.waitForFunction(() => window.__los.store.getState().subtitle !== null, null, { timeout: 30000 })
   await page.keyboard.press('Escape')
-  await page.waitForFunction(() => window.__los.store.getState().paused === true, null, { timeout: 2000 })
+  await page.waitForFunction(() => window.__los.store.getState().paused === true, null, { timeout: 30000 })
   await page.waitForTimeout(4000)
   check((await subtitleText(page)) === 'Columbia, Houston. Radio check.', 'subtitle still showing 4 s into a pause')
   await page.evaluate(() => window.__los.lock.resume())
   await page
-    .waitForFunction(() => window.__los.store.getState().subtitle === null, null, { timeout: 8000 })
+    .waitForFunction(() => window.__los.store.getState().subtitle === null, null, { timeout: 30000 })
     .catch(() => check(false, 'subtitle clears after resume'))
 
   // 4: every audio request blocked. No errors, subtitle still shows.

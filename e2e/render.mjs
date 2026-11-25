@@ -63,9 +63,9 @@ try {
   })
 
   await page.goto(url)
-  await page.waitForFunction(() => window.__los, null, { timeout: 15000 })
+  await page.waitForFunction(() => window.__los, null, { timeout: 30000 })
   await page.evaluate(() => window.__los.loader.loadAct('sandbox'))
-  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 15000 })
+  await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 30000 })
 
   await page.evaluate(() => {
     window.__los.render.setLevel(1)

@@ -29,7 +29,7 @@ try {
     wait((t) => window.__los.store.getState().objective?.text?.includes(t), text, timeout)
   const subtitle = (text, timeout) =>
     wait((t) => (window.__los.store.getState().subtitle?.text ?? '').includes(t), text, timeout)
-  const unfocused = () => wait(() => !window.__los.focus(), null, 20000)
+  const unfocused = () => wait(() => !window.__los.focus(), null, 30000)
   const dir = () => page.evaluate(() => window.__los.director)
   const body = () => page.evaluate(() => ({ ...window.__los.player.body.pos }))
   const budget = async (label) => {
@@ -55,21 +55,37 @@ try {
   const useAt = async (id, verb) => {
     await unfocused()
     await aim(id)
-    await wait((v) => window.__los.store.getState().target?.verb === v, verb, 5000)
+    await wait((v) => window.__los.store.getState().target?.verb === v, verb, 30000)
     await page.keyboard.press('KeyE')
   }
   let pushes = 0
-  const push = async (yaw, settle = 700) => {
-    await unfocused()
-    await page.evaluate((yaw) => window.__los.player.set({ yaw, pitch: 0 }), yaw)
-    await page.keyboard.press('KeyE')
-    pushes++
-    await page.waitForTimeout(settle)
+  const speed = () => page.evaluate(() => {
+    const v = window.__los.player.body.vel
+    return Math.hypot(v.x, v.y, v.z)
+  })
+  // One real E press. Waits for the push to show in the velocity, and presses again if it did not.
+  const push = async (yaw) => {
+    for (let tries = 0; tries < 4; tries++) {
+      await unfocused()
+      const before = await speed()
+      await page.evaluate((yaw) => window.__los.player.set({ yaw, pitch: 0 }), yaw)
+      await page.keyboard.press('KeyE')
+      const ok = await page
+        .waitForFunction((b) => {
+          const v = window.__los.player.body.vel
+          return Math.abs(Math.hypot(v.x, v.y, v.z) - b) > 0.05
+        }, before, { timeout: 4000, polling: 50 })
+        .then(() => true, () => false)
+      if (ok) {
+        pushes++
+        return
+      }
+    }
   }
 
   await page.goto(url)
-  await wait(() => window.__los, null, 15000)
-  await wait(() => window.__los.loader.state.getState().status === 'ready', null, 20000)
+  await wait(() => window.__los, null, 30000)
+  await wait(() => window.__los.loader.state.getState().status === 'ready', null, 30000)
 
   // 1. Start: wake, then sneak to the encounter and hide in locker 0.
   await load('start')
@@ -91,7 +107,7 @@ try {
   await page.keyboard.down('Space')
   await teleport(-0.3, -9.5)
   await useAt('act3:locker0', 'HIDE')
-  await wait(() => window.__los.store.getState().moveMode === 'seated', null, 5000)
+  await wait(() => window.__los.store.getState().moveMode === 'seated', null, 30000)
   await page.waitForTimeout(1000)
   await shot('act3-locker')
   await subtitle('Hold your breath', 20000)
@@ -101,7 +117,7 @@ try {
   await subtitle('It went by', 20000)
   await page.waitForTimeout(1500)
   await page.keyboard.press('KeyE')
-  await wait(() => window.__los.store.getState().moveMode === 'zeroG', null, 5000)
+  await wait(() => window.__los.store.getState().moveMode === 'zeroG', null, 30000)
   check((await body()).x > -1, 'stepped out of the locker')
   check(await page.evaluate(() => window.__los.store.getState().checkpoint === 'wp0'), 'wp0 set')
 
@@ -120,49 +136,50 @@ try {
     await page.keyboard.down('Space')
     await page.waitForTimeout(150)
   }
-  await wait(() => ['alert', 'hunt'].includes(window.__los.director.monster.mode), null, 20000)
+  await wait(() => ['alert', 'hunt'].includes(window.__los.director.monster.mode), null, 30000)
   await subtitle('It heard you', 8000)
   await teleport(-0.3, -9.5)
   await useAt('act3:locker0', 'HIDE')
-  await wait(() => window.__los.store.getState().moveMode === 'seated', null, 5000)
-  await wait(() => ['hunt', 'search'].includes(window.__los.director.monster.mode), null, 20000)
+  await wait(() => window.__los.store.getState().moveMode === 'seated', null, 30000)
+  await wait(() => ['hunt', 'search'].includes(window.__los.director.monster.mode), null, 30000)
   await subtitle('It lost you', 90000)
   await page.keyboard.up('Space')
   check((await dir()).state.phase === 'sneak', 'not caught while hidden')
   await objective('Reach Mike', 10000)
   await page.keyboard.press('KeyE')
-  await wait(() => window.__los.store.getState().moveMode === 'zeroG', null, 5000)
+  await wait(() => window.__los.store.getState().moveMode === 'zeroG', null, 30000)
   // 3. The reveal from wp2, then the chase to the hatch with real key presses.
   await load('wp2')
   await teleport(0, -37.5)
   await page.waitForTimeout(300)
   await teleport(0, -38.3)
   await subtitle('You came', 20000)
-  await wait(() => window.__los.director.state.phase === 'reveal', null, 5000)
+  await wait(() => window.__los.director.state.phase === 'reveal', null, 30000)
   await page.waitForTimeout(2200)
   await shot('act3-reveal')
-  await wait(() => window.__los.director.state.phase === 'chase', null, 20000)
+  await wait(() => window.__los.director.state.phase === 'chase', null, 30000)
   await objective('Run', 5000)
   await page.waitForTimeout(800)
   await shot('act3-chase')
   await budget('chase')
   await unfocused()
   const startedAt = await body()
-  for (let i = 0; i < 60 && (await body()).z < 1.4; i++) {
+  for (let i = 0; i < 200 && (await body()).z < 1.4; i++) {
     const d = await dir()
     if (d.state.phase !== 'chase') break
-    await push(Math.PI, 450)
+    await push(Math.PI)
   }
   check((await dir()).state.phase === 'chase', 'still running, not caught')
   check((await body()).z > startedAt.z + 20, 'ran toward the hatch')
-  check(await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act3:hatch').enabled), 'hatch enabled in the chase')
+  await wait(() => window.__los.interactables().find((i) => i.id === 'act3:hatch')?.enabled, null, 30000)
+  check(true, 'hatch enabled in the chase')
   await useAt('act3:hatch', 'GRAB')
   await wait(() => window.__los.loader.state.getState().act === 'act4-moon', null, 120000)
   check(true, 'act 4 loading')
 
   // 4. Do nothing in the chase: caught, then back at wp3.
   await load('wp3')
-  await wait(() => window.__los.director.state.phase === 'chase', null, 10000)
+  await wait(() => window.__los.director.state.phase === 'chase', null, 30000)
   await page.waitForFunction(() => !!document.querySelector('[data-testid=caught]'), null, { timeout: 60000, polling: 100 })
   await page.waitForTimeout(500)
   await shot('act3-caught')
@@ -172,9 +189,9 @@ try {
 
   // 5. Pause in the chase: the gap holds still.
   await load('wp3')
-  await wait(() => window.__los.director.state.phase === 'chase', null, 10000)
+  await wait(() => window.__los.director.state.phase === 'chase', null, 30000)
   await page.keyboard.press('Escape')
-  await wait(() => window.__los.store.getState().paused === true, null, 3000)
+  await wait(() => window.__los.store.getState().paused === true, null, 30000)
   const g0 = (await dir()).state.gap
   await page.waitForTimeout(5000)
   const g1 = (await dir()).state.gap

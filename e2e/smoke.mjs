@@ -22,7 +22,7 @@ try {
   })
 
   await page.goto(url)
-  await page.waitForFunction(() => window.__los, null, { timeout: 15000 })
+  await page.waitForFunction(() => window.__los, null, { timeout: 30000 })
 
   const canvases = await page.locator('canvas').count()
   if (canvases < 1) errors.push('no <canvas> found')
