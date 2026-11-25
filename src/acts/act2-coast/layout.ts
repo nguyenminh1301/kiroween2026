@@ -104,3 +104,18 @@ export function collisionBoxes(cmFar: number): Box[] {
     box(-o, o, 0, ROOM_H, cmFar + CM_LENGTH, zMax), // command module end
   ]
 }
+
+/** How far outside each tunnel mouth the guide starts easing the body toward the axis. */
+export const GUIDE_MARGIN = 0.9
+/** Feet height that puts the eye on the tunnel axis band. */
+export const GUIDE_FEET_Y = 0.3
+
+/**
+ * Ease a zero-g body toward the tunnel axis near the mouths and inside, so a push that starts
+ * off-centre still enters the 0.9 m tunnel. Returns the new x and y.
+ */
+export function guideToAxis(x: number, y: number, z: number, cmFar: number, dt: number): { x: number; y: number } {
+  if (z < LANDER_Z1 - GUIDE_MARGIN || z > cmFar + GUIDE_MARGIN) return { x, y }
+  const k = 1 - Math.exp(-8 * dt)
+  return { x: x + (0 - x) * k, y: y + (GUIDE_FEET_Y - y) * k }
+}

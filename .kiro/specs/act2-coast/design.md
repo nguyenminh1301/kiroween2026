@@ -9,6 +9,7 @@
 
 ## Decisions
 - Collision capsule is vertical and 1.8 m tall, the tunnel is 0.9 m across. The tunnel collides only on its two side slabs (|x| >= 0.45) and a ceiling at y 2.25, so a body at x = 0 passes. The tunnel axis is y = 1.8, which matches the eye height range (1.65 to 2.1).
+- A guide system (priority 90, before the player step) eases the zero-g body toward the tunnel axis within 0.9 m of each mouth and inside, since the capsule (0.6 m) leaves only 0.3 m of play in the 0.9 m tunnel.
 - Rails are a left and a right bar along the side walls (x = -1.1 and 1.1, 1 m long) at each z step, y = 1.6. Inside the tunnel the bars sit at x = +-0.4 so they stay inside the walls. Reach is 2.0 m from the eye, so a push from the tunnel centre always has a rail.
 - The tunnel growth reuses the same rail z grid (`cmFar` + 2.7 - 1.5k), so a longer tunnel simply has one more rail.
 - The scene rebuilds the room geometry through a small subscription on `act2State`. This runs once per act, never per frame.
