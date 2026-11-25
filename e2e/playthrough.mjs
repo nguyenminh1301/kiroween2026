@@ -257,7 +257,8 @@ try {
     return top === btn ? null : `${top?.tagName}.${top?.className}`
   })
   check(blocker === null, `archive back button covered by ${blocker}`)
-  await page.keyboard.press('Enter')
+  check(await page.evaluate(() => document.pointerLockElement === null), 'pointer lock released on the Archive')
+  await page.locator('[data-screen="archive"] button').last().click({ timeout: 5000 })
   await wait(() => window.__los.store.getState().screen === 'title', null, 10000)
   check(await page.locator('[data-screen="title"] button', { hasText: 'Archive' }).count() > 0, 'Archive button on the title screen')
 } catch (e) {

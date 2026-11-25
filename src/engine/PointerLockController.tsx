@@ -10,6 +10,7 @@ import {
   requestLock,
   setLockTarget,
 } from './inputRuntime'
+import { shouldHoldLock } from './pointerLock'
 import { gameStore } from './store'
 
 /** Runs after every other system but before Input's endFrame (1000). */
@@ -61,6 +62,20 @@ export function PointerLockController() {
       if (document.hidden) pauseCollector.note({ tabHidden: true, wasHeld: lockRuntime.wasHeld, debug })
     }
 
+    // Menus, system screens and pause need a free cursor: let go of the lock when one shows.
+    const releaseIfMenu = () => {
+      const s = gameStore.getState()
+      if (shouldHoldLock(s.screen, s.paused) || !document.pointerLockElement) return
+      lockRuntime.wasHeld = false // a deliberate release is not a lock loss
+      try {
+        document.exitPointerLock()
+      } catch {
+        /* no lock to release */
+      }
+    }
+    releaseIfMenu()
+    const unsubscribe = gameStore.subscribe(releaseIfMenu)
+
     canvas.addEventListener('click', onClick)
     document.addEventListener('pointerlockchange', onLockChange)
     document.addEventListener('pointerlockerror', onLockError)
@@ -86,6 +101,7 @@ export function PointerLockController() {
       window.removeEventListener('keydown', onKeyDown)
       document.removeEventListener('visibilitychange', onVisibility)
       unregister()
+      unsubscribe()
       setLockTarget(null)
     }
   }, [canvas])

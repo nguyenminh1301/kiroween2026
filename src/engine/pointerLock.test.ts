@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { createPauseCollector, nextPaused, type LockInputs } from './pointerLock'
+import { createPauseCollector, nextPaused, shouldHoldLock, type LockInputs } from './pointerLock'
 
 const RUNS = { numRuns: 200 }
 
@@ -48,5 +48,15 @@ describe('pointer lock pause', () => {
       ),
       RUNS,
     )
+  })
+})
+
+describe('shouldHoldLock', () => {
+  it('holds the lock only while playing and not paused', () => {
+    expect(shouldHoldLock('game', false)).toBe(true)
+    expect(shouldHoldLock('game', true)).toBe(false)
+    for (const s of ['title', 'chapters', 'settings', 'credits', 'archive', 'warning', 'headphones', 'gate'] as const) {
+      expect(shouldHoldLock(s, false)).toBe(false)
+    }
   })
 })

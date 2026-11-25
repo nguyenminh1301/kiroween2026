@@ -59,3 +59,8 @@ export function createPauseCollector(): PauseCollector {
     },
   }
 }
+
+/** The pointer lock may be held only in the game and while not paused. Menus and system screens need a free cursor. */
+export function shouldHoldLock(screen: string, paused: boolean): boolean {
+  return screen === 'game' && !paused
+}
