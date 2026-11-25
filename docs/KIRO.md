@@ -64,7 +64,7 @@ After each phase the author reviewed the work in a fresh clone. The review ran t
 
 ## Testing
 
-**Unit and property tests.** Vitest runs 357 tests in 76 files. 31 of those files use fast-check, with 92 property checks. The main properties:
+**Unit and property tests.** Vitest runs 357 tests in 77 files. 31 of those files use fast-check, with 92 property checks. The main properties:
 
 - Movement: horizontal speed never exceeds the set speed, opposing keys cancel, pitch stays within ±90°.
 - Collision: resolving leaves no overlap, leaves a free capsule unchanged, and is idempotent.
