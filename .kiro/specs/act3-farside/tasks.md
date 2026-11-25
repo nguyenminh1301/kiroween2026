@@ -1,7 +1,7 @@
 # Tasks: act3-farside
 
 - [x] 1. Content and body logic: subtitles, checklists, noise, hearing, breath hold, with tests (req 2.1 to 2.5)
-- [ ] 2. Tension, fear, heart rate and chase gap logic, with tests (req 2.6, 2.7, 4.7)
+- [x] 2. Tension, fear, heart rate and chase gap logic, with tests (req 2.6, 2.7, 4.7)
 - [ ] 3. Layout, collision, rails, patrol path and monster state machine, with tests (req 1.2 to 1.4, 3.2 to 3.4)
 - [ ] 4. Corridor scene: tunnel geometry, textures, fog, flashlight, lockers, floor strips, handrail visuals (req 1.1, 1.5, 1.6)
 - [ ] 5. Creature model and animation (req 3.1)
