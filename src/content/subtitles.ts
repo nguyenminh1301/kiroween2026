@@ -187,4 +187,45 @@ export const LINES: Record<string, Line> = {
     speaker: 'CDR',
     text: 'Then we take it down with us, and we leave it on the Moon.',
   },
+  'act4.go': { speaker: 'CAPCOM', text: 'Eagle, Houston. You are go for powered descent.' },
+  'act4.alarm': { speaker: 'CDR', text: 'Program alarm. Twelve oh two. What is that?' },
+  'act4.goalarm': { speaker: 'CAPCOM', text: 'We are go on that alarm. Keep going.' },
+  'act4.sixty': { speaker: 'CAPCOM', text: 'Sixty seconds.', seconds: 2 },
+  'act4.thirty': { speaker: 'CAPCOM', text: 'Thirty seconds.', seconds: 2 },
+  'act4.contact': { speaker: 'CDR', text: 'Contact light. Engine stop. We are down.' },
+  'act4.flagtask': {
+    speaker: 'CDR',
+    text: 'Flag is rolled up on the ladder leg. Houston wants it on camera.',
+  },
+  'act4.jobs': {
+    speaker: 'CDR',
+    text: 'Scoop and seismometer are in the equipment bay. Do them in any order.',
+  },
+  'act4.plant': { speaker: 'CDR', text: 'See the marker out there? Plant it there.' },
+  'act4.takescoop': { speaker: 'CDR', text: 'Scoop. Fill a bag at the marker, from the fine stuff.' },
+  'act4.takeseismo': { speaker: 'CDR', text: 'Set the seismometer down on that flat spot.' },
+  'act4.flag': { speaker: 'CDR', text: 'Earth has a flag on the Moon. Somebody back home is crying.' },
+  'act4.sample': { speaker: 'CDR', text: 'Got it. First handful of the Moon anybody ever held.' },
+  'act4.seismo': {
+    speaker: 'CAPCOM',
+    text: 'Tranquility, we see the seismometer. Wait. It is picking up something big.',
+  },
+  'act4.emerge': {
+    speaker: 'CDR',
+    mood: 'shout',
+    text: 'Buzz! The crater behind you! Run for the ladder!',
+  },
+  'act4.liftoff': {
+    speaker: 'CDR',
+    mood: 'shout',
+    text: 'It is on the descent stage! Fire the engine! Burn it!',
+  },
+  'act4.burned': {
+    speaker: 'CDR',
+    text: 'It went up with the descent stage. It is not coming with us.',
+  },
+  'act4.columbia': {
+    speaker: 'CMP',
+    text: 'Eagle, Columbia. I have you in the sextant. Come on up, I kept your seats warm.',
+  },
 }

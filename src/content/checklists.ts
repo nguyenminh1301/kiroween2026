@@ -33,4 +33,21 @@ export const CHECKLISTS: Record<string, Objective> = {
     keys: 'E',
     markers: ['act3:hatch'],
   },
+  act4Tasks: {
+    text: 'Surface tasks, any order',
+    keys: 'E',
+    markers: ['act4:flagkit', 'act4:scoop', 'act4:seismokit', 'act4:spot', 'act4:sample', 'act4:seismo'],
+  },
+  act4Run: { text: 'Run to the ladder and climb in. SPACE jumps', keys: 'E', markers: ['act4:ladder'] },
 }
+
+/** Act 4 surface task strip text. */
+export const ACT4_TEXT = {
+  prefix: 'Surface tasks, any order: ',
+  flag: 'Plant the flag',
+  sample: 'Scoop a soil sample',
+  seismo: 'Set up the seismometer',
+  carryFlag: 'Carry the flag to its marker and plant it',
+  carryScoop: 'Take the scoop to the sample marker',
+  carrySeismo: 'Carry the seismometer to its marker',
+} as const

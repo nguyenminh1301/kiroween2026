@@ -5,6 +5,7 @@ export const HUD = {
   distant: '(far away)',
   alarm: 'PROG ALARM',
   dsky: { prog: 'PROG', verb: 'VERB', noun: 'NOUN' },
+  burnRoutine: 'BURN_BABY_BURN--MASTER_IGNITION_ROUTINE',
   caught: 'It found you. Back to the last checkpoint.',
   meter: {
     title: 'NOISE',
