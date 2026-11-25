@@ -9,4 +9,4 @@ Eight tasks. Each ends with `npm run test`, `npm run lint` and one commit. The f
 - [x] 5. Props: figures, bags, pen, rails, windows, instrument panel, held pen (req 1.3, 1.4, 1.7).
 - [x] 6. Runtime wiring: start, beats, interactables, sleep and hand-off (req 2, 3, 4).
 - [x] 7. `e2e/act2.mjs` and the `npm run e2e` chain (req 5.3).
-- [ ] 8. Shot comparison against the reference and the six checks.
+- [x] 8. Shot comparison against the reference and the six checks.
