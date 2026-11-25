@@ -22,3 +22,16 @@ export function completeAct(): void {
   queueMicrotask(() => h(from, nextAct(from)))
 }
 
+
+let restartHandler: (() => void) | null = null
+
+/** Install the handler that reloads the current act at its current checkpoint. */
+export function setRestartHandler(fn: (() => void) | null): void {
+  restartHandler = fn
+}
+
+/** Reload the current act at its checkpoint, with no chapter card. */
+export function restartAct(): void {
+  const h = restartHandler
+  if (h) queueMicrotask(h)
+}

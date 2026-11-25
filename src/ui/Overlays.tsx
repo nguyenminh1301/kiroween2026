@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { HUD } from '../content/hud'
 import { VERB_LABELS } from '../content/verbs'
+import { METER_TICK } from '../engine/fx'
 import { useFx, useGame } from './hooks'
 import { nameLine, revealCount } from './dialogue'
 
@@ -93,7 +94,25 @@ export function Wrist() {
   )
 }
 
+export function NoiseMeterBar() {
+  const meter = useFx((s) => s.meter)
+  const paused = useGame((s) => s.paused)
+  if (!meter || paused) return null
+  return (
+    <div className="noise-meter" data-testid="noise-meter">
+      <div className="noise-title">{HUD.meter.title}</div>
+      <div className="noise-bar">
+        <div className={`noise-fill${meter.red ? ' red' : ''}`} style={{ width: `${meter.fill * 100}%` }} />
+        <div className="noise-tick" style={{ left: `${METER_TICK * 100}%` }} />
+      </div>
+      <div className="noise-label">{meter.label}</div>
+    </div>
+  )
+}
+
 export function FxLayer() {
+  const edge = useFx((s) => s.edge)
+  const flash = useFx((s) => s.flash)
   const blackout = useFx((s) => s.blackout)
   const flashes = useFx((s) => s.flashes)
   const caption = useFx((s) => s.caption)
@@ -101,7 +120,13 @@ export function FxLayer() {
   const dsky = useFx((s) => s.dsky)
   return (
     <>
+      {edge > 0 ? <div className="fx-edge" style={{ opacity: edge }} data-testid="edge" /> : null}
       <div className="fx-black" style={{ opacity: blackout }} />
+      {flash ? (
+        <div className="fx-caught" data-testid="caught">
+          <p>{flash}</p>
+        </div>
+      ) : null}
       {blackout > 0.6
         ? flashes.map((f, i) =>
             f.figure ? (

@@ -6,7 +6,7 @@
 - [x] 4. Corridor scene: tunnel geometry, textures, fog, flashlight, lockers, floor strips, handrail visuals (req 1.1, 1.5, 1.6)
 - [x] 5. Creature model and animation (req 3.1)
 - [x] 6. Beat flow on a fake clock, with tests (req 4.1 to 4.10)
-- [ ] 7. UI pieces and engine hooks: noise meter, edge darkening, caught flash, push events, restartAct (req 2.8, 4.7, 4.9)
+- [x] 7. UI pieces and engine hooks: noise meter, edge darkening, caught flash, push events, restartAct (req 2.8, 4.7, 4.9)
 - [ ] 8. Runtime wiring: player, lockers, creature, audio, debug `director`, hand-off (req 2.9, 4.x)
 - [ ] 9. `e2e/act3.mjs`, added to `npm run e2e`, and screenshots (req 5.2)
 - [ ] 10. Final checks: test, lint, build, check-budget, check-copy, e2e

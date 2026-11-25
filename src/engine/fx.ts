@@ -24,7 +24,27 @@ export interface Hint {
   text: string
 }
 
+export interface NoiseMeter {
+  /** Status text under the title. */
+  label: string
+  /** Bar fill, 0 to 1. The white tick sits at `METER_TICK`. */
+  fill: number
+  /** Past 64% of the hearing threshold. */
+  red: boolean
+}
+
+/** Where the white tick is on the bar: the point where the creature hears you. */
+export const METER_TICK = 0.8
+
 export interface FxState {
+  meter: NoiseMeter | null
+  /** Screen edge darkness, 0 to 1. */
+  edge: number
+  /** Red flash text, or null. */
+  flash: string | null
+  setMeter: (m: NoiseMeter | null) => void
+  setEdge: (v: number) => void
+  setFlash: (s: string | null) => void
   blackout: number
   flashes: Flash[]
   caption: string | null
@@ -42,10 +62,13 @@ export interface FxState {
   clearFx: () => void
 }
 
-const EMPTY = { blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false }
+const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false }
 
 export const fxStore = createStore<FxState>()((set) => ({
   ...EMPTY,
+  setMeter: (meter) => set({ meter }),
+  setEdge: (v) => set({ edge: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
+  setFlash: (flash) => set({ flash }),
   setBlackout: (v) => set({ blackout: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
   setFlashes: (flashes) => set({ flashes: [...flashes] }),
   setCaption: (caption) => set({ caption }),

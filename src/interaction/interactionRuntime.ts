@@ -25,6 +25,16 @@ function railInReach(eye: Vec3): boolean {
   return getHandrails().some((r) => isHandrailUsable(eye, nearestOnSegment(eye, r.a, r.b)))
 }
 
+const pushListeners = new Set<() => void>()
+
+/** Called after each handrail push-off. Returns a remover. */
+export function onHandrailPush(l: () => void): () => void {
+  pushListeners.add(l)
+  return () => {
+    pushListeners.delete(l)
+  }
+}
+
 let stop: (() => void) | null = null
 
 export function startInteraction(): () => void {
@@ -61,6 +71,7 @@ export function startInteraction(): () => void {
         launchPlayer(dir)
         audio.play('grab')
         showHint('push')
+        for (const l of [...pushListeners]) l()
       }
     },
     { pausable: true },

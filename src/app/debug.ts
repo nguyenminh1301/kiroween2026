@@ -6,6 +6,7 @@ import { markLockWasHeld, resumeGame } from '../engine/inputRuntime'
 import type { PlayerBody } from '../engine/playerBody'
 import { getPlayerBody, launchPlayer, updatePlayerBody } from '../engine/playerRuntime'
 import { gameStore } from '../engine/store'
+import { getDirector, type DirectorSnapshot } from '../director/snapshot'
 import { getInteractables } from '../interaction/interactables'
 import { focus } from '../interaction/Focus'
 import type { Vec3 } from '../types'
@@ -50,6 +51,8 @@ export interface LosDebug {
   render: RenderDebug
   audio: { loaded(): string[]; playing(): string[]; radioQueue(): string[] }
   ui: { go(screen: Screen): void }
+  /** Act 3 only: phase, alert, noise, hearing threshold and the creature. Null in other acts. */
+  readonly director: DirectorSnapshot | null
   /** Number of registered frame systems. */
   systemCount(): number
 }
@@ -92,6 +95,9 @@ export function installDebug(win: Window = window): void {
     render: installRenderDebug(adaptiveScaler),
     audio: { loaded: () => audio.loaded(), playing: () => audio.playing(), radioQueue: () => audio.radioQueue() },
     ui: { go: (screen) => goScreen(screen) },
+    get director() {
+      return getDirector()
+    },
     systemCount: () => frameDriver.systemCount(),
   }
 }
