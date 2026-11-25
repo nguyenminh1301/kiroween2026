@@ -59,7 +59,7 @@ export function capsuleY(t: number, wave = 0): number {
 
 export const ENTRY_SHOTS_END = 26
 
-export const SHOTS: NamedShot[] = [
+const RAW_SHOTS: NamedShot[] = [
   {
     name: 'entryClose',
     view: 'entry',
@@ -136,6 +136,18 @@ export const SHOTS: NamedShot[] = [
     }),
   },
 ]
+
+/** Shot positions above are relative to their set; this moves them to the set's place in the world. */
+export const SHOTS: NamedShot[] = RAW_SHOTS.map((shot) => {
+  const dx = shot.view === 'entry' ? ENTRY_X : OCEAN_X
+  return {
+    ...shot,
+    cam: (u, t) => {
+      const c = shot.cam(u, t)
+      return { position: { ...c.position, x: c.position.x + dx }, lookAt: { ...c.lookAt, x: c.lookAt.x + dx } }
+    },
+  }
+})
 
 export const SHAKE: ShakeKey[] = [
   { t: 0, amp: 0 },
