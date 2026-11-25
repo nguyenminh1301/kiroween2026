@@ -47,6 +47,9 @@ Recordings in `public/audio/`, trimmed, converted to mono MP3 and loudness-norma
 | What | Tool | Notes |
 |------|------|-------|
 | All spoken lines in `public/audio/vo/` | ElevenLabs text to speech (premade voices) | Generated for the earlier build of this game and copied in as finished files. Created with ElevenLabs, free plan: attribution required, check the plan terms before any commercial use. |
+| `public/audio/vo/act0.intro1.mp3` | ElevenLabs text to speech | Narrator, act 0. Same terms as above. |
+| `public/audio/vo/act0.intro2.mp3` | ElevenLabs text to speech | Narrator, act 0. Same terms as above. |
+| `public/audio/vo/act5.end.mp3` | ElevenLabs text to speech | Narrator, act 5. Same terms as above. |
 | `public/audio/crowd_cheer.mp3` | ElevenLabs sound effects | Same terms as above. |
 
 
@@ -60,3 +63,11 @@ Loaded from Google Fonts in `index.html`.
 | IBM Plex Mono | OFL-1.1 |
 | Courier Prime | OFL-1.1 |
 | Special Elite | Apache-2.0 |
+
+## Apollo Guidance Computer source
+
+The act 4 liftoff screen and the Archive quote the routine name `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE` from the Apollo 11 lunar module program.
+
+| What | Source | License |
+|------|--------|---------|
+| Luminary099, `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE.agc` | https://github.com/chrislgarry/Apollo-11 (transcribed by Virtual AGC and the MIT Museum) | Public domain |
