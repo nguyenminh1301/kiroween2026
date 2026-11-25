@@ -345,11 +345,11 @@
 }
 .dlg-name {
   font-family: var(--mono);
-  font-size: 0.6em;
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-size: 0.75em;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #e9b740;
+  color: #ffd25a;
   margin-bottom: 4px;
 }
 .dlg-tags {
@@ -620,4 +620,16 @@
   font-family: var(--type);
   font-size: 26px;
   text-align: center;
+}
+
+/* Screens over the live corridor backdrop let it show through. */
+.screen[data-screen='title'] {
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.1) 70%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px);
+}
+.screen[data-screen='chapters'],
+.screen[data-screen='settings'],
+.screen[data-screen='credits'] {
+  background: rgba(8, 7, 6, 0.72);
 }
