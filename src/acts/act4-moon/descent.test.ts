@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DESCENT_DURATION, DESCENT_SHOTS, descentEvents, dustLevel, landerHeight, plumeOn } from './descent'
+import { DESCENT_DURATION, DESCENT_SHOTS, descentEvents, descentFill, dustAt, dustShape, dustLevel, landerHeight, plumeOn } from './descent'
 import { selectShot, sortedEvents, dueEvents } from '../../timeline/timeline'
 
 describe('descent', () => {
@@ -16,6 +16,24 @@ describe('descent', () => {
     expect(dustLevel(12)).toBe(0)
     expect(dustLevel(5)).toBeCloseTo(0.5)
     expect(dustLevel(0)).toBe(1)
+  })
+
+  it('blows a wide thin dust sheet that is clear in the 19 to 24 s shot and gone after touchdown', () => {
+    expect(dustAt(8)).toBe(0)
+    expect(dustAt(15)).toBeGreaterThan(0)
+    expect(dustAt(15)).toBeLessThan(dustAt(19))
+    for (const t of [19, 20, 21, 22]) expect(dustShape(dustAt(t)).opacity).toBeGreaterThan(0.5)
+    expect(dustShape(dustAt(20)).radius).toBeGreaterThan(15)
+    expect(dustShape(dustAt(20)).height).toBeLessThan(1)
+    expect(dustShape(dustAt(21)).radius).toBeGreaterThan(dustShape(dustAt(19)).radius)
+    expect(dustAt(23.1)).toBe(0)
+    expect(dustShape(0).opacity).toBe(0)
+  })
+
+  it('lights the lander during the descent only', () => {
+    expect(descentFill(0)).toBe(1)
+    expect(descentFill(20)).toBe(1)
+    expect(descentFill(24)).toBe(0)
   })
 
   it('covers 0 to 24 s with outside shots', () => {

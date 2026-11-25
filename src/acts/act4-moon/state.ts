@@ -9,6 +9,8 @@ export const act4State = {
   landerY: 0,
   plume: false,
   dust: 0,
+  /** Descent fill light on the lander, 0 or 1. */
+  fill: 0,
   /** Ascent stage climb in the liftoff, metres. */
   ascentRise: 0,
   /** Ascent engine fire, 0 to 1. */
@@ -23,6 +25,7 @@ export function resetAct4State(): void {
   act4State.landerY = 0
   act4State.plume = false
   act4State.dust = 0
+  act4State.fill = 0
   act4State.ascentRise = 0
   act4State.fire = 0
   act4State.flagTip = 0

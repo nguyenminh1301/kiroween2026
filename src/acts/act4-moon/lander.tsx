@@ -3,9 +3,14 @@ import { useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import {
   AdditiveBlending,
+  BufferAttribute,
+  BufferGeometry,
   ConeGeometry,
+  CylinderGeometry,
   DoubleSide,
   MeshBasicMaterial,
+  Points,
+  PointsMaterial,
   RingGeometry,
   Vector3,
   type Group,
@@ -24,10 +29,13 @@ import {
   buildScoop,
   buildSeismo,
 } from './landerGeo'
+import { dustShape } from './descent'
 import { act4State } from './state'
 import { SITES, groundAt } from './terrain'
 
 const LANDER_PRIORITY = 650
+
+const DUST_POINTS = 220
 
 const glow = (color: string, opacity: number): MeshBasicMaterial =>
   new MeshBasicMaterial({ color, transparent: true, opacity, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, fog: false })
@@ -59,17 +67,30 @@ export function Lander() {
         g.translate(0, 0.5, 0)
         return g
       })(),
-      dust: new RingGeometry(0.5, 1, 28),
+      dust: new RingGeometry(0.7, 1, 40),
+      dustWall: (() => {
+        const g = new CylinderGeometry(1, 1, 1, 40, 1, true)
+        g.translate(0, 0.5, 0)
+        return g
+      })(),
+      dustPoints: (() => {
+        const g = new BufferGeometry()
+        g.setAttribute('position', new BufferAttribute(new Float32Array(DUST_POINTS * 3), 3))
+        return g
+      })(),
     }),
     [],
   )
   const mats = useMemo(
     () => ({
-      plume: glow('#a8c4ff', 0.7),
-      plumeCore: glow('#ffffff', 0.9),
+      plume: glow('#a8c4ff', 0.85),
+      plumeCore: glow('#ffffff', 1),
+      plumeHalo: glow('#7fa4ff', 0.28),
       fire: glow('#ffb347', 0.75),
       fireCore: glow('#ffffff', 0.9),
-      dust: new MeshBasicMaterial({ color: '#cfc8b4', transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }),
+      dust: new MeshBasicMaterial({ color: '#e4dcc6', transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }),
+      dustWall: new MeshBasicMaterial({ color: '#d6cdb6', transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }),
+      dustPoints: new PointsMaterial({ color: '#efe8d4', size: 3, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, fog: false }),
     }),
     [],
   )
@@ -79,6 +100,8 @@ export function Lander() {
   const plume = useRef<Group>(null)
   const fire = useRef<Group>(null)
   const dust = useRef<Mesh>(null)
+  const dustWall = useRef<Mesh>(null)
+  const dustPts = useRef<Points>(null)
   const flag = useRef<Group>(null)
   const bag = useRef<Mesh>(null)
   const seismo = useRef<Mesh>(null)
@@ -104,12 +127,31 @@ export function Lander() {
         plume.current.scale.set(1.3, Math.max(0.2, len), 1.3)
         plume.current.position.y = STAGE_BOTTOM - 0.4
       }
-      if (dust.current) {
-        dust.current.visible = s.dust > 0
-        const r = 3 + s.dust * 15
-        dust.current.scale.set(r, r, 1)
-        mats.dust.opacity = 0.45 * s.dust
+      if (dust.current && dustWall.current && dustPts.current) {
+        const on = s.dust > 0
+        dust.current.visible = on
+        dustWall.current.visible = on
+        dustPts.current.visible = on
+        if (on) {
+          const d = dustShape(s.dust)
+          const r = d.radius
+          dust.current.scale.set(r, r, 1)
+          dustWall.current.scale.set(r, d.height, r)
+          mats.dust.opacity = d.opacity * 0.6
+          mats.dustWall.opacity = d.opacity * 0.35
+          mats.dustPoints.opacity = Math.min(1, d.opacity * 1.4)
+          // Streaks: each grain runs outward along its own bearing and wraps back to the engine.
+          const pos = geos.dustPoints.attributes.position as BufferAttribute
+          for (let i = 0; i < DUST_POINTS; i++) {
+            const a = i * 2.399963
+            const f = (i * 0.618034 + t * (0.6 + (i % 5) * 0.12)) % 1
+            const rr = 1.5 + f * (r - 1.5)
+            pos.setXYZ(i, Math.cos(a) * rr, 0.08 + ((i * 7) % 11) * 0.035 * (d.height / 0.75), Math.sin(a) * rr)
+          }
+          pos.needsUpdate = true
+        }
       }
+      if ('emissive' in mat) mat.emissive.setRGB(0.32 * s.fill, 0.27 * s.fill, 0.17 * s.fill)
       if (fire.current) {
         fire.current.visible = s.fire > 0
         const h = Math.max(0.5, 0.6 + s.ascentRise * 0.7) * (0.9 + 0.1 * Math.sin(t * 50))
@@ -139,7 +181,7 @@ export function Lander() {
         if (heldSeismo.current) heldSeismo.current.visible = s.carrying === 'seismo'
       }
     })
-  }, [camera, mats])
+  }, [camera, mats, geos, mat])
 
   useEffect(
     () => () => {
@@ -164,6 +206,7 @@ export function Lander() {
         <group ref={plume} visible={false}>
           <mesh geometry={geos.plume} material={mats.plume} />
           <mesh geometry={geos.plume} material={mats.plumeCore} scale={[0.5, 1, 0.5]} />
+          <mesh geometry={geos.plume} material={mats.plumeHalo} scale={[1.9, 1.15, 1.9]} />
         </group>
         <group ref={fire} visible={false}>
           <mesh geometry={geos.fire} material={mats.fire} />
@@ -173,7 +216,9 @@ export function Lander() {
         <mesh ref={kitScoop} geometry={geos.scoop} material={mat} position={[SCOOP_SPOT.x, SCOOP_SPOT.y, SCOOP_SPOT.z]} />
         <mesh ref={kitSeismo} geometry={geos.seismo} material={mat} position={[SEISMO_KIT.x, SEISMO_KIT.y - 0.14, SEISMO_KIT.z]} scale={0.7} />
       </group>
-      <mesh ref={dust} geometry={geos.dust} material={mats.dust} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]} visible={false} />
+      <mesh ref={dust} geometry={geos.dust} material={mats.dust} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.12, 0]} visible={false} frustumCulled={false} />
+      <mesh ref={dustWall} geometry={geos.dustWall} material={mats.dustWall} position={[0, 0.05, 0]} visible={false} frustumCulled={false} />
+      <points ref={dustPts} geometry={geos.dustPoints} material={mats.dustPoints} visible={false} frustumCulled={false} />
       <group ref={flag} position={[f.x, groundAt(f.x, f.z), f.z]} visible={false}>
         <mesh geometry={geos.flag} material={mat} />
       </group>

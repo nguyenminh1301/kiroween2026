@@ -19,6 +19,32 @@ export const plumeOn = (h: number): boolean => h > PLUME_MIN
 /** Dust sheet strength, 0 above 10 m and growing to 1 on the ground. */
 export const dustLevel = (h: number): number => (h >= DUST_BELOW ? 0 : 1 - Math.max(0, h) / DUST_BELOW)
 
+/** Seconds the sheet takes to die out after touchdown. */
+export const DUST_FADE = 1
+
+/** Dust sheet strength at descent time `t`: grows below 10 m, dies out just after touchdown. */
+export function dustAt(t: number): number {
+  const fade = t <= TOUCHDOWN_AT ? 1 : Math.max(0, 1 - (t - TOUCHDOWN_AT) / DUST_FADE)
+  return dustLevel(landerHeight(t)) * fade
+}
+
+export interface DustShape {
+  /** Outer radius of the sheet in metres. */
+  radius: number
+  /** Wall height at the leading edge, metres. */
+  height: number
+  /** Opacity of the ring, 0 to 1. */
+  opacity: number
+}
+
+/** Size of the sheet for a dust level: wide, thin, and clearly visible once it is out. */
+export function dustShape(level: number): DustShape {
+  return { radius: level <= 0 ? 0 : 4 + level * 20, height: 0.15 + level * 0.6, opacity: level <= 0 ? 0 : Math.min(0.7, 0.2 + level * 0.5) }
+}
+
+/** The descent shots get a fill light and a rim so the foil reads against the stars. */
+export const descentFill = (t: number): number => (t >= 0 && t < DESCENT_DURATION ? 1 : 0)
+
 export const DESCENT_SHAKE: ShakeKey[] = [
   { t: 0, amp: 0.02 },
   { t: 22, amp: 0.02 },

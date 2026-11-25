@@ -25,7 +25,8 @@ import {
   DESCENT_SHOTS,
   START_HEIGHT,
   descentEvents,
-  dustLevel,
+  descentFill,
+  dustAt,
   landerHeight,
   plumeOn,
 } from './descent'
@@ -195,7 +196,8 @@ export function startAct4(requested: string): void {
         const h = landerHeight(t)
         act4State.landerY = h
         act4State.plume = plumeOn(h)
-        act4State.dust = dustLevel(h)
+        act4State.dust = dustAt(t)
+        act4State.fill = descentFill(t)
       },
     }).start()
   }
@@ -207,6 +209,7 @@ export function startAct4(requested: string): void {
     act4State.landerY = 0
     act4State.plume = false
     act4State.dust = 0
+    act4State.fill = 0
     audio.setScene({ hum: 0, bed: 'none', breath: true })
     gameStore.getState().setTension('CALM')
     vitals(0.2, 96)

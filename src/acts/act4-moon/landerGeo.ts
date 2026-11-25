@@ -124,14 +124,23 @@ export function buildAscent(): BufferGeometry {
   return mergeColored(parts)
 }
 
-/** The flag: a pole and a stiff flag showing the Earth. Origin at the base of the pole. */
+/**
+ * The flag: a vertical pole with a horizontal top bar, and a stiff cloth hanging from the bar.
+ * The cloth is 0.9 m by 0.6 m, blue, with a white and blue Earth disc in the middle.
+ * Origin at the base of the pole; the bar and cloth run along +x.
+ */
+export const FLAG_POLE_HEIGHT = 2
+export const FLAG_CLOTH = { w: 0.9, h: 0.6 }
 export function buildFlag(): BufferGeometry {
+  const top = FLAG_POLE_HEIGHT
+  const cx = FLAG_CLOTH.w / 2 + 0.03
+  const cy = top - 0.03 - FLAG_CLOTH.h / 2
   return mergeColored([
-    ccyl(0.025, 2.1, '#d8d8d4', 0, 1.05, 0, 'y', 6),
-    cbox(0.8, 0.03, 0.03, '#d8d8d4', 0.4, 1.95, 0),
-    cbox(0.8, 0.52, 0.02, '#2F5F8F', 0.4, 1.68, 0),
-    cbox(0.26, 0.26, 0.025, '#e8eef2', 0.4, 1.68, 0),
-    cbox(0.14, 0.2, 0.03, '#4f7fb5', 0.36, 1.7, 0),
+    ccyl(0.025, top, '#d8d8d4', 0, top / 2, 0, 'y', 6),
+    cbox(FLAG_CLOTH.w + 0.06, 0.03, 0.03, '#d8d8d4', cx, top, 0),
+    cbox(FLAG_CLOTH.w, FLAG_CLOTH.h, 0.012, '#2F5F8F', cx, cy, 0),
+    ccyl(0.17, 0.016, '#f2f4f6', cx, cy, 0.004, 'z', 12),
+    ccyl(0.11, 0.02, '#4f7fb5', cx - 0.01, cy, 0.006, 'z', 10),
   ])
 }
 
