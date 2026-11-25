@@ -7,6 +7,8 @@ export interface Flash {
   y: number
   /** Diameter as a fraction of the screen height. Default 0.06. */
   size?: number
+  /** Draw a dark figure shape on a lit screen instead of a dot. */
+  figure?: boolean
 }
 
 export interface DskyReadout {

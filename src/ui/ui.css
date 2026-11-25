@@ -453,6 +453,22 @@
   border-radius: 50%;
   background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0.7) 35%, rgba(255, 255, 255, 0) 70%);
 }
+.fx-figure {
+  position: fixed;
+  inset: 0;
+  z-index: 27;
+  background: #e8e4d8;
+}
+.fx-figure::after {
+  content: '';
+  position: absolute;
+  left: 36%;
+  right: 36%;
+  top: 6%;
+  bottom: 0;
+  background: #000;
+  clip-path: polygon(38% 0, 62% 0, 66% 14%, 62% 22%, 100% 32%, 100% 100%, 0 100%, 0 32%, 38% 22%, 34% 14%);
+}
 .fx-caption {
   position: fixed;
   left: 0;

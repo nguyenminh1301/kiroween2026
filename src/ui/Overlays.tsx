@@ -103,13 +103,17 @@ export function FxLayer() {
     <>
       <div className="fx-black" style={{ opacity: blackout }} />
       {blackout > 0.6
-        ? flashes.map((f, i) => (
+        ? flashes.map((f, i) =>
+            f.figure ? (
+              <div key={i} className="fx-figure" />
+            ) : (
             <div
               key={i}
               className="fx-flash"
               style={{ left: `${f.x * 100}%`, top: `${f.y * 100}%`, width: `${(f.size ?? 0.06) * 100}vh`, height: `${(f.size ?? 0.06) * 100}vh` }}
             />
-          ))
+            ),
+          )
         : null}
       {caption ? <div className="fx-caption">{caption}</div> : null}
       {dsky ? (
