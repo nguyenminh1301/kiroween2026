@@ -57,3 +57,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 ## Blocked audio
 
 `BLOCK_AUDIO=1 node e2e/playthrough.mjs` plays the whole game with every `/audio/` request aborted. Both playthrough runs print draw calls and triangles per act (first, middle and peak sample).
+
+## Playability fixes
+
+`e2e/walk.mjs` holds W in act 0 from 2 s of game time and checks 3 m by 6 s. `e2e/lock.mjs` starts from the title, finishes act 0 and checks the pointer lock survives the chapter card, then that Resume takes it back. `e2e/rails.mjs` looks down the act 2 tunnel and presses E four times for at least 4 m. `e2e/nowebgl.mjs` stubs WebGL away and checks the no-WebGL message shows with no uncaught error (against a dev server it ignores React's dev-only re-report of that one error).
