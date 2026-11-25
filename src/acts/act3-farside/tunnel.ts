@@ -127,8 +127,8 @@ export function buildPipes(rails: Array<{ a: { x: number; y: number; z: number }
 /** The stowage lockers: open-front frames with slatted doors. */
 export function buildLockers(): BufferGeometry {
   const parts: BufferGeometry[] = []
-  const BODY = '#4b4a44'
-  const DOOR = '#6a5a4a'
+  const BODY = '#2e2c28'
+  const DOOR = '#3a2e26'
   for (const l of LOCKERS) {
     const { x, z } = l.center
     const t = 0.04

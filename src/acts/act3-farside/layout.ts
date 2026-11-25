@@ -77,7 +77,7 @@ export const LOCKERS: LockerDef[] = [
 ].map((l, i) => ({
   id: `act3:locker${i}`,
   center: { x: l.cx, y: LOCKER_H / 2, z: l.z },
-  inside: { x: l.cx, y: 0.2, z: l.z },
+  inside: { x: l.cx - 0.25, y: 0.2, z: l.z },
   exit: { x: -0.6, y: 0.2, z: l.z },
   doorPos: { x: -1.28, y: 1.2, z: l.z },
 }))

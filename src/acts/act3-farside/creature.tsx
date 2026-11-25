@@ -9,11 +9,11 @@ import { cbox, ccyl, mergeColored } from './geo'
 import { act3State } from './state'
 
 const CREATURE_PRIORITY = 710
-const FABRIC = '#bdb6a2'
-const FABRIC_DARK = '#7d7666'
-const FOIL = '#b8a06a'
+const FABRIC = '#8a8472'
+const FABRIC_DARK = '#4e493e'
+const FOIL = '#8a7548'
 const CABLE = '#1a1512'
-const FINGER = '#a39c88'
+const FINGER = '#7a7464'
 
 interface Bones {
   root: Group
@@ -56,7 +56,7 @@ function build(mat: Mesh['material']): Bones {
   const dome = new SphereGeometry(0.17, 8, 6)
   dome.scale(1, 1.25, 1.05)
   dome.translate(0, 0.32, 0.04)
-  dome.setAttribute('color', new Float32BufferAttribute(new Float32Array(dome.attributes.position.count * 3).fill(0.85), 3))
+  dome.setAttribute('color', new Float32BufferAttribute(new Float32Array(dome.attributes.position.count * 3).fill(0.6), 3))
   const domeMesh = new Mesh(dome, mat)
   // Smooth dome: flat pale colour.
   neck.add(domeMesh)
