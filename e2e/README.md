@@ -35,3 +35,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 ## Act 0 test
 
 `e2e/act0.mjs` loads `act0-pad` and checks draw calls and triangles at the start. It waits for the wave objective, looks down over the right railing (target is WAVE), presses E, and checks the objective becomes the boarding line. It walks into the White Room with real W key presses, checks pad3 was said and `extra-bootprints` was seen, aims at the hatch, presses E and waits for `act1-launch`. Screenshots go to `e2e/shots/act0-start.png`, `act0-wave.png` and `act0-room.png`. `npm run e2e` runs it last.
+
+## Act 4 test
+
+`e2e/act4.mjs` loads `act4-moon` at `start` and takes shots at 3 s, 9 s and 20 s of the descent. It waits for the surface and `act4Tasks`, does the sample, the flag and the seismometer with real W and E presses, waits for the creature and the `act4Run` objective, jumps with SPACE, climbs the ladder and checks `burn-baby-burn` and the load of `act5-home`. It then loads `run`, stands still and checks it is caught and restarted at `run`. Screenshots go to `e2e/shots/act4-*.png`. `npm run e2e` runs it last.
