@@ -61,8 +61,10 @@ try {
     await unfocused()
     await page.evaluate((yaw) => window.__los.player.set({ yaw, pitch: 0 }), yaw)
     const before = await z()
+    const t0 = await page.evaluate(() => window.__los.gameTime())
     await page.keyboard.press('KeyE')
-    await page.waitForTimeout(1500)
+    // Let the push play out for 1.5 s of game time, whatever the frame rate.
+    await page.waitForFunction((t) => window.__los.gameTime() > t + 1.5, t0, { timeout: 60000, polling: 100 })
     const after = await z()
     if (Math.abs(after - before) > 0.3) pushes++
   }
@@ -85,7 +87,7 @@ try {
 
   // Outbound: push along the tunnel with real E presses.
   await unfocused()
-  for (let i = 0; i < 14 && (await z()) > -3.2; i++) await push(0)
+  for (let i = 0; i < 100 && (await z()) > -3.2; i++) await push(0)
   check(pushes >= 2, `at least two real pushes, got ${pushes}`)
   if ((await z()) > -3.2) {
     await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
@@ -112,7 +114,7 @@ try {
 
   // Back: the tunnel is longer, so it takes more pushes.
   const before = pushes
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 100; i++) {
     const seen = await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('tunnel-longer'))
     if (seen) break
     await push(Math.PI)

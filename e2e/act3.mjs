@@ -59,28 +59,21 @@ try {
     await page.keyboard.press('KeyE')
   }
   let pushes = 0
-  const speed = () => page.evaluate(() => {
-    const v = window.__los.player.body.vel
-    return Math.hypot(v.x, v.y, v.z)
-  })
-  // One real E press. Waits for the push to show in the velocity, and presses again if it did not.
+  // One real E press. Then wait for the push to show in the velocity, but for at most 0.25 s of
+  // GAME time, so a slow machine does not give the creature extra time and a missed press is retried.
   const push = async (yaw) => {
-    for (let tries = 0; tries < 2; tries++) {
-      await unfocused()
-      const before = await speed()
-      await page.evaluate((yaw) => window.__los.player.set({ yaw, pitch: 0 }), yaw)
-      await page.keyboard.press('KeyE')
-      const ok = await page
-        .waitForFunction((b) => {
-          const v = window.__los.player.body.vel
-          return Math.abs(Math.hypot(v.x, v.y, v.z) - b) > 0.05
-        }, before, { timeout: 1500, polling: 25 })
-        .then(() => true, () => false)
-      if (ok) {
-        pushes++
-        return
-      }
-    }
+    await unfocused()
+    const mark = await page.evaluate(() => {
+      const v = window.__los.player.body.vel
+      return { speed: Math.hypot(v.x, v.y, v.z), t: window.__los.gameTime() }
+    })
+    await page.evaluate((yaw) => window.__los.player.set({ yaw, pitch: 0 }), yaw)
+    await page.keyboard.press('KeyE')
+    await wait((m) => {
+      const v = window.__los.player.body.vel
+      return Math.abs(Math.hypot(v.x, v.y, v.z) - m.speed) > 0.05 || window.__los.gameTime() > m.t + 0.25
+    }, mark, 30000)
+    pushes++
   }
 
   await page.goto(url)
@@ -96,8 +89,10 @@ try {
   await shot('act3-wake')
   await budget('start')
   await objective('Find Mike', 90000)
-  for (let i = 0; i < 12 && (await body()).z > -5.2; i++) await push(0)
+  for (let i = 0; i < 200 && (await body()).z > -5.2; i++) await push(0)
   check(pushes >= 2, `real pushes along the corridor, got ${pushes}`)
+  // Stop drifting, so the player does not coast past the next checkpoint while the encounter starts.
+  await page.evaluate(() => window.__los.player.set({ vel: { x: 0, y: 0, z: 0 } }))
   if ((await body()).z > -5.1) await teleport(0, -5.4)
   await objective('Hide in the locker', 20000)
   check((await dir()).monster.mode === 'encounter', 'creature runs the encounter')

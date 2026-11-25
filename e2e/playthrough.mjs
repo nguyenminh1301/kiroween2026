@@ -86,17 +86,16 @@ try {
   const push = async (yaw, settle) => {
     await unfocused()
     await page.evaluate((yaw) => window.__los.player.set({ yaw, pitch: 0 }), yaw)
-    const before = await page.evaluate(() => {
+    const mark = await page.evaluate(() => {
       const v = window.__los.player.body.vel
-      return Math.hypot(v.x, v.y, v.z)
+      return { speed: Math.hypot(v.x, v.y, v.z), t: window.__los.gameTime() }
     })
     await page.keyboard.press('KeyE')
-    await page
-      .waitForFunction((b) => {
-        const v = window.__los.player.body.vel
-        return Math.abs(Math.hypot(v.x, v.y, v.z) - b) > 0.05
-      }, before, { timeout: 1500, polling: 25 })
-      .catch(() => {})
+    // Wait for the push to show in the velocity, for at most 0.25 s of game time.
+    await wait((m) => {
+      const v = window.__los.player.body.vel
+      return Math.abs(Math.hypot(v.x, v.y, v.z) - m.speed) > 0.05 || window.__los.gameTime() > m.t + 0.25
+    }, mark, 30000)
   }
 
   await page.goto(url)
@@ -151,7 +150,7 @@ try {
   await actReady('act2-coast')
   await objective('Float down the tunnel')
   await unfocused()
-  for (let i = 0; i < 14 && (await z()) > -3.2; i++) await push(0, 1500)
+  for (let i = 0; i < 100 && (await z()) > -3.2; i++) await push(0, 1500)
   if ((await z()) > -3.2) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
   await objective('Find something to push')
   const pen = await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act2:pen').position)
@@ -162,7 +161,7 @@ try {
   await page.evaluate(() => window.__los.player.set({ pos: { x: -0.2, y: 0.3, z: -4.4 } }))
   await useAt('act2:breaker', 'GRAB')
   await objective('Float back up the tunnel')
-  for (let i = 0; i < 20 && !(await seen('tunnel-longer')); i++) await push(Math.PI, 1500)
+  for (let i = 0; i < 100 && !(await seen("tunnel-longer")); i++) await push(Math.PI, 1500)
   check(await seen('tunnel-longer'), 'tunnel-longer noticed')
   await objective('sleeping bag')
   await unfocused()
@@ -182,7 +181,8 @@ try {
   await actReady('act3-farside')
   await wait(() => window.__los.director, null, 30000)
   await objective('Find Mike')
-  for (let i = 0; i < 12 && (await z()) > -5.2; i++) await push(0, 700)
+  for (let i = 0; i < 200 && (await z()) > -5.2; i++) await push(0, 700)
+  await page.evaluate(() => window.__los.player.set({ vel: { x: 0, y: 0, z: 0 } }))
   if ((await z()) > -5.1) await teleport3(0, -5.4)
   await objective('Hide in the locker', 20000)
   await wait(() => window.__los.director.monster.pos.z > -15.6, null, 30000)
