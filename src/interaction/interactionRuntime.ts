@@ -10,7 +10,7 @@ import { gameStore, type Target } from '../engine/store'
 import type { Vec3 } from '../types'
 import { showHint } from '../ui/hints'
 import { focus } from './Focus'
-import { isHandrailUsable } from './handrail'
+import { isHandrailUsable, resolveUse } from './handrail'
 import { getHandrails, getInteractables, getSightingTracker } from './interactables'
 import { nearestOnSegment, pickTarget, viewDirection } from './targeting'
 
@@ -65,9 +65,10 @@ export function startInteraction(): () => void {
 
       fxStore.getState().setWrist(inputState.held.wrist)
 
-      if (!inputState.pressed.use || focus.isFocusActive()) return
-      if (picked) picked.use()
-      else if (rail) {
+      if (!inputState.pressed.use) return
+      const action = resolveUse(!!picked, rail, focus.isFocusActive())
+      if (action === 'use') picked?.use()
+      else if (action === 'push') {
         launchPlayer(dir)
         audio.play('grab')
         showHint('push')

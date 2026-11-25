@@ -11,7 +11,7 @@ export const CHECKLISTS: Record<string, Objective> = {
   },
   act1Switch: { text: 'Flip the red switch by your right hand', keys: 'E', markers: ['act1:switch'] },
   act1Key: { text: 'Press the computer in front of you three times', keys: 'E', markers: ['act1:dsky'] },
-  act2Out: { text: 'Float down the tunnel to the lander. Look at a rail and push off', keys: 'E' },
+  act2Out: { text: 'Float down the tunnel to the lander. Look down the tunnel and push off', keys: 'E' },
   act2Fix: { text: 'Find something to push the breaker in with', keys: 'E', markers: ['act2:pen'] },
   act2Push: { text: 'Push the breaker in with the pen', keys: 'E', markers: ['act2:breaker'] },
   act2Back: { text: 'Float back up the tunnel to the command module', keys: 'E' },

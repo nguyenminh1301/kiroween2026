@@ -12,3 +12,14 @@ export function isHandrailUsable(eye: Vec3, handrail: Vec3): boolean {
   const d2 = dx * dx + dy * dy + dz * dz
   return d2 <= HANDRAIL_REACH * HANDRAIL_REACH
 }
+
+export type UseAction = 'use' | 'push' | 'none'
+
+/**
+ * What pressing E does. An interactable under the view is used unless a scripted look is turning
+ * the view. A handrail in reach always pushes off, also during a scripted look and with no aim.
+ */
+export function resolveUse(picked: boolean, railInReach: boolean, focusActive: boolean): UseAction {
+  if (picked) return focusActive ? 'none' : 'use'
+  return railInReach ? 'push' : 'none'
+}

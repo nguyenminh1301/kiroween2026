@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { HANDRAIL_REACH, isHandrailUsable } from './handrail'
+import { HANDRAIL_REACH, isHandrailUsable, resolveUse } from './handrail'
 import type { Vec3 } from '../types'
 
 const RUNS = { numRuns: 200 }
@@ -53,5 +53,19 @@ describe('handrail usability', () => {
       }),
       RUNS,
     )
+  })
+})
+
+describe('what E does', () => {
+  it('pushes off from a rail in reach, even during a scripted look', () => {
+    expect(resolveUse(false, true, true)).toBe('push')
+    expect(resolveUse(false, true, false)).toBe('push')
+  })
+  it('does nothing with no rail in reach and nothing under the view', () => {
+    expect(resolveUse(false, false, false)).toBe('none')
+  })
+  it('uses what is under the view, but not while the view is turning', () => {
+    expect(resolveUse(true, true, false)).toBe('use')
+    expect(resolveUse(true, true, true)).toBe('none')
   })
 })
