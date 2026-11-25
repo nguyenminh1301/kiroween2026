@@ -65,4 +65,25 @@ describe('monster', () => {
     expect(m.mode).toBe('patrol')
     expect(minZ).toBeCloseTo(-16.25, 0)
   })
+
+  it('stops 3 to 4 m from the player and stands for 2.5 s, facing them', () => {
+    for (const playerZ of [-5.5, -9, -13]) {
+      const m = createMonster(0)
+      startEncounter(m)
+      const player = { x: 0, z: playerZ }
+      let frozenFor = 0
+      let stopDist = -1
+      for (let t = 0; t < 40 && m.mode === 'encounter'; t += 0.05) {
+        stepMonster(m, ctx({ dt: 0.05, player }))
+        if (m.anim === 'freeze') {
+          if (stopDist < 0) stopDist = Math.hypot(player.x - m.pos.x, player.z - m.pos.z)
+          frozenFor += 0.05
+        }
+      }
+      expect(stopDist).toBeGreaterThanOrEqual(3)
+      expect(stopDist).toBeLessThanOrEqual(4)
+      expect(frozenFor).toBeCloseTo(2.5, 1)
+      expect(m.mode).toBe('patrol')
+    }
+  })
 })

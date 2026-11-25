@@ -103,6 +103,29 @@ try {
   await teleport(-0.3, -9.5)
   await useAt('act3:locker0', 'HIDE')
   await wait(() => window.__los.store.getState().moveMode === 'seated', null, 30000)
+  // The creature walks up to 3 to 4 m from the player and stands there, in the flashlight.
+  await page.evaluate(() => {
+    window.__stall = { z: null, since: performance.now() }
+  })
+  await wait(
+    () => {
+      const z = window.__los.director.monster.pos.z
+      const s = window.__stall
+      if (s.z === null || Math.abs(z - s.z) > 0.01) {
+        s.z = z
+        s.since = performance.now()
+      }
+      return performance.now() - s.since > 400 && z > -16
+    },
+    null,
+    30000,
+  )
+  const stopDist = await page.evaluate(() => {
+    const m = window.__los.director.monster.pos
+    const p = window.__los.player.body.pos
+    return Math.hypot(m.x - p.x, m.z - p.z)
+  })
+  check(stopDist >= 3 && stopDist <= 4, `creature stops ${stopDist.toFixed(2)} m from the player, expected 3 to 4`)
   await page.waitForTimeout(1000)
   await shot('act3-locker')
   await subtitle('Hold your breath', 20000)
@@ -164,11 +187,14 @@ try {
     if (d.state.phase !== 'chase') break
     await push(Math.PI)
   }
-  check((await dir()).state.phase === 'chase', 'still running, not caught')
+  check(['chase', 'slam'].includes((await dir()).state.phase), 'still running, not caught')
   check((await body()).z > startedAt.z + 20, 'ran toward the hatch')
-  await wait(() => window.__los.interactables().find((i) => i.id === 'act3:hatch')?.enabled, null, 30000)
-  check(true, 'hatch enabled in the chase')
-  await useAt('act3:hatch', 'GRAB')
+  // A push aimed at the hatch near the end already uses it, so only use it when still running.
+  if ((await dir()).state.phase === 'chase') {
+    await wait(() => window.__los.interactables().find((i) => i.id === 'act3:hatch')?.enabled, null, 30000)
+    check(true, 'hatch enabled in the chase')
+    await useAt('act3:hatch', 'GRAB')
+  }
   await wait(() => window.__los.loader.state.getState().act === 'act4-moon', null, 120000)
   check(true, 'act 4 loading')
 

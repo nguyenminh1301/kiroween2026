@@ -13,6 +13,8 @@ export const SEARCH_SECONDS = 2.5
 export const CATCH_RANGE = 0.8
 export const ENCOUNTER_STOP_Z = -7.2
 export const ENCOUNTER_PAUSE = 2.5
+/** The creature stops this far from the player, inside the flashlight cone. */
+export const ENCOUNTER_STOP_DIST = 3.5
 /** Patrol distance of the first doorway outside point, where the patrol resumes after the encounter. */
 export const RESUME_S = 15
 
@@ -27,7 +29,7 @@ export interface Monster {
   lastKnown: Pt | null
   soundIn: number
   path: Pt[]
-  phase: 'out' | 'pause' | 'back'
+  phase: 'door' | 'out' | 'pause' | 'back'
 }
 
 export interface MonsterCtx {
@@ -54,7 +56,7 @@ export function createMonster(s = 0, rng: () => number = Math.random): Monster {
     lastKnown: null,
     soundIn: nextSound(rng),
     path: [],
-    phase: 'out',
+    phase: 'door',
   }
 }
 
@@ -83,9 +85,9 @@ function follow(m: Monster, speed: number, dt: number): boolean {
 export function startEncounter(m: Monster): void {
   m.mode = 'encounter'
   m.anim = 'walk'
-  m.phase = 'out'
+  m.phase = 'door'
   m.pos = { x: 3, z: -16.25 }
-  m.path = [{ x: 0, z: -16.25 }, { x: 0, z: ENCOUNTER_STOP_Z }]
+  m.path = [{ x: 0, z: -16.25 }]
   m.timer = 0
   m.lastKnown = null
 }
@@ -144,13 +146,27 @@ export function stepMonster(m: Monster, c: MonsterCtx): MonsterEvent[] {
 
   switch (m.mode) {
     case 'encounter': {
-      if (m.phase === 'out') {
-        if (follow(m, ENCOUNTER_SPEED, dt)) {
+      if (m.phase === 'door') {
+        if (follow(m, ENCOUNTER_SPEED, dt)) m.phase = 'out'
+      } else if (m.phase === 'out') {
+        // Past the doorway, walk up the corridor until 3.5 m from the player.
+        const near = Math.hypot(c.player.x - m.pos.x, c.player.z - m.pos.z) <= ENCOUNTER_STOP_DIST
+        let arrived = false
+        if (!near) {
+          // The point on the corridor line that is 3.5 m from the player.
+          const dz = Math.sqrt(Math.max(0, ENCOUNTER_STOP_DIST ** 2 - c.player.x ** 2))
+          const stopZ = c.player.z > m.pos.z ? Math.min(c.player.z - dz, ENCOUNTER_STOP_Z) : c.player.z + dz
+          m.path = [{ x: 0, z: stopZ }]
+          arrived = follow(m, ENCOUNTER_SPEED, dt)
+        }
+        if (near || arrived) {
+          m.path = []
           m.phase = 'pause'
           m.anim = 'freeze'
           m.timer = ENCOUNTER_PAUSE
         }
       } else if (m.phase === 'pause') {
+        m.heading = headingTo(m.pos, c.player)
         m.timer -= dt
         if (m.timer <= 0) {
           m.phase = 'back'
