@@ -13,7 +13,7 @@ import {
 } from './consoleGeo'
 import { createDskyTexture } from './dskyTexture'
 import { DSKY_POS, SWITCH_POS } from './layout'
-import { act1State } from './state'
+import { cabinState } from './cabinState'
 
 const CONSOLE_PRIORITY = 640
 
@@ -24,7 +24,7 @@ export function Console() {
   const geo = useMemo(buildConsole, [])
   const bodyMat = useMemo(() => createMaterial({ vertexColors: true }), [])
   const lampMat = useMemo(() => createMaterial({ kind: 'unlit', vertexColors: true, snap: false }), [])
-  const dsky = useMemo(() => createDskyTexture(act1State.dsky), [])
+  const dsky = useMemo(() => createDskyTexture(cabinState.dsky), [])
   const dskyMat = useMemo(() => new MeshBasicMaterial({ map: dsky.texture }), [dsky])
   const dskyGeo = useMemo(() => new PlaneGeometry(0.13, 0.1625), [])
   const needleGeo = useMemo(() => {
@@ -54,18 +54,18 @@ export function Console() {
 
   useEffect(() => {
     return registerSystem('act1-console', CONSOLE_PRIORITY, (_dt, t) => {
-      if (seen.current !== act1State.dskyVersion) {
-        seen.current = act1State.dskyVersion
-        dsky.redraw(act1State.dsky)
+      if (seen.current !== cabinState.dskyVersion) {
+        seen.current = cabinState.dskyVersion
+        dsky.redraw(cabinState.dsky)
       }
-      const a = needleAngle(act1State.engine)
+      const a = needleAngle(cabinState.engine)
       for (const n of needles.current) if (n) n.rotation.z = a
-      const on = act1State.alarm && Math.floor(t * 4) % 2 === 0
+      const on = cabinState.alarm && Math.floor(t * 4) % 2 === 0
       if (on !== lampOn.current && alarm.current) {
         lampOn.current = on
         ;(alarm.current.material as MeshBasicMaterial).color.set(on ? '#ff2a1a' : '#3a0e08')
       }
-      if (lever.current) lever.current.rotation.x = act1State.switchFlipped ? Math.PI - 0.7 : 0.7
+      if (lever.current) lever.current.rotation.x = cabinState.switchFlipped ? Math.PI - 0.7 : 0.7
     })
   }, [dsky])
 

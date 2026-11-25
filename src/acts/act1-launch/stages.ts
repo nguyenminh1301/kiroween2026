@@ -1,5 +1,5 @@
 // The act 1 stage machine: launch, switch, keyin, tli, done. Pure: no Three.js or React imports.
-import { dskyAfterPress, initialDsky, withKeyRel, type DskyState } from './dsky'
+import { dskyAfterPress, initialDsky, withKeyRel, type DskyState } from '../../procgen/cabin/dsky'
 
 export type Stage = 'launch' | 'switch' | 'keyin' | 'tli' | 'done'
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dskyAfterPress, initialDsky } from './dsky'
+import { dskyAfterPress, initialDsky } from '../../procgen/cabin/dsky'
 import { createStages } from './stages'
 
 describe('DSKY', () => {

@@ -7,7 +7,7 @@ import { createRng } from '../../procgen/rng'
 import { buildFigure } from '../../procgen/figure'
 import { buildCouches, buildShell, WALL_SLOPE, wallRadius } from './cabinGeo'
 import { COUCH_X, SHELL_SIDES } from './layout'
-import { act1State } from './state'
+import { cabinState } from './cabinState'
 
 const WINDOW_PRIORITY = 650
 
@@ -47,7 +47,7 @@ function starGeometry(w: number, h: number, seed: number) {
 /** Windows: sky-colored quads, stars once the sky is dark, and the Earth disc when the act shows it. */
 function Windows() {
   const specs = useMemo(windowSpecs, [])
-  const skyMat = useMemo(() => new MeshBasicMaterial({ color: new Color(act1State.sky), side: DoubleSide }), [])
+  const skyMat = useMemo(() => new MeshBasicMaterial({ color: new Color(cabinState.sky), side: DoubleSide }), [])
   const frameMat = useMemo(() => createMaterial({ color: '#2c2820' }), [])
   const starMat = useMemo(() => new MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, fog: false }), [])
   const earthMat = useMemo(
@@ -58,17 +58,17 @@ function Windows() {
   const frames = useMemo(() => specs.map((s) => (s.round ? new CircleGeometry(s.w / 2 + 0.08, 12) : new PlaneGeometry(s.w + 0.14, s.h + 0.14))), [specs])
   const stars = useMemo(() => specs.map((s, i) => starGeometry(s.w, s.h, 40 + i)), [specs])
   const earthRefs = useRef<(Mesh | null)[]>([])
-  const eased = useRef(new Color(act1State.sky))
+  const eased = useRef(new Color(cabinState.sky))
   const target = useMemo(() => new Color(), [])
 
   useEffect(() => {
     return registerSystem('act1-windows', WINDOW_PRIORITY, (dt) => {
-      target.set(act1State.sky)
+      target.set(cabinState.sky)
       eased.current.lerp(target, Math.min(1, dt * 1.5))
       skyMat.color.copy(eased.current)
       const lum = eased.current.r + eased.current.g + eased.current.b
       starMat.opacity = Math.min(1, Math.max(0, (0.45 - lum) / 0.3))
-      for (const m of earthRefs.current) if (m) m.visible = act1State.earth
+      for (const m of earthRefs.current) if (m) m.visible = cabinState.earth
     })
   }, [skyMat, starMat, target])
 

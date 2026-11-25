@@ -23,8 +23,9 @@ import {
   START_PITCH,
   SWITCH_POS,
   SWITCH_RADIUS,
-} from './layout'
+} from '../../procgen/cabin/layout'
 import { createStages } from './stages'
+import { cabinState } from '../../procgen/cabin/cabinState'
 import { act1State, resetAct1State } from './state'
 import {
   alarmOn,
@@ -71,8 +72,8 @@ export function startAct1(): void {
   const setObjective = (key: 'act1Switch' | 'act1Key' | null): void =>
     gameStore.getState().setObjective(key ? CHECKLISTS[key] : null)
   const syncDsky = (): void => {
-    act1State.dsky = stages.dsky()
-    act1State.dskyVersion++
+    cabinState.dsky = stages.dsky()
+    cabinState.dskyVersion++
   }
 
   // TLI, then the Earth in the windows, then hand-off.
@@ -85,7 +86,7 @@ export function startAct1(): void {
         events: tliEvents({
           playSound: (n) => audio.play(n),
           showEarth: () => {
-            act1State.earth = true
+            cabinState.earth = true
           },
           earthLines: () =>
             say('act1.earth', { onStart: () => focus.focusOn(RIGHT_WINDOW, 1.5) }, () =>
@@ -100,7 +101,7 @@ export function startAct1(): void {
         onTick(t) {
           act1State.tliT = t
           act1State.view = tliViewAt(t)
-          act1State.engine = tliEngineLevel(t)
+          cabinState.engine = tliEngineLevel(t)
         },
       }).start()
     })
@@ -131,7 +132,7 @@ export function startAct1(): void {
         },
         liftoff: () => {},
         setSky: (c) => {
-          act1State.sky = c
+          cabinState.sky = c
         },
         focusOverhead: () => focus.focusOn(HATCH_WINDOW, 1.8),
         focusO2: () => focus.focusOn(O2_POS, 1.2),
@@ -141,8 +142,8 @@ export function startAct1(): void {
     onTick(t) {
       act1State.launchT = t
       act1State.view = launchViewAt(t)
-      act1State.engine = engineLevel(t)
-      act1State.alarm = alarmOn(t)
+      cabinState.engine = engineLevel(t)
+      cabinState.alarm = alarmOn(t)
     },
   }).start()
 
@@ -155,7 +156,7 @@ export function startAct1(): void {
     use() {
       if (!stages.flip()) return
       audio.play('switch')
-      act1State.switchFlipped = true
+      cabinState.switchFlipped = true
       syncDsky()
       setObjective('act1Key')
       say('act1.key', { onStart: () => focus.focusOn(DSKY_POS, 1.5) })

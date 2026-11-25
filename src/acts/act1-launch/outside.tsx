@@ -28,6 +28,7 @@ import { applyFog, clearFog } from '../../render/fog'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { mergeStatic } from '../../procgen/tiledBox'
 import { buildFirstStage, buildTower, buildUpperStack, type StackGeometry } from './saturn'
+import { cabinState } from '../../procgen/cabin/cabinState'
 import { act1State } from './state'
 import {
   IGNITION_AT,
@@ -208,7 +209,7 @@ function PadSet() {
     }),
     [],
   )
-  const level = useMemo(() => () => act1State.engine, [])
+  const level = useMemo(() => () => cabinState.engine, [])
 
   useEffect(() => {
     const remove = registerSystem('act1-pad', OUTSIDE_PRIORITY, () => {
