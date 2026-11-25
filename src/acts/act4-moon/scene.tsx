@@ -8,7 +8,7 @@ export function Scene() {
   return (
     <>
       <PlayerCamera />
-      <ambientLight color="#3c3c46" intensity={1.1} />
+      <ambientLight color="#6a6a76" intensity={1.6} />
       <directionalLight color="#fff1dc" intensity={2.3} position={[40, 24, 60]} />
       <Moon />
       <Lander />

@@ -51,8 +51,8 @@ function ringsGeometry(): BufferGeometry {
 
 export function Moon() {
   const terrain = useMemo(buildTerrainGeometry, [])
-  const terrainMat = useMemo(() => createMaterial({ color: '#D8D4C6', textureName: 'regolith', textureSeed: 9 }), [])
-  const rockMat = useMemo(() => createMaterial({ color: '#b3ae9f', textureName: 'regolith', textureSeed: 4 }), [])
+  const terrainMat = useMemo(() => createMaterial({ color: '#ffffff', textureName: 'regolith', textureSeed: 9 }), [])
+  const rockMat = useMemo(() => createMaterial({ color: '#e6e1d2', textureName: 'regolith', textureSeed: 4 }), [])
   const rockGeo = useMemo(() => new IcosahedronGeometry(1, 0), [])
   const rockList = useMemo(() => rocks(), [])
   const stars = useMemo(() => starGeometry(700, 450), [])

@@ -40,7 +40,7 @@ export const ANOMALIES: AnomalyText[] = [
   {
     id: 'burn-baby-burn',
     seen: 'The ascent engine fired straight down into the descent stage, with it on top.',
-    real: 'The lunar module used its descent stage as a launch pad: the ascent engine fired down onto it. The AGC routine that ignited the engines is titled BURN, BABY, BURN, MASTER IGNITION ROUTINE.',
+    real: 'The lunar module used its descent stage as a launch pad: the ascent engine fired down onto it. The AGC routine that ignited the engines is named BURN_BABY_BURN--MASTER_IGNITION_ROUTINE.',
     source: 'https://github.com/chrislgarry/Apollo-11/blob/master/Luminary099/BURN_BABY_BURN--MASTER_IGNITION_ROUTINE.agc',
   },
 ]

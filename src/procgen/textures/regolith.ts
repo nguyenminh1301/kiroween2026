@@ -13,7 +13,7 @@ export function drawRegolith(seed: number): PixelData {
   const speck = createRng(seed ^ 0x27d4eb2d)
   return fill(p, (x, y) => {
     let c = lerp(DUST, SHADOW, fbm(x, y) * 0.35 + fine(x, y) * 0.2)
-    if (speck() < 0.04) c = lerp(c, SHADOW, 0.5)
+    if (speck() < 0.015) c = lerp(c, SHADOW, 0.5)
     return c
   })
 }

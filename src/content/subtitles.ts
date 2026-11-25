@@ -204,7 +204,7 @@ export const LINES: Record<string, Line> = {
   'act4.plant': { speaker: 'CDR', text: 'See the marker out there? Plant it there.' },
   'act4.takescoop': { speaker: 'CDR', text: 'Scoop. Fill a bag at the marker, from the fine stuff.' },
   'act4.takeseismo': { speaker: 'CDR', text: 'Set the seismometer down on that flat spot.' },
-  'act4.flag': { speaker: 'CDR', text: 'Earth has a flag on the Moon. Somebody back home is crying.' },
+  'act4.flag': { speaker: 'CDR', text: 'Flag is up. Houston, you should have it on camera.' },
   'act4.sample': { speaker: 'CDR', text: 'Got it. First handful of the Moon anybody ever held.' },
   'act4.seismo': {
     speaker: 'CAPCOM',
