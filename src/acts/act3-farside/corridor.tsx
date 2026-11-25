@@ -16,7 +16,7 @@ const WAVE_PERIOD = 60
 
 /** Strip brightness 0 to 1 at `z`, given the time. Dark while sneaking, a wave toward the hatch in the chase. */
 function stripLevel(z: number, t: number, chase: boolean): number {
-  if (!chase) return 0.04
+  if (!chase) return 0.3
   const wave = Z_FAR_END + ((t * WAVE_SPEED) % WAVE_PERIOD)
   const d = (z - wave) / 3
   return 0.3 + 0.7 * Math.exp(-d * d)

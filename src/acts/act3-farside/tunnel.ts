@@ -141,8 +141,9 @@ export function buildLockers(): BufferGeometry {
     const fx = x + LOCKER_W / 2
     parts.push(cbox(0.05, LOCKER_H, 0.06, DOOR, fx, LOCKER_H / 2, z - LOCKER_D / 2 + 0.03))
     parts.push(cbox(0.05, LOCKER_H, 0.06, DOOR, fx, LOCKER_H / 2, z + LOCKER_D / 2 - 0.03))
+    // Dark slats with real gaps between them.
     for (let k = 0; k < 14; k++) {
-      parts.push(cbox(0.03, 0.09, LOCKER_D - 0.1, k % 5 === 0 ? '#8e5a3c' : DOOR, fx, 0.2 + k * 0.13, z))
+      parts.push(cbox(0.03, 0.06, LOCKER_D - 0.1, k % 5 === 0 ? '#4a2c20' : '#1c1814', fx, 0.2 + k * 0.13, z))
     }
     parts.push(cbox(0.06, 0.18, 0.06, '#c8bfa8', fx + 0.02, 1.0, z + 0.25))
   }
