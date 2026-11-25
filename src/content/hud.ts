@@ -5,4 +5,13 @@ export const HUD = {
   distant: '(far away)',
   alarm: 'PROG ALARM',
   dsky: { prog: 'PROG', verb: 'VERB', noun: 'NOUN' },
+  caught: 'It found you. Back to the last checkpoint.',
+  meter: {
+    title: 'NOISE',
+    listening: 'IT IS LISTENING',
+    heard: 'IT HEARD YOU',
+    searching: 'IT IS SEARCHING',
+    hidden: 'HIDDEN',
+    silent: 'SILENT',
+  },
 } as const

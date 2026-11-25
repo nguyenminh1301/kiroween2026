@@ -120,4 +120,71 @@ export const LINES: Record<string, Line> = {
     mood: 'whisper',
     text: 'Who is breathing like that? There are only three of us in here.',
   },
+  'act3.los': { speaker: 'LOS', text: 'Loss of signal. No Houston until we come around.', seconds: 3.5 },
+  'act3.wake': {
+    speaker: 'CDR',
+    mood: 'whisper',
+    text: 'Buzz. Wake up. Quietly. Mike is gone and the hatch is open.',
+  },
+  'act3.wake2': {
+    speaker: 'CDR',
+    mood: 'whisper',
+    text: 'I heard him down the tunnel. Go get him. I will hold the hatch.',
+  },
+  'act3.call1': {
+    speaker: 'CMP',
+    mood: 'distant',
+    text: 'Hey. Down here. I can not feel my legs.',
+  },
+  'act3.see': {
+    speaker: 'CDR',
+    mood: 'whisper',
+    text: 'Stop. Something moved down there. Get in that locker on your left. Now.',
+  },
+  'act3.hold': { speaker: 'CDR', mood: 'whisper', text: 'Hold your breath. Do not make a sound.' },
+  'act3.passed': {
+    speaker: 'CDR',
+    mood: 'whisper',
+    text: 'It went by. It hunts by sound. Move slow, and get in a locker if it turns.',
+  },
+  'act3.impostor': { speaker: 'CAPCOM', text: 'Columbia, Houston. Say again, how many crew aboard?' },
+  'act3.nohouston': {
+    speaker: 'CDR',
+    mood: 'whisper',
+    text: 'That is not Houston. We are behind the Moon. Nobody can reach us here.',
+  },
+  'act3.call2': {
+    speaker: 'CMP',
+    mood: 'distant',
+    text: 'Do not let it hear you. It hears everything.',
+  },
+  'act3.heard': { speaker: 'CDR', mood: 'shout', text: 'It heard you! Get in a locker!' },
+  'act3.lost': { speaker: 'CDR', mood: 'whisper', text: 'It lost you. Breathe. Keep going.' },
+  'act3.found': {
+    speaker: 'CMP',
+    mood: 'whisper',
+    text: 'You came. Do not move. It is right behind me.',
+  },
+  'act3.cmp': {
+    speaker: 'CMP',
+    mood: 'shout',
+    text: 'Go! I am right behind you! Get to the hatch!',
+  },
+  'act3.cdr.call1': {
+    speaker: 'CDR',
+    mood: 'shout',
+    text: 'Come to my voice! Keep pushing off the rails!',
+  },
+  'act3.cdr.call2': { speaker: 'CDR', mood: 'shout', text: 'Do not stop! Do not look back!' },
+  'act3.cdr.call3': { speaker: 'CDR', mood: 'shout', text: 'I can see your light! Almost here!' },
+  'act3.slam': {
+    speaker: 'CDR',
+    mood: 'shout',
+    text: 'Got you! Hatch is shut! Hold it, Mike, hold it!',
+  },
+  'act3.cmp.plan': { speaker: 'CMP', text: 'It follows noise. It followed me in here.' },
+  'act3.cdr.plan': {
+    speaker: 'CDR',
+    text: 'Then we take it down with us, and we leave it on the Moon.',
+  },
 }
