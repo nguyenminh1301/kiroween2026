@@ -4,7 +4,12 @@ import { sortedEvents, shakeAmplitude } from '../../timeline/timeline'
 import {
   capsuleY,
   collarProgress,
-  destroyerZ,
+  altitudeAt,
+  DROGUE_ALTITUDE,
+  ESCORTS,
+  escortAt,
+  MAINS_ALTITUDE,
+  skyBlend,
   drogueOn,
   events,
   fadeLevel,
@@ -57,8 +62,9 @@ describe('formulas', () => {
     expect(drogueOn(21)).toBe(true)
     expect(drogueOn(29)).toBe(false)
     expect(mainsOpen(28)).toBe(0)
-    expect(mainsOpen(29.5)).toBeCloseTo(0.5)
-    expect(mainsOpen(31)).toBe(1)
+    expect(mainsOpen(29.5)).toBeCloseTo(0.3, 1)
+    expect(mainsOpen(31)).toBeCloseTo(0.3, 1)
+    expect(mainsOpen(36.2)).toBe(1)
     expect(splashProgress(45)).toBe(0)
     expect(splashProgress(48.5)).toBeCloseTo(0.5)
     expect(splashProgress(52)).toBe(1)
@@ -67,9 +73,30 @@ describe('formulas', () => {
     expect(capsuleY(30)).toBe(900)
     expect(capsuleY(50)).toBeCloseTo(0.5)
   })
-  it('destroyer, fade and audio levels', () => {
-    expect(destroyerZ(20)).toBe(330)
-    expect(destroyerZ(41)).toBe(270)
+  it('opens the drogues near 7 km and the mains near 3 km, with no stars in the air after the burn', () => {
+    expect(altitudeAt(21)).toBeCloseTo(DROGUE_ALTITUDE, 0)
+    expect(altitudeAt(21) / 0.3048).toBeGreaterThan(23000)
+    expect(altitudeAt(21) / 0.3048).toBeLessThan(25000)
+    expect(altitudeAt(28.2)).toBeCloseTo(MAINS_ALTITUDE, 0)
+    expect(altitudeAt(28.2) / 0.3048).toBeGreaterThan(9500)
+    expect(altitudeAt(28.2) / 0.3048).toBeLessThan(10500)
+    expect(altitudeAt(45)).toBe(0)
+    for (let t = 0.5; t < 45; t += 0.5) expect(altitudeAt(t)).toBeLessThanOrEqual(altitudeAt(t - 0.5))
+    expect(skyBlend(19.5)).toBe(0)
+    expect(skyBlend(40)).toBe(1)
+    // From 19.5 s on, every outside shot is in the air set, never the space set.
+    for (let t = 19.5; t < 72; t += 0.25) expect(shotAt(t)?.view ?? 'ocean').toBe('ocean')
+  })
+  it('escorts sit 1 to 3 km out and steam on', () => {
+    expect(ESCORTS).toHaveLength(3)
+    for (let i = 0; i < 3; i++) {
+      const e = escortAt(i, 0)
+      expect(Math.hypot(e.x, e.z)).toBeGreaterThan(1000)
+      expect(Math.hypot(e.x, e.z)).toBeLessThan(3000)
+      expect(escortAt(i, 60).x).not.toBe(e.x)
+    }
+  })
+  it('fade and audio levels', () => {
     expect(fadeLevel(69.5)).toBe(0)
     expect(fadeLevel(70.5)).toBeCloseTo(0.5)
     expect(fadeLevel(72)).toBe(1)

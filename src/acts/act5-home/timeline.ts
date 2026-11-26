@@ -2,6 +2,7 @@
 // so a test can record them. No Three.js or React imports.
 import type { ShakeKey, Shot, TimelineEvent } from '../../timeline/timeline'
 import type { Vec3 } from '../../types'
+import { mainsOpen } from './chutes'
 import { heliProgress, HORNET_OFFSET } from './heli'
 
 export type View = 'cabin' | 'entry' | 'ocean'
@@ -21,8 +22,51 @@ export const COLLAR_AT = 56
 export const FADE_AT = 69.5
 export const FADE_LEN = 2
 export const COMPLETE_AT = 71.5
-export const DESTROYER = { x: -38, z0: 330, speed: 6, from: 31 } as const
-export { HORNET_OFFSET }
+/** Three escorts around the carrier, 1.3 to 1.9 km from the capsule, steaming slowly. Positions are at t = 0. */
+export const ESCORTS = [
+  { x: -700, z: -1100, yaw: 0.5, speed: 5 },
+  { x: 1400, z: -1300, yaw: -0.4, speed: 5 },
+  { x: -1500, z: -300, yaw: 1.3, speed: 4 },
+] as const
+export { HORNET_OFFSET, mainsOpen }
+
+/** Escort `i` at time `t`: it steams along its heading (yaw 0 faces -z, positive turns left). */
+export function escortAt(i: number, t: number): { x: number; z: number; yaw: number } {
+  const e = ESCORTS[i]
+  return { x: e.x - Math.sin(e.yaw) * e.speed * t, z: e.z - Math.cos(e.yaw) * e.speed * t, yaw: e.yaw }
+}
+
+/**
+ * Real altitude in metres: the drogues open at about 7 km (24,000 ft) and the mains at about 3 km (10,000 ft).
+ * The scene height below is a smaller stand-in for the last part of the fall.
+ */
+export const DROGUE_ALTITUDE = 7300
+export const MAINS_ALTITUDE = 3050
+const ALTITUDE_KEYS: ReadonlyArray<readonly [number, number]> = [
+  [0, 122000],
+  [12.3, 70000],
+  [19.5, 15000],
+  [21, DROGUE_ALTITUDE],
+  [28.2, MAINS_ALTITUDE],
+  [45, 0],
+]
+export function altitudeAt(t: number): number {
+  if (t <= 0) return ALTITUDE_KEYS[0][1]
+  for (let i = 1; i < ALTITUDE_KEYS.length; i++) {
+    const [t1, a1] = ALTITUDE_KEYS[i]
+    const [t0, a0] = ALTITUDE_KEYS[i - 1]
+    if (t <= t1) return a0 + (a1 - a0) * ((t - t0) / (t1 - t0))
+  }
+  return 0
+}
+
+/** Sky tint after the blackout: 0 is deep blue at 15 km, 1 is the light blue of the low air. */
+export const skyBlend = (t: number): number => {
+  const x = clamp01((t - 19.5) / 14)
+  return x * x * (3 - 2 * x)
+}
+/** Cloud layer height above the sea in the ocean set, metres. */
+export const CLOUD_Y = 420
 
 const lerp = (a: number, b: number, f: number): number => a + (b - a) * f
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x))
@@ -44,13 +88,10 @@ export function height(t: number): number {
 }
 
 export const drogueOn = (t: number): boolean => t >= 21 && t < 29
-/** Main chutes opening, 0 to 1 from 28 s over 3 s. */
-export const mainsOpen = (t: number): number => clamp01((t - 28) / 3)
 /** Splash progress, 0 to 1 from 45 s over 7 s. */
 export const splashProgress = (t: number): number => clamp01((t - SPLASH_AT) / SPLASH_LEN)
 export const collarProgress = (t: number): number => clamp01((t - COLLAR_AT) / 2)
 export const fadeLevel = (t: number): number => clamp01((t - FADE_AT) / FADE_LEN)
-export const destroyerZ = (t: number): number => DESTROYER.z0 - DESTROYER.speed * Math.max(0, t - DESTROYER.from)
 
 /** Capsule position in the ocean set: height, then a small bob once it floats. */
 export function capsuleY(t: number, wave = 0): number {
@@ -77,13 +118,17 @@ const RAW_SHOTS: NamedShot[] = [
     cam: (u) => ({ position: v(lerp(-7, -6, u), lerp(1.2, 2.2, u), lerp(9, 7.5, u)), lookAt: v(0.4, 0, 0) }),
   },
   {
-    name: 'entryFade',
-    view: 'entry',
+    // Inside the air now: no stars, deep blue sky, the cover pops and the drogues shoot out.
+    name: 'drogues',
+    view: 'ocean',
     from: 20,
     to: 26,
-    fov: 60,
-    far: 9000,
-    cam: (u) => ({ position: v(lerp(8, 10, u), lerp(3, 4, u), lerp(11, 14, u)), lookAt: v(0, 0.5, 0) }),
+    fov: 62,
+    far: 6000,
+    cam: (u, t) => {
+      const y = height(t)
+      return { position: v(lerp(9, 12, u), y + lerp(3, 7, u), lerp(12, 15, u)), lookAt: v(0, y + lerp(6, 13, u), 0) }
+    },
   },
   {
     name: 'mains',
@@ -126,9 +171,9 @@ const RAW_SHOTS: NamedShot[] = [
     to: 57,
     fov: 58,
     far: 6000,
-    cam: (u, t) => ({
+    cam: (u) => ({
       position: v(lerp(7, 5, u), 1.5, lerp(-11, -13, u)),
-      lookAt: v(DESTROYER.x * 0.5, 7, destroyerZ(t) * 0.6),
+      lookAt: v(HORNET_OFFSET.x * 0.45, 12, HORNET_OFFSET.z * 0.6),
     }),
   },
   {
