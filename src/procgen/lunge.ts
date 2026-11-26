@@ -1,33 +1,41 @@
-// The lunge timeline for the act 3 creature. Pure: no Three.js or React imports.
-// Rise 0 to 0.6 s, lunge and jaw open 0.6 to 1.1 s, closed over the view 1.1 to 1.2 s.
-export const LUNGE_TOTAL = 1.2
-export const RISE_END = 0.6
-export const LUNGE_END = 1.1
+// The swallow timeline for the act 3 creature. Pure: no Three.js or React imports.
+// 0 to 0.25 s: the creature is suddenly in front of the camera. 0.25 to 0.6 s: the head splits open wide and
+// the teeth fill the view. 0.6 s: a hard camera jolt and the scream. 0.6 to 0.8 s: the jaws slam shut.
+// 0.8 s: straight to black, no fade. Under one second in all.
+export const APPEAR_END = 0.25
+export const OPEN_END = 0.6
+export const JOLT_AT = OPEN_END
+export const SLAM_END = 0.8
+export const LUNGE_TOTAL = 0.85
 
 export interface LungeFrame {
-  /** 0 crouched behind the crewman, 1 standing. */
+  /** 0 not there yet, 1 in front of the camera. */
   rise: number
-  /** 0 at its spot, 1 at the camera. */
+  /** Same as rise: how far it has come toward the camera. */
   reach: number
-  /** 0 closed, 1 wide open. */
+  /** 0 closed, 1 wide open. Opens 0.25 to 0.6 s, slams shut 0.6 to 0.8 s. */
   jaw: number
-  /** 0 clear view, 1 the mouth has closed over it. */
+  /** 0 clear view, 1 black. A hard cut at 0.8 s. */
   cover: number
+  /** Camera jolt strength, 1 at the scream and gone by the black. */
+  jolt: number
 }
 
 const clamp01 = (v: number): number => Math.min(1, Math.max(0, v))
 const ease = (v: number): number => v * v * (3 - 2 * v)
 
 export function lungeFrame(t: number): LungeFrame {
-  const rise = ease(clamp01(t / RISE_END))
-  const lunge = clamp01((t - RISE_END) / (LUNGE_END - RISE_END))
+  const appear = clamp01(t / APPEAR_END)
+  const open = ease(clamp01((t - APPEAR_END) / (OPEN_END - APPEAR_END)))
+  const slam = clamp01((t - OPEN_END) / (SLAM_END - OPEN_END))
   return {
-    rise,
-    reach: lunge * lunge,
-    jaw: ease(clamp01((t - RISE_END * 0.8) / (LUNGE_END - RISE_END * 0.8))),
-    cover: clamp01((t - LUNGE_END) / (LUNGE_TOTAL - LUNGE_END)),
+    rise: appear,
+    reach: appear,
+    jaw: t < OPEN_END ? open : 1 - slam * slam,
+    cover: t >= SLAM_END ? 1 : 0,
+    jolt: t >= JOLT_AT && t < SLAM_END ? 1 - (t - JOLT_AT) / (SLAM_END - JOLT_AT) : 0,
   }
 }
 
-/** Distance from the camera to the creature's head: 2.4 m at the start of the lunge, 0.15 m at its end. */
-export const lungeDistance = (reach: number): number => 2.4 - 2.25 * reach
+/** Distance from the camera to the creature's head: 3 m when it appears, 0.5 m once it is in front. */
+export const lungeDistance = (reach: number): number => 3 - 2.5 * reach

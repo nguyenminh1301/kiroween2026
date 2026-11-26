@@ -27,7 +27,6 @@ function harness(first: Crew | null = null) {
     wakeUp: () => log.push('wakeUp'),
     openChoice: (o) => log.push(`choice:${o}`),
     storeChoice: (c) => log.push(`store:${c}`),
-    flash: (s) => log.push(`flash:${s}`),
     restart: () => log.push('restart'),
     complete: () => log.push('complete'),
     firstCarried: () => first,
@@ -149,9 +148,10 @@ describe('act 3 dream beats', () => {
     expect(h.beats.phase()).toBe('silent')
   })
 
-  it('sets wp3 at the cage on the way back and lunges when E on the second', () => {
+  it('sets wp3 at the cage on the way back and swallows him when E on the second', () => {
     const h = harness('cdr')
     h.beats.start('wp2', 5.9)
+    h.run(2)
     h.at(-20)
     h.at(-29)
     expect(h.log).toContain('cp:wp3')
@@ -159,25 +159,27 @@ describe('act 3 dream beats', () => {
     h.beats.useSecond()
     expect(h.log).toContain('startLunge')
     expect(h.beats.lungeTime()).toBe(0)
-    h.run(0.5)
+    h.run(0.55)
     expect(h.log).not.toContain('sfx:sting')
-    h.run(0.2)
+    h.run(0.1)
     expect(h.log).toContain('sfx:sting')
-    h.run(0.35)
     expect(h.beats.phase()).toBe('lunge')
-    h.run(0.15)
+    const before = h.blackouts.length
+    h.run(0.2)
     expect(h.beats.phase()).toBe('black')
-    expect(h.blackouts[h.blackouts.length - 1]).toBe(1)
+    // The cut to black is one step: no fade values between the lunge and full black.
+    expect(h.blackouts.slice(before)).toEqual([1])
   })
 
   it('wakes after one second of black, then the lines, then the choice and the reply', () => {
     const h = harness('cdr')
     h.beats.start('wp3', -28.2)
     h.beats.useSecond()
-    h.run(1.2)
+    h.run(0.9)
+    expect(h.beats.phase()).toBe('black')
     h.run(0.9)
     expect(h.log).not.toContain('wakeUp')
-    h.run(0.3)
+    h.run(0.2)
     expect(h.log).toContain('wakeUp')
     expect(h.log).toContain('sfx:gasp')
     h.run(1.7)
@@ -199,18 +201,24 @@ describe('act 3 dream beats', () => {
     expect(h.log).toContain('complete')
   })
 
-  it('restarts after a catch while hunting', () => {
+  it('swallows him when caught, then restarts after one second of black', () => {
     const h = harness()
     h.beats.start('wp1', -28.2)
+    h.run(1.1)
     h.beats.useCage()
     h.beats.pickUp('cdr')
     h.beats.caught()
     expect(h.beats.phase()).toBe('caught')
-    h.run(1.4)
+    expect(h.log).toContain('startLunge')
+    expect(h.beats.frozen()).toBe(true)
+    h.run(0.7)
+    expect(h.log).toContain('sfx:sting')
+    h.run(0.2)
+    expect(h.blackouts[h.blackouts.length - 1]).toBe(1)
+    h.run(0.9)
     expect(h.log).not.toContain('restart')
     h.run(0.2)
     expect(h.log).toContain('restart')
-    expect(h.log).toContain('flash:true')
   })
 
   it('does not count paused time: no tick, no progress', () => {

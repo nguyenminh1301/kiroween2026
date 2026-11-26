@@ -3,7 +3,6 @@
 import { audio, radio, startAudioSession } from '../../audio'
 import { breathAllowed } from '../../audio/scene'
 import { CHECKLISTS } from '../../content/checklists'
-import { HUD } from '../../content/hud'
 import { createBreath, stepBreath } from '../../director/breath'
 import { hearingThreshold } from '../../director/hearing'
 import { meterFill, meterLabel, meterRed, noiseRatio } from '../../director/meter'
@@ -14,6 +13,7 @@ import { setDirectorSource } from '../../director/snapshot'
 import { applyTension, createTension, stepHeartRate, stepTension, type Tension } from '../../director/tension'
 import { completeAct, restartAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
+import { setCameraShaker } from '../../engine/cameraShake'
 import { setChoiceHandler } from '../../engine/choiceBridge'
 import { setAct3Source } from '../../engine/debugInfo'
 import { fxStore } from '../../engine/fx'
@@ -222,10 +222,18 @@ export function startAct3(requested: string): void {
     },
     openChoice: (open) => gameStore.getState().setChoiceOpen(open),
     storeChoice: (c: Choice) => gameStore.getState().setDreamChoice(c),
-    flash: (show) => fxStore.getState().setFlash(show ? HUD.caught : null),
     restart: () => restartAct(),
     complete: () => completeAct(),
     firstCarried: () => persistedFirst,
+  })
+  // The jolt of the swallow: a hard shake that dies in a fifth of a second.
+  setCameraShaker(() => {
+    const t = beats.lungeTime()
+    if (t === null) return null
+    const j = lungeFrame(t).jolt
+    if (j <= 0) return null
+    const k = Math.sin(t * 190)
+    return { rx: 0.14 * j * k, ry: 0.1 * j * Math.cos(t * 170), rz: 0.08 * j * k, ox: 0.05 * j * Math.cos(t * 210), oy: 0.07 * j * k, oz: 0 }
   })
   beats.start(cp, def.pos.z)
   gameStore.getState().setCheckpoint(cp)
@@ -340,7 +348,7 @@ export function startAct3(requested: string): void {
         updatePlayerBody({ vel: { x: 0, y: 0, z: 0 } })
       }
 
-      // The lunge: the mouth closes over the view.
+      // The swallow: the mouth slams shut over the view, then black with no fade.
       if (act3State.lunge !== null) {
         act3State.lunge = beats.lungeTime()
         const t = beats.lungeTime()

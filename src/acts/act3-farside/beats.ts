@@ -3,6 +3,7 @@
 // Pure: no Three.js or React imports. Every effect goes through `BeatDeps`, time through `tick(dt)`,
 // so a test can run the whole act on a fake clock and paused time never counts.
 import type { TensionEvent } from '../../director/tension'
+import { JOLT_AT, LUNGE_TOTAL } from '../../procgen/lunge'
 import { CAGE_ARRIVE_Z, checkpointAt, checkpointIndex, IMPOSTOR_Z, type Checkpoint } from './layout'
 
 export type Crew = 'cdr' | 'cmp'
@@ -44,7 +45,6 @@ export interface BeatDeps {
   wakeUp(): void
   openChoice(open: boolean): void
   storeChoice(c: Choice): void
-  flash(show: boolean): void
   restart(): void
   complete(): void
   /** Who was carried first in an earlier try, for restarts at wp2 and wp3. */
@@ -75,12 +75,14 @@ export interface TickCtx {
 
 export const WAKE_FADE = 2.5
 export const GET_UP_AT = 3.5
-export const LUNGE_SECONDS = 1.2
-export const STING_AT = 0.6
+/** The swallow: 0.85 s, the scream at the jolt. Same for the ending and for being caught. */
+export const LUNGE_SECONDS = LUNGE_TOTAL
+export const STING_AT = JOLT_AT
 export const BLACK_SECONDS = 1
 export const WAKE_FADE_IN = 1.2
 export const OUT_FADE = 1.5
-export const CAUGHT_SECONDS = 1.5
+/** Black held after a catch, before the restart. */
+export const CAUGHT_BLACK_SECONDS = 1
 export const CARRY_FIRST_WHISPER = 7
 export const CARRY_WHISPER_EVERY = 16
 
@@ -300,16 +302,20 @@ export function createBeats(deps: BeatDeps): Beats {
           cp = 'wp3'
           deps.checkpoint('wp3')
         }
-      } else if (phase === 'lunge' && lungeT !== null) {
+      } else if ((phase === 'lunge' || phase === 'caught') && lungeT !== null) {
         lungeT += dt
         if (!stung && lungeT >= STING_AT) {
           stung = true
           deps.sfx('sting')
-          deps.sfx('groan')
         }
         if (lungeT >= LUNGE_SECONDS) {
           lungeT = null
-          beginBlack()
+          // The jaws have shut: straight to black, no fade.
+          if (phase === 'lunge') beginBlack()
+          else {
+            deps.blackout(1)
+            after(CAUGHT_BLACK_SECONDS, () => deps.restart())
+          }
         }
       }
       prevZ = z
@@ -343,12 +349,10 @@ export function createBeats(deps: BeatDeps): Beats {
     caught() {
       if (!HUNTED_PHASES.has(phase)) return
       phase = 'caught'
-      deps.sfx('sting')
-      deps.flash(true)
-      after(CAUGHT_SECONDS, () => {
-        deps.flash(false)
-        deps.restart()
-      })
+      lungeT = 0
+      stung = false
+      deps.setObjective(null)
+      deps.startLunge()
     },
 
     useCage() {

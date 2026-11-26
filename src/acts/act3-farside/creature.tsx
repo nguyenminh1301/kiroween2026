@@ -5,7 +5,7 @@ import { registerSystem } from '../../engine/frameDriver'
 import { getPlayerBody } from '../../engine/playerRuntime'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { buildAstronaut, poseAstronaut } from '../../procgen/astronaut'
-import { lungeFrame } from '../../procgen/lunge'
+import { lungeDistance, lungeFrame } from '../../procgen/lunge'
 import { CAGED } from './layout'
 
 const AMBUSH_POS = { x: 0, z: CAGED.cdr.z - 0.5 }
@@ -14,8 +14,6 @@ import { act3State } from './state'
 const CREATURE_PRIORITY = 710
 /** The dim red rim: an inverted hull in unlit dark red. No second dynamic light. */
 const RIM_COLOR = '#5a1810'
-/** How far toward the camera the root travels in the lunge, as a share of the distance. The lean does the rest. */
-const REACH_SHARE = 0.65
 
 export function Creature() {
   const mat = useMemo(() => createMaterial({ vertexColors: true }), [])
@@ -39,13 +37,15 @@ export function Creature() {
       bones.root.visible = vis
       if (!vis) return
       if (lunge !== null) {
+        // The swallow: suddenly in front of the camera, the head splits open, then the jaws slam shut.
         const body = getPlayerBody()
         const f = lungeFrame(lunge)
-        const px = body?.pos.x ?? AMBUSH_POS.x
-        const pz = body?.pos.z ?? AMBUSH_POS.z + 2
-        const k = f.reach * REACH_SHARE
-        bones.root.position.set(AMBUSH_POS.x + (px - AMBUSH_POS.x) * k, -f.reach * 0.5, AMBUSH_POS.z + (pz - AMBUSH_POS.z) * k)
-        bones.root.rotation.y = Math.atan2(px - AMBUSH_POS.x, pz - AMBUSH_POS.z)
+        const ex = body?.pos.x ?? AMBUSH_POS.x
+        const ez = body?.pos.z ?? AMBUSH_POS.z + 2
+        const yaw = body?.yaw ?? 0
+        const d = lungeDistance(f.reach)
+        bones.root.position.set(ex - Math.sin(yaw) * d, -0.75, ez - Math.cos(yaw) * d)
+        bones.root.rotation.y = Math.atan2(ex - bones.root.position.x, ez - bones.root.position.z)
         poseAstronaut(bones, 'freeze', t, 0, { lunge })
         return
       }
