@@ -1,4 +1,4 @@
-export type Verb = 'GRAB' | 'PULL' | 'FLIP' | 'KEY IN' | 'LOOK BACK' | 'WAVE' | 'SLEEP' | 'HIDE' | 'TALK' | 'TAKE' | 'TAP' | 'ADJUST' | 'CLEAR'
+export type Verb = 'GRAB' | 'PULL' | 'FLIP' | 'KEY IN' | 'LOOK BACK' | 'WAVE' | 'SLEEP' | 'HIDE' | 'TALK' | 'TAKE' | 'TAP' | 'ADJUST' | 'CLEAR' | 'OPEN' | 'LAY DOWN'
 
 /** What the dot shows. PULL (handrails) shows no words. */
 export const VERB_LABELS: Record<Verb, string> = {
@@ -15,4 +15,6 @@ export const VERB_LABELS: Record<Verb, string> = {
   TAP: 'TAP',
   ADJUST: 'ADJUST',
   CLEAR: 'CLEAR',
+  OPEN: 'OPEN',
+  'LAY DOWN': 'LAY DOWN',
 }
