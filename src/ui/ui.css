@@ -456,6 +456,22 @@
   color: var(--ink);
 }
 
+.fx-slit {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #000 0,
+    #000 calc(50% - 5px),
+    rgba(110, 60, 36, 0.7) calc(50% - 3px),
+    rgba(243, 231, 211, 0.55) 50%,
+    rgba(110, 60, 36, 0.7) calc(50% + 3px),
+    #000 calc(50% + 5px),
+    #000 100%
+  );
+}
 .fx-black {
   position: fixed;
   inset: 0;

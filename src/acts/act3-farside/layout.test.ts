@@ -108,4 +108,24 @@ describe('act 3 map', () => {
     expect(creatureClear(NAV_NODES.leftTop, NAV_NODES.leftStoreDoor)).toBe(false)
     expect(creatureClear(NAV_NODES.leftTop, NAV_NODES.leftBottom)).toBe(true)
   })
+
+  it('puts every spot exit on free floor and every hiding spot inside the map', () => {
+    const boxes = collisionBoxes()
+    for (const s of SPOTS) {
+      const out = resolveCapsule({ ...s.exit }, { x: 0, y: 0, z: 0 }, boxes)
+      expect(out.pos.x, `${s.id} exit x`).toBeCloseTo(s.exit.x, 6)
+      expect(out.pos.z, `${s.id} exit z`).toBeCloseTo(s.exit.z, 6)
+      expect(GRID.openAt(s.exit.x, s.exit.z), `${s.id} exit in the map`).toBe(true)
+    }
+    for (const s of SPOTS.filter((q) => q.kind === 'corner')) expect(GRID.openAt(s.inside.x, s.inside.z)).toBe(true)
+  })
+
+  it('hides a door corner from the doorway: the leaf stands between them', () => {
+    // Left store: door row z -6.8 to -8.0, pocket at z -8.6 behind the leaf at z -8.05.
+    const c = SPOTS.find((s) => s.id === 'act3:corner0')
+    expect(c).toBeDefined()
+    const boxes = collisionBoxes()
+    const walk = resolveCapsule({ x: -8.85, y: 0.2, z: -7.5 }, { x: 0, y: 0, z: -2 }, boxes)
+    expect(walk.pos.z).toBeGreaterThan(-8.1)
+  })
 })

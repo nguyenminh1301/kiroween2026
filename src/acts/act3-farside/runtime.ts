@@ -40,9 +40,9 @@ import {
   collisionBoxes,
   CREW_RADIUS,
   detectBump,
-  LOCKERS,
   LOCKER_EXIT_DELAY,
   LOCKER_YAW,
+  SPOTS,
   SLEEP_EYE,
   SLEEP_YAW,
   speedOf,
@@ -90,6 +90,7 @@ export function startAct3(requested: string): void {
     fxStore.getState().setEdge(0)
     fxStore.getState().setFlash(null)
     fxStore.getState().setBlackout(0)
+    fxStore.getState().setSlit(false)
   })
 
   const allBoxes = collisionBoxes()
@@ -124,9 +125,9 @@ export function startAct3(requested: string): void {
     act3State.creatureVisible = false
   }
 
-  let lockerIndex = -1
-  let lockerTime = 0
-  const inLocker = (): boolean => lockerIndex >= 0
+  let spotIndex = -1
+  let spotTime = 0
+  const inSpot = (): boolean => spotIndex >= 0
 
   const voiceAt = (from: 'cdr' | 'cmp' | 'player' | undefined) =>
     from === 'cdr' || from === 'cmp' ? cagedVoice(from) : undefined
@@ -234,36 +235,40 @@ export function startAct3(requested: string): void {
   }))
 
   function enter(i: number): void {
-    const l = LOCKERS[i]
-    lockerIndex = i
-    lockerTime = 0
-    audio.play('locker', { position: { ...l.doorPos } })
+    const l = SPOTS[i]
+    spotIndex = i
+    spotTime = 0
+    audio.play(l.kind === 'bag' ? 'zipper' : 'locker', { position: { ...l.usePos } })
     focus.clearFocus()
     step.seatForwardYaw = l.yaw
     step.seatedYawLimit = l.look
     step.seatedPitchLimit = l.look
     updatePlayerBody({ pos: { ...l.inside }, vel: { x: 0, y: 0, z: 0 }, yaw: l.yaw, pitch: 0, mode: 'seated' })
+    act3State.hideKind = l.kind
+    if (l.kind === 'bag') fxStore.getState().setSlit(true)
     const obj = gameStore.getState().objective
     if (obj?.markers?.length) gameStore.getState().setObjective({ ...obj, markers: [] })
     beats.hidden(true)
   }
   function leave(): void {
-    const l = LOCKERS[lockerIndex]
-    lockerIndex = -1
-    audio.play('locker', { position: { ...l.doorPos } })
+    const l = SPOTS[spotIndex]
+    spotIndex = -1
+    audio.play(l.kind === 'bag' ? 'zipper' : 'locker', { position: { ...l.usePos } })
+    act3State.hideKind = null
+    fxStore.getState().setSlit(false)
     step.seatedYawLimit = undefined
     step.seatedPitchLimit = undefined
     updatePlayerBody({ pos: { ...l.exit }, vel: { x: 0, y: 0, z: 0 }, mode: 'walk' })
     beats.hidden(false)
   }
 
-  LOCKERS.forEach((l, i) => {
+  SPOTS.forEach((l, i) => {
     registerInteractable({
       id: l.id,
-      verb: 'HIDE',
+      verb: l.verb,
       position: { ...l.usePos },
       radius: l.radius,
-      enabled: () => !inLocker() && beats.hunting(),
+      enabled: () => !inSpot() && beats.hunting() && (l.kind !== 'bag' || act3State.carried === null),
       use: () => enter(i),
     })
   })
@@ -318,10 +323,10 @@ export function startAct3(requested: string): void {
       const phase = beats.phase()
       const hunted = beats.hunting()
 
-      // Locker exit.
-      if (inLocker()) {
-        lockerTime += dt
-        if (lockerTime >= LOCKER_EXIT_DELAY && inputState.pressed.use) leave()
+      // Leaving a hiding spot.
+      if (inSpot()) {
+        spotTime += dt
+        if (spotTime >= LOCKER_EXIT_DELAY && inputState.pressed.use) leave()
       }
 
       // Freeze: waking, the lunge, the black and caught.
@@ -341,8 +346,8 @@ export function startAct3(requested: string): void {
       breath = stepBreath(breath, holdingKey, dt)
       const holding = breath.holding
       gameStore.getState().setHoldingBreath(holding)
-      const speed = inLocker() ? 0 : speedOf(body.vel)
-      const bumped = !inLocker() && detectBump(prevVel, body.vel)
+      const speed = inSpot() ? 0 : speedOf(body.vel)
+      const bumped = !inSpot() && detectBump(prevVel, body.vel)
       prevVel = { ...body.vel }
       const gait = act3State.carried ? 'carry' : 'walk'
       noise = stepNoise(noise, { dt, speed, pushed: false, bumped, holding, gait })
@@ -354,7 +359,7 @@ export function startAct3(requested: string): void {
         const events = stepMonster(monster, {
           dt,
           player: { x: body.pos.x, z: body.pos.z },
-          hidden: inLocker(),
+          hidden: inSpot(),
           holding,
           noise,
           rng: Math.random,
@@ -387,7 +392,7 @@ export function startAct3(requested: string): void {
       if (hunted) {
         const ratio = noiseRatio(noise, distance)
         fx.setMeter({
-          label: meterLabel(monster.mode, inLocker(), holding),
+          label: meterLabel(monster.mode, inSpot(), holding),
           fill: meterFill(ratio),
           red: meterRed(ratio),
         })

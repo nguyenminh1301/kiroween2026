@@ -5,9 +5,9 @@ export interface HintDef {
 
 export const HINTS: Record<string, HintDef> = {
   push: { key: 'E', text: 'Look where you want to go and press E near a rail to push off.' },
-  breath: { key: 'SPACE', text: 'Hold SPACE to hold your breath. In a locker, it can not hear you then.' },
-  hide: { key: 'E', text: 'Get into a locker and hold your breath until it passes.' },
-  locker: { key: 'SPACE', text: 'Hold your breath until it goes. Press E to climb out.' },
+  breath: { key: 'SPACE', text: 'Hold SPACE to hold your breath. Hidden, it can not hear you then.' },
+  hide: { key: 'E', text: 'Get into a locker, behind an open door or into an empty bag. Stay still until it passes.' },
+  locker: { key: 'SPACE', text: 'Stay still. Hold SPACE to hold your breath. Press E to come out.' },
   chase: { key: 'E', text: 'Keep pressing E on the rails. When you stop, it catches up.' },
   lookBack: { key: 'Q', text: 'Looking back slows you down.' },
   hatch: { key: 'E', text: 'Open the hatch.' },

@@ -195,6 +195,7 @@ export function RepairPad() {
 export function FxLayer() {
   const edge = useFx((s) => s.edge)
   const flash = useFx((s) => s.flash)
+  const slit = useFx((s) => s.slit)
   const blackout = useFx((s) => s.blackout)
   const flashes = useFx((s) => s.flashes)
   const caption = useFx((s) => s.caption)
@@ -205,6 +206,7 @@ export function FxLayer() {
   return (
     <>
       {edge > 0 ? <div className="fx-edge" style={{ opacity: edge }} data-testid="edge" /> : null}
+      {slit ? <div className="fx-slit" data-testid="slit" /> : null}
       <div className="fx-black" style={{ opacity: blackout }} />
       {flash ? (
         <div className="fx-caught" data-testid="caught">

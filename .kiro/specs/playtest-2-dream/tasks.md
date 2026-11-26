@@ -1,7 +1,7 @@
 # Tasks
 
 - [x] 1. A map with choices (req 1)
-- [ ] 2. More places to hide (req 2)
+- [x] 2. More places to hide (req 2)
 - [ ] 3. An easier creature (req 3)
 - [ ] 4. The captured crew (req 4)
 - [ ] 5. The swallow, stronger and also when caught (req 5)

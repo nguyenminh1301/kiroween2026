@@ -76,6 +76,9 @@ export interface FxState {
   edge: number
   /** Red flash text, or null. */
   flash: string | null
+  /** Inside a sleeping bag: black with a thin slit of light. */
+  slit: boolean
+  setSlit: (v: boolean) => void
   setMeter: (m: NoiseMeter | null) => void
   setEdge: (v: number) => void
   setFlash: (s: string | null) => void
@@ -104,13 +107,14 @@ export interface FxState {
   clearFx: () => void
 }
 
-const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, pad: null as PadView | null, photo: null as PhotoView | null, readout: null as ReadoutView | null }
+const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, slit: false, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, pad: null as PadView | null, photo: null as PhotoView | null, readout: null as ReadoutView | null }
 
 export const fxStore = createStore<FxState>()((set) => ({
   ...EMPTY,
   setMeter: (meter) => set({ meter }),
   setEdge: (v) => set({ edge: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
   setFlash: (flash) => set({ flash }),
+  setSlit: (slit) => set({ slit }),
   setPhoto: (photo) => set({ photo }),
   setReadout: (readout) => set({ readout }),
   setBlackout: (v) => set({ blackout: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),

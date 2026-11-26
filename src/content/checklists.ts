@@ -15,11 +15,11 @@ export const CHECKLISTS: Record<string, Objective> = {
   act2Eyes: { text: 'Hold C to close your eyes and sleep', keys: 'C' },
   act3Find: { text: 'Find Neil and Mike.', keys: 'E' },
   act3Hide: {
-    text: 'Hide in the locker on your left. Inside, hold SPACE',
+    text: 'Hide, stay still and hold SPACE',
     keys: 'E',
     markers: ['act3:locker0'],
   },
-  act3Hunted: { text: 'It heard you. Get in a locker and hold SPACE', keys: 'SPACE' },
+  act3Hunted: { text: 'It heard you. Hide and hold SPACE', keys: 'SPACE' },
   act3Carry: { text: 'Carry him back to the bags.', keys: 'E', markers: ['act3:bags'] },
   act3Back: { text: 'Go back for the other one.', keys: 'E' },
   act4Tasks: {
