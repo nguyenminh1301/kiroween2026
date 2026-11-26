@@ -51,6 +51,8 @@ export const RECIPES: Record<EffectName, Recipe> = {
   sting: [osc(0, 1, 600, 1800, 0.4, 'sawtooth', 0.05), osc(0, 1, 640, 1900, 0.3, 'sawtooth', 0.05), noise(0, 1, 'bandpass', 2000, 0.4)],
   breathe: [noise(0, 1.2, 'bandpass', 700, 0.7, undefined, 1, 0.5)],
   cheer: [noise(0, 3, 'bandpass', 1200, 0.8, undefined, 0.4, 0.5)],
+  tap: [osc(0, 0.12, 1250, 900, 0.5, 'triangle'), osc(0, 0.2, 420, 380, 0.4), noise(0, 0.03, 'highpass', 3500, 0.5)],
+  hiss: [noise(0, 2.2, 'highpass', 4500, 0.5, undefined, undefined, 0.3)],
 }
 
 /** Extra stand-ins that are not named Effects. */

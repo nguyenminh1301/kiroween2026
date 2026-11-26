@@ -78,39 +78,64 @@ try {
     null,
     { timeout: 40000 },
   )
-  await objective('Float down the tunnel')
+  await objective('Repairs left')
   check(await page.evaluate(() => window.__los.player.body.mode === 'zeroG'), 'zero-g body')
-  await subtitle('Neil and I')
+  await subtitle('Three small items')
   await page.waitForTimeout(1200)
   await shot('act2-start')
   await budget('start')
+  const hold = () => page.evaluate(() => window.__los.player.set({ vel: { x: 0, y: 0, z: 0 } }))
+  const enabled = (id) => page.evaluate((id) => window.__los.interactables().find((i) => i.id === id)?.enabled, id)
+
+  // Cabin pressure in the command module: E, then A or D, hold the needle in the green band.
+  check(!(await page.evaluate(() => window.__los.focus())), 'no scripted turn at the start')
+  await hold()
+  await useAt('act2:gauge', 'ADJUST')
+  await page.waitForSelector('[data-testid="gauge"]', { timeout: 10000 })
+  await shot('act2-gauge')
+  const reading = () => page.evaluate(() => parseFloat(document.querySelector('[data-testid="gauge"] text:last-of-type')?.textContent ?? '0'))
+  await page.keyboard.down('KeyD')
+  for (let i = 0; i < 400 && (await reading()) < 4.6; i++) await page.waitForTimeout(30)
+  await page.keyboard.up('KeyD')
+  await page.waitForFunction(() => !document.querySelector('[data-testid="gauge"]'), null, { timeout: 30000, polling: 100 })
+  await subtitle('five point zero')
+  check(!(await enabled('act2:gauge')), 'gauge is done')
 
   // Outbound: push along the tunnel with real E presses.
-  await unfocused()
-  for (let i = 0; i < 100 && (await z()) > -3.2; i++) await push(0)
-  check(pushes >= 2, `at least two real pushes, got ${pushes}`)
-  if ((await z()) > -3.2) {
-    await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
-  }
-  await objective('Find something to push')
-  await unfocused()
+  for (let i = 0; i < 100 && (await z()) > 0.6; i++) await push(0)
+  check(pushes >= 1, `at least one real push, got ${pushes}`)
+  if ((await z()) > 0.6) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: 0.5 } }))
+  await subtitle('hiss is the oxygen line')
 
-  check(await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act2:pen').enabled), 'pen enabled')
-  check(!(await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act2:breaker').enabled)), 'breaker disabled before pen')
-  const pen = await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act2:pen').position)
-  const pz = await z()
-  if (Math.hypot(pen.z - pz) > 2) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
-  await useAt('act2:pen', 'GRAB')
-  await objective('Push the breaker in')
-  await unfocused()
-  check(await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act2:breaker').enabled), 'breaker enabled with pen')
-  await page.evaluate(() => window.__los.player.set({ pos: { x: -0.2, y: 0.3, z: -4.4 } }))
-  await aim('act2:breaker')
-  await page.waitForTimeout(500)
-  await shot('act2-breaker')
-  await useAt('act2:breaker', 'GRAB')
+  // Oxygen line: hammer from the pouch, three taps on the joint.
+  check(!(await enabled('act2:joint')), 'joint needs the hammer')
+  await hold()
+  await useAt('act2:pouch', 'TAKE')
+  await page.waitForFunction(() => window.__los.interactables().find((i) => i.id === 'act2:joint')?.enabled, null, { timeout: 10000 })
+  await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -0.4 }, vel: { x: 0, y: 0, z: 0 } }))
+  await shot('act2-hose')
+  for (let i = 0; i < 3; i++) {
+    await hold()
+    await useAt('act2:joint', 'TAP')
+    await page.waitForTimeout(300)
+  }
+  await subtitle('Oxygen flow looks steady')
+  check(!(await enabled('act2:joint')), 'joint is done after three taps')
+
+  // Computer in the lander: three buttons.
+  for (let i = 0; i < 100 && (await z()) > -3.2; i++) await push(0)
+  if ((await z()) > -3.2) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
+  await subtitle('three faults')
+  await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -5 }, vel: { x: 0, y: 0, z: 0 } }))
+  for (let i = 0; i < 3; i++) {
+    await hold()
+    await useAt(`act2:comp${i}`, 'CLEAR')
+    await page.waitForTimeout(300)
+  }
+  await subtitle('Computer is clean')
+  await shot('act2-computer')
   await objective('Float back up the tunnel')
-  await unfocused()
+  check(!(await page.evaluate(() => window.__los.focus())), 'no scripted turn in the lander')
 
   // Back: the tunnel is longer, so it takes more pushes.
   const before = pushes
@@ -144,9 +169,13 @@ try {
     'bag disabled once in',
   )
 
-  // Hold C: flashes, then the fourth sleeper, then the hand-off.
+  // Hold C: fade to black over two seconds, slow breathing, no flashes. Six seconds closed marks the fourth sleeper.
   await page.keyboard.down('KeyC')
+  await page.waitForFunction(() => parseFloat(document.querySelector('.fx-black')?.style.opacity ?? '0') > 0.95, null, { timeout: 30000, polling: 100 })
+  await shot('act2-dark')
+  check((await page.evaluate(() => document.querySelectorAll('.fx-flash, .fx-figure').length)) === 0, 'no flashes or figure in the dark')
   await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('fourth-sleeper'), null, { timeout: 90000, polling: 200 })
+  check((await page.evaluate(() => document.querySelectorAll('.fx-flash, .fx-figure').length)) === 0, 'still no flashes')
   await page.keyboard.up('KeyC')
   await page.waitForFunction(
     () => window.__los.store.getState().act === 'act3-farside' || window.__los.loader.state.getState().act === 'act3-farside',

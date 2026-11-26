@@ -4,17 +4,6 @@ import { createRadioQueue } from '../../audio/radioQueue'
 import type { Subtitle } from '../../types'
 import { createAct2Beats, type ObjectiveKey } from './beats'
 
-const ORDER = ['act2.night', 'act2.out', 'act2.breaker', 'act2.pen', 'act2.fixed', 'act2.longer', 'act2.sleep']
-const BEAT_OF: Record<string, number> = {
-  'act2.night': 0,
-  'act2.out': 0,
-  'act2.breaker': 1,
-  'act2.pen': 2,
-  'act2.fixed': 3,
-  'act2.longer': 4,
-  'act2.sleep': 4,
-}
-
 function setup() {
   let sub: Subtitle | null = null
   const shown: Array<{ id: string; beatAtShow: number }> = []
@@ -33,12 +22,7 @@ function setup() {
   const beats = createAct2Beats({
     radio: { say: (id, o) => queue.say(id, o), setBeat: queue.setBeat },
     alive: () => true,
-    focusOn: () => {},
-    headOf: () => () => ({ x: 0, y: 0, z: 0 }),
     setObjective: (k) => objectives.push(k),
-    outView: { x: 0, y: 0, z: 1 },
-    breakerPos: { x: 0, y: 0, z: 2 },
-    tunnelView: { x: 0, y: 0, z: 3 },
   })
   ref.beats = beats
   const advance = async (seconds: number) => {
@@ -51,51 +35,55 @@ function setup() {
 }
 
 describe('act 2 beats', () => {
+  it('plays the opening lines in order for a quiet player', async () => {
+    const t = setup()
+    t.beats.begin()
+    await t.advance(40)
+    expect(t.shown.map((s) => s.id)).toEqual(['act2.jobs', 'act2.press', 'act2.out'])
+    expect(t.objectives).toEqual(['repairs'])
+  })
+
   it('never shows a line of an earlier beat after the beat changed', async () => {
     const t = setup()
     t.beats.begin()
     await t.advance(1)
-    // The player is fast: every step comes a second or two after the last.
-    const steps = [t.beats.crossLander, t.beats.takePen, t.beats.fixBreaker, t.beats.crossCm]
-    for (const step of steps) {
-      step()
-      await t.advance(1.5)
-      expect(BEAT_OF[t.shown[t.shown.length - 1].id]).toBe(t.beats.beat())
-      expect(t.sub() === null || BEAT_OF[t.shown[t.shown.length - 1].id] === t.beats.beat()).toBe(true)
-    }
+    t.beats.nearJoint()
+    await t.advance(1.5)
+    expect(t.shown[t.shown.length - 1].id).toBe('act2.o2')
+    t.beats.enterLander()
     await t.advance(60)
-    for (const s of t.shown) expect(BEAT_OF[s.id]).toBe(s.beatAtShow)
-    expect(t.queue.ids()).toEqual([])
+    for (const s of t.shown) {
+      if (s.id === 'act2.o2') expect(s.beatAtShow).toBe(1)
+      if (s.id === 'act2.comp') expect(s.beatAtShow).toBe(2)
+    }
+    expect(t.shown.map((s) => s.id)).not.toContain('act2.press')
   })
 
-  it('clears the subtitle at once when its beat ends, and queues no line twice', async () => {
+  it('says the Houston line when a repair is done and goes on to the right objective', async () => {
     const t = setup()
-    t.beats.begin()
+    t.beats.repairDone('o2', 'repairs')
     await t.advance(0.2)
-    expect(t.sub()?.text).toBe(LINES['act2.night'].text)
-    t.beats.crossLander()
-    expect(t.sub()?.text).toBe(LINES['act2.breaker'].text)
-    await t.advance(120)
-    const ids = t.shown.map((s) => s.id)
-    expect(new Set(ids).size).toBe(ids.length)
-    expect(ids).not.toContain('act2.out')
+    expect(t.sub()?.text).toBe(LINES['act2.o2done'].text)
+    t.beats.repairDone('press', 'repairs')
+    expect(t.sub()?.text).toBe(LINES['act2.pressdone'].text)
+    t.beats.repairDone('comp', 'back')
+    expect(t.sub()?.text).toBe(LINES['act2.compdone'].text)
+    expect(t.objectives).toEqual(['repairs', 'repairs', 'act2Back'])
   })
 
-  it('sets each objective when the beat starts, not when its line ends', () => {
+  it('says the tunnel line on the way back, then lights out when everything is done', async () => {
     const t = setup()
-    t.beats.begin()
-    t.beats.crossLander()
-    t.beats.takePen()
-    t.beats.fixBreaker()
-    t.beats.crossCm()
-    expect(t.objectives).toEqual(['act2Out', 'act2Fix', 'act2Push', 'act2Back', 'act2Sleep'])
-  })
-
-  it('plays the lines of a quiet player in order', async () => {
-    const t = setup()
-    t.beats.begin()
+    t.beats.crossBack('sleep')
     await t.advance(30)
-    expect(t.shown.map((s) => s.id)).toEqual(['act2.night', 'act2.out'])
-    expect(ORDER).toContain('act2.out')
+    expect(t.shown.map((s) => s.id)).toEqual(['act2.longer', 'act2.sleep'])
+    expect(t.objectives).toEqual(['act2Sleep'])
+    t.beats.enterBag()
+    expect(t.objectives.at(-1)).toBe('act2Eyes')
+  })
+
+  it('has every line it needs, and none of the old pen and breaker lines', () => {
+    for (const id of ['act2.jobs', 'act2.o2', 'act2.o2done', 'act2.press', 'act2.pressdone', 'act2.comp', 'act2.compdone'])
+      expect(LINES[id]).toBeTruthy()
+    for (const id of ['act2.pen', 'act2.breaker', 'act2.fixed', 'act2.flashes']) expect(LINES[id]).toBeUndefined()
   })
 })

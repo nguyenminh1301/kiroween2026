@@ -1,71 +1,59 @@
-// The act 2 phase machine: outbound, fix, return, sleep, done. Pure: no Three.js or React imports.
+// The act 2 phase machine: repairs, sleep, done. Pure: no Three.js or React imports.
+// The three repairs can be done in any order. The tunnel grows the first time the player is in the lander,
+// and the player must have floated back to the command module once before bedtime.
 
-export type Phase = 'outbound' | 'fix' | 'return' | 'sleep' | 'done'
-export type Act2Interactable = 'act2:pen' | 'act2:breaker' | 'act2:bag'
+export type Phase = 'repairs' | 'sleep' | 'done'
+export type Act2Interactable = 'act2:bag'
 
 export interface Phases {
   phase(): Phase
-  holdingPen(): boolean
   inBag(): boolean
-  /** The player crossed into the lander. Only works in `outbound`. */
-  crossLander(): boolean
-  /** The player took the pen. Only works in `fix` while not holding it. */
-  takePen(): boolean
-  /** The breaker was pushed in. Only works in `fix` while holding the pen. */
-  fixBreaker(): boolean
-  /** The player crossed back into the command module. Only works in `return`. */
-  crossCm(): boolean
+  /** The player is in the lander. True the first time only: the tunnel grows now. */
+  enterLander(): boolean
+  /** The player is back in the command module after the lander. True the first time only. */
+  crossBack(): boolean
+  /** The repairs state changed. */
+  setRepairsDone(done: boolean): void
   /** The player got into the bag. Only works in `sleep`, once. */
   enterBag(): boolean
   /** The sleep ended. Only works in `sleep` once in the bag. */
   finish(): boolean
-  /** Whether an interactable may be used now. */
   enabled(id: Act2Interactable): boolean
 }
 
 export function createPhases(): Phases {
-  let phase: Phase = 'outbound'
-  let holding = false
+  let visitedLander = false
+  let crossedBack = false
+  let repairs = false
   let bag = false
+  let finished = false
+  const phase = (): Phase => (finished ? 'done' : repairs && crossedBack ? 'sleep' : 'repairs')
   return {
-    phase: () => phase,
-    holdingPen: () => holding,
+    phase,
     inBag: () => bag,
-    crossLander() {
-      if (phase !== 'outbound') return false
-      phase = 'fix'
+    enterLander() {
+      if (visitedLander) return false
+      visitedLander = true
       return true
     },
-    takePen() {
-      if (phase !== 'fix' || holding) return false
-      holding = true
+    crossBack() {
+      if (!visitedLander || crossedBack) return false
+      crossedBack = true
       return true
     },
-    fixBreaker() {
-      if (phase !== 'fix' || !holding) return false
-      phase = 'return'
-      holding = false
-      return true
-    },
-    crossCm() {
-      if (phase !== 'return') return false
-      phase = 'sleep'
-      return true
+    setRepairsDone(done) {
+      repairs = done
     },
     enterBag() {
-      if (phase !== 'sleep' || bag) return false
+      if (phase() !== 'sleep' || bag) return false
       bag = true
       return true
     },
     finish() {
-      if (phase !== 'sleep' || !bag) return false
-      phase = 'done'
+      if (phase() !== 'sleep' || !bag) return false
+      finished = true
       return true
     },
-    enabled(id) {
-      if (id === 'act2:pen') return phase === 'fix' && !holding
-      if (id === 'act2:breaker') return phase === 'fix' && holding
-      return phase === 'sleep' && !bag
-    },
+    enabled: () => phase() === 'sleep' && !bag,
   }
 }

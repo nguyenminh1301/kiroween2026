@@ -18,6 +18,22 @@ export interface DskyReadout {
   alarm: number | null
 }
 
+/** The close-up pressure gauge of act 2. */
+export interface GaugeView {
+  /** Pressure reading in psi. */
+  needle: number
+  /** Needle angle in radians, 0 at twelve o'clock. */
+  needleRad: number
+  /** Green band start and end, same angle scale. */
+  bandRad: [number, number]
+  /** Knob position 0 to 1. */
+  knob: number
+  /** Needle inside the green band. */
+  inBand: boolean
+  /** Seconds held in the band, 0 to 1. */
+  held: number
+}
+
 export interface Hint {
   id: string
   key: string
@@ -52,6 +68,8 @@ export interface FxState {
   dsky: DskyReadout | null
   hint: Hint | null
   wrist: boolean
+  gauge: GaugeView | null
+  setGauge: (g: GaugeView | null) => void
   setBlackout: (v: number) => void
   setFlashes: (f: Flash[]) => void
   setCaption: (s: string | null) => void
@@ -62,7 +80,7 @@ export interface FxState {
   clearFx: () => void
 }
 
-const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false }
+const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null }
 
 export const fxStore = createStore<FxState>()((set) => ({
   ...EMPTY,
@@ -75,6 +93,7 @@ export const fxStore = createStore<FxState>()((set) => ({
   setCard: (card) => set({ card: card ? [...card] : null }),
   setDsky: (dsky) => set({ dsky }),
   setHint: (hint) => set({ hint }),
+  setGauge: (gauge) => set({ gauge }),
   setWrist: (wrist) => set((s) => (s.wrist === wrist ? s : { wrist })),
   clearFx: () => set({ ...EMPTY, flashes: [] }),
 }))

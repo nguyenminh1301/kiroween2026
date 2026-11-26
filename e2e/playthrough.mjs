@@ -125,6 +125,10 @@ try {
   await page.keyboard.down('KeyW')
   await wait(() => window.__los.player.body.pos.z < -7.2, null, 40000)
   await page.keyboard.up('KeyW')
+  // Gunter speaks only when talked to.
+  await page.evaluate(() => window.__los.player.set({ yaw: -0.73, pitch: -0.2 }))
+  await wait(() => window.__los.store.getState().target?.verb === 'TALK', null, 30000)
+  await page.keyboard.press('KeyE')
   await subtitle('boot prints', 40000)
   check(await seen('extra-bootprints'), 'extra-bootprints noticed')
   await unfocused()
@@ -135,6 +139,15 @@ try {
   // Act 1.
   stage = 'act1'
   await actReady('act1-launch')
+  // The view does not turn by itself: look at the O2 gauge.
+  await subtitle('oxygen', 90000)
+  await page.evaluate(() => {
+    const b = window.__los.player.body
+    const dx = -0.35 - b.pos.x
+    const dy = 1.5 - (b.pos.y + 1.65)
+    const dz = -1.05 - b.pos.z
+    window.__los.player.set({ yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(dy, Math.hypot(dx, dz)) })
+  })
   await wait(() => window.__los.store.getState().anomaliesSeen.includes('o2-for-four'), null, 90000)
   await objective('red switch')
   await shot('playthrough-act1')
@@ -148,26 +161,38 @@ try {
   // Act 2.
   stage = 'act2'
   await actReady('act2-coast')
-  await objective('Float down the tunnel')
+  await objective('Repairs left')
   await unfocused()
-  for (let i = 0; i < 100 && (await z()) > -3.2; i++) await push(0, 1500)
-  if ((await z()) > -3.2) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
-  await objective('Find something to push')
-  // Stop any drift left from the pushes, so the pen stays in reach while E is pressed.
-  const holdNearPen = () =>
-    page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 }, vel: { x: 0, y: 0, z: 0 } }))
-  await unfocused()
-  await holdNearPen()
-  await useAt('act2:pen', 'GRAB')
-  const penTaken = () => wait(() => window.__los.store.getState().objective?.text?.includes('Push the breaker in'), null, 20000).then(() => true, () => false)
-  if (!(await penTaken())) {
-    await holdNearPen()
-    await useAt('act2:pen', 'GRAB')
-    await objective('Push the breaker in')
+  const hold = () => page.evaluate(() => window.__los.player.set({ vel: { x: 0, y: 0, z: 0 } }))
+  // Cabin pressure.
+  await hold()
+  await useAt('act2:gauge', 'ADJUST')
+  await page.waitForSelector('[data-testid="gauge"]', { timeout: 10000 })
+  const reading = () => page.evaluate(() => parseFloat(document.querySelector('[data-testid="gauge"] text:last-of-type')?.textContent ?? '0'))
+  await page.keyboard.down('KeyD')
+  for (let i = 0; i < 400 && (await reading()) < 4.6; i++) await page.waitForTimeout(30)
+  await page.keyboard.up('KeyD')
+  await page.waitForFunction(() => !document.querySelector('[data-testid="gauge"]'), null, { timeout: 30000, polling: 100 })
+  // Oxygen line.
+  for (let i = 0; i < 100 && (await z()) > 0.6; i++) await push(0)
+  if ((await z()) > 0.6) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: 0.5 } }))
+  await hold()
+  await useAt('act2:pouch', 'TAKE')
+  await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -0.4 }, vel: { x: 0, y: 0, z: 0 } }))
+  for (let i = 0; i < 3; i++) {
+    await hold()
+    await useAt('act2:joint', 'TAP')
+    await page.waitForTimeout(300)
   }
-  await unfocused()
-  await page.evaluate(() => window.__los.player.set({ pos: { x: -0.2, y: 0.3, z: -4.4 } }))
-  await useAt('act2:breaker', 'GRAB')
+  // Computer.
+  for (let i = 0; i < 100 && (await z()) > -3.2; i++) await push(0)
+  if ((await z()) > -3.2) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
+  await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -5 }, vel: { x: 0, y: 0, z: 0 } }))
+  for (let i = 0; i < 3; i++) {
+    await hold()
+    await useAt(`act2:comp${i}`, 'CLEAR')
+    await page.waitForTimeout(300)
+  }
   await objective('Float back up the tunnel')
   for (let i = 0; i < 100 && !(await seen("tunnel-longer")); i++) await push(Math.PI, 1500)
   check(await seen('tunnel-longer'), 'tunnel-longer noticed')

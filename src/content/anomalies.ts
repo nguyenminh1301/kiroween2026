@@ -27,7 +27,7 @@ export const ANOMALIES: AnomalyText[] = [
   },
   {
     id: 'fourth-sleeper',
-    seen: 'Three of you went to sleep. Something in the empty corner was breathing too.',
+    seen: 'Three of you went to sleep. In the dark there were four rhythms of breathing, not three.',
     real: 'Apollo 11 crew members reported light flashes with their eyes closed, later linked to cosmic rays passing through the eye.',
     source: 'https://ntrs.nasa.gov/citations/19740020361',
   },

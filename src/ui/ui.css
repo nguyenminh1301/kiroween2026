@@ -681,3 +681,50 @@
   background: rgba(40, 30, 20, 0.92);
   outline: none;
 }
+
+/* Act 2: the close-up pressure gauge. */
+.gauge-close {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: min(60vh, 80vw);
+  height: min(60vh, 80vw);
+  transform: translate(-50%, -50%);
+  z-index: 35;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.7));
+}
+.gauge-knob {
+  position: absolute;
+  left: 50%;
+  bottom: -9%;
+  width: 18%;
+  height: 18%;
+  margin-left: -9%;
+  border-radius: 50%;
+  background: #2a2c2e;
+  border: 3px solid #8d9296;
+}
+.gauge-knob::after {
+  content: '';
+  position: absolute;
+  left: 46%;
+  top: 6%;
+  width: 8%;
+  height: 34%;
+  background: #e8e3d2;
+}
+.gauge-hold {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  bottom: -1%;
+  height: 3%;
+  background: rgba(255, 255, 255, 0.15);
+}
+.gauge-hold > div {
+  height: 100%;
+  background: #8d9296;
+}
+.gauge-hold > div.on {
+  background: #2f9e44;
+}

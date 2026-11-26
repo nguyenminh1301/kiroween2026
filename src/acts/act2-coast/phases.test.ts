@@ -1,42 +1,45 @@
 import { describe, expect, it } from 'vitest'
-import { createPhases, type Act2Interactable } from './phases'
+import { createPhases } from './phases'
 
-const IDS: Act2Interactable[] = ['act2:pen', 'act2:breaker', 'act2:bag']
-const enabled = (p: ReturnType<typeof createPhases>) => IDS.filter((id) => p.enabled(id))
-
-describe('act 2 phase machine', () => {
-  it('walks outbound, fix, return, sleep, done with each interactable only in its phase', () => {
+describe('act 2 phases', () => {
+  it('grows the tunnel once, on the first visit to the lander', () => {
     const p = createPhases()
-    expect(p.phase()).toBe('outbound')
-    expect(enabled(p)).toEqual([])
-    expect(p.takePen()).toBe(false)
-    expect(p.crossCm()).toBe(false)
+    expect(p.crossBack()).toBe(false)
+    expect(p.enterLander()).toBe(true)
+    expect(p.enterLander()).toBe(false)
+  })
 
-    expect(p.crossLander()).toBe(true)
-    expect(p.crossLander()).toBe(false)
-    expect(p.phase()).toBe('fix')
-    expect(enabled(p)).toEqual(['act2:pen'])
-    expect(p.fixBreaker()).toBe(false)
-
-    expect(p.takePen()).toBe(true)
-    expect(p.takePen()).toBe(false)
-    expect(p.holdingPen()).toBe(true)
-    expect(enabled(p)).toEqual(['act2:breaker'])
-
-    expect(p.fixBreaker()).toBe(true)
-    expect(p.phase()).toBe('return')
-    expect(enabled(p)).toEqual([])
-
-    expect(p.crossCm()).toBe(true)
+  it('opens the bag only after the repairs and one trip back', () => {
+    const p = createPhases()
+    expect(p.enabled('act2:bag')).toBe(false)
+    p.enterLander()
+    p.setRepairsDone(true)
+    expect(p.phase()).toBe('repairs')
+    expect(p.crossBack()).toBe(true)
+    expect(p.crossBack()).toBe(false)
     expect(p.phase()).toBe('sleep')
-    expect(enabled(p)).toEqual(['act2:bag'])
-    expect(p.finish()).toBe(false)
+    expect(p.enabled('act2:bag')).toBe(true)
+  })
 
+  it('also works when the last repair is done after the trip back', () => {
+    const p = createPhases()
+    p.enterLander()
+    p.crossBack()
+    expect(p.phase()).toBe('repairs')
+    p.setRepairsDone(true)
+    expect(p.phase()).toBe('sleep')
+  })
+
+  it('enters the bag once and finishes only from the bag', () => {
+    const p = createPhases()
+    p.enterLander()
+    p.crossBack()
+    p.setRepairsDone(true)
+    expect(p.finish()).toBe(false)
     expect(p.enterBag()).toBe(true)
     expect(p.enterBag()).toBe(false)
-    expect(enabled(p)).toEqual([])
+    expect(p.enabled('act2:bag')).toBe(false)
     expect(p.finish()).toBe(true)
     expect(p.phase()).toBe('done')
-    expect(enabled(p)).toEqual([])
   })
 })

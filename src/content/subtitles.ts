@@ -82,44 +82,34 @@ export const LINES: Record<string, Line> = {
     speaker: 'CAPCOM',
     text: 'Apollo 11, Houston. You are on your way. Get some rest, it is a long drive.',
   },
-  'act2.night': {
-    speaker: 'CMP',
-    text: 'Neil and I are turning in. Do not stay down there all night, Buzz.',
+  'act2.jobs': {
+    speaker: 'CAPCOM',
+    text: 'Columbia, Houston. Three small items on the list before you sleep.',
   },
   'act2.out': {
     speaker: 'CDR',
-    text: 'Houston wants that lander fault checked before we sleep. Float down and take a look.',
+    text: 'The jobs are spread out. One here, one in the tunnel, one in the lander.',
   },
-  'act2.breaker': {
+  'act2.o2': {
+    speaker: 'CMP',
+    text: 'That hiss is the oxygen line again. Give the joint a tap.',
+  },
+  'act2.o2done': { speaker: 'CAPCOM', text: 'Oxygen flow looks steady now. Thank you.' },
+  'act2.press': {
     speaker: 'CDR',
-    mood: 'distant',
-    text: 'Engine arm breaker. The knob snapped off. Find something to push it in with.',
+    text: 'Cabin pressure reads low. Bring it back to five.',
   },
-  'act2.pen': {
+  'act2.pressdone': { speaker: 'CAPCOM', text: 'We see five point zero. Nice work.' },
+  'act2.comp': {
     speaker: 'CDR',
-    mood: 'distant',
-    text: 'A pen. That will do. Push the breaker in with it.',
+    text: 'Computer has three faults up. Clear them one at a time.',
   },
-  'act2.fixed': {
-    speaker: 'CDR',
-    mood: 'distant',
-    text: 'That did it. Come on back up, we are turning in.',
-  },
+  'act2.compdone': { speaker: 'CAPCOM', text: 'Computer is clean. You are go for the night.' },
   'act2.longer': {
     speaker: 'CMP',
     text: 'You were gone a while. That tunnel is three pushes. Did you get lost in there?',
   },
   'act2.sleep': { speaker: 'CDR', text: 'Lights out. Get in your bag, Buzz. Big day tomorrow.' },
-  'act2.flashes': {
-    speaker: 'CMP',
-    mood: 'whisper',
-    text: 'You see the flashes too? Every time I shut my eyes.',
-  },
-  'act2.breath': {
-    speaker: 'CMP',
-    mood: 'whisper',
-    text: 'Who is breathing like that? There are only three of us in here.',
-  },
   'act3.los': { speaker: 'LOS', text: 'Loss of signal. No Houston until we come around.', seconds: 3.5 },
   'act3.wake': {
     speaker: 'CDR',

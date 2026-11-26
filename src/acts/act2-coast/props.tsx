@@ -1,26 +1,14 @@
-// Things in the rooms: breaker panels, windows, instrument panel, sleepers, bags, rails and the pen.
-import { useEffect, useMemo, useRef } from 'react'
-import { Euler, Group, PlaneGeometry, Quaternion, Shape, ShapeGeometry, Vector3, type BufferGeometry } from 'three'
+// Things in the rooms: breaker panels, windows, instrument panel, sleepers, bags and rails.
+import { useEffect, useMemo } from 'react'
+import { PlaneGeometry, Shape, ShapeGeometry, type BufferGeometry } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
-import { eyePosition } from '../../engine/playerBody'
-import { getPlayerBody } from '../../engine/playerRuntime'
 import { buildFigure } from '../../procgen/figure'
 import { createRng } from '../../procgen/rng'
 import { tiledBoxAt } from '../../procgen/tiledBox'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { cbox, ccyl, mergeColored } from './geo'
-import {
-  BREAKER_POS,
-  cdrPos,
-  inTunnel,
-  LANDER_Z0,
-  mikePos,
-  PEN_POS,
-  rails,
-  RAIL_Y,
-  sleepEye,
-} from './layout'
-import { act2State } from './state'
+import { RepairProps } from './repairProps'
+import { cdrPos, inTunnel, LANDER_Z0, mikePos, rails, RAIL_Y, sleepEye } from './layout'
 
 const PROP_PRIORITY = 700
 
@@ -52,11 +40,6 @@ function breakerBank(): BufferGeometry {
   const rng = createRng(77)
   for (const y of rows) {
     for (const z of cols) {
-      if (Math.abs(y - BREAKER_POS.y) < 0.01 && Math.abs(z - BREAKER_POS.z) < 0.01) {
-        // The snapped one: a short stub.
-        parts.push(ccyl(0.02, 0.02, '#6a6558', -1.09, y, z, 'x', 6))
-        continue
-      }
       parts.push(ccyl(0.02, 0.05, rng() > 0.8 ? '#bdb7a6' : KNOB, -1.08, y, z, 'x', 6))
     }
   }
@@ -133,14 +116,6 @@ function railGeo(cmFar: number): BufferGeometry {
   return mergeColored(parts)
 }
 
-function penGeo(): BufferGeometry {
-  return mergeColored([
-    ccyl(0.011, 0.13, '#1f2a45', 0, 0, 0, 'y', 6),
-    ccyl(0.0125, 0.04, '#b3262a', 0, 0.085, 0, 'y', 6),
-    ccyl(0.004, 0.02, '#d8d3c3', 0, -0.075, 0, 'y', 4),
-  ])
-}
-
 export function Props({ cmFar }: { cmFar: number }) {
   const bank = useMemo(breakerBank, [])
   const stars = useMemo(() => [starsGeo(5), starsGeo(6)], [])
@@ -157,7 +132,6 @@ export function Props({ cmFar }: { cmFar: number }) {
   }, [cmFar])
   const mine = useMemo(() => emptyBag(sleepEye(cmFar).z), [cmFar])
   const railMesh = useMemo(() => railGeo(cmFar), [cmFar])
-  const pen = useMemo(penGeo, [])
 
   const mats = useMemo(
     () => ({
@@ -166,7 +140,6 @@ export function Props({ cmFar }: { cmFar: number }) {
       star: createMaterial({ kind: 'unlit', color: '#ffffff', snap: false }),
       frame: createMaterial({ color: '#8d9296' }),
       instrument: createMaterial({ textureName: 'instrumentPanel', textureSeed: 4 }),
-      lamp: createMaterial({ kind: 'unlit', color: '#58d36a', snap: false }),
     }),
     [],
   )
@@ -184,36 +157,12 @@ export function Props({ cmFar }: { cmFar: number }) {
     return { cdr, cmp, cy: c.y, my: m.y }
   }, [cmFar])
 
-  const penRef = useRef<Group>(null)
-  const lampRef = useRef<Group>(null)
-
   useEffect(() => {
-    const e = new Euler()
-    const q = new Quaternion()
-    const tilt = new Quaternion().setFromEuler(new Euler(-Math.PI / 2 + 0.5, 0, 0.2))
-    const v = new Vector3()
     return registerSystem('act2-props', PROP_PRIORITY, (_dt, t) => {
       figures.cdr.setPose('sleeping', t * 0.3)
       figures.cmp.setPose('sleeping', t * 0.3 + 2)
       figures.cdr.root.position.y = figures.cy + Math.sin(t * 0.7) * 0.04
       figures.cmp.root.position.y = figures.my + Math.sin(t * 0.7 + 2) * 0.04
-      const pg = penRef.current
-      if (pg) {
-        pg.visible = !act2State.breakerFixed
-        const body = getPlayerBody()
-        if (act2State.penHeld && body) {
-          const eye = eyePosition(body)
-          e.set(body.pitch, body.yaw, 0, 'YXZ')
-          q.setFromEuler(e)
-          v.set(0.14, -0.12, -0.34).applyQuaternion(q)
-          pg.position.set(eye.x + v.x, eye.y + v.y, eye.z + v.z)
-          pg.quaternion.copy(q).multiply(tilt)
-        } else {
-          pg.position.set(PEN_POS.x, PEN_POS.y + Math.sin(t * 1.3) * 0.04, PEN_POS.z)
-          pg.rotation.set(t * 0.8, t * 0.5, t * 0.3)
-        }
-      }
-      if (lampRef.current) lampRef.current.visible = act2State.breakerFixed
     })
   }, [figures])
 
@@ -226,9 +175,9 @@ export function Props({ cmFar }: { cmFar: number }) {
   )
   useEffect(
     () => () => {
-      ;[bank, ...stars, tri, triFrame, panel, bags, mine, railMesh, pen].forEach((g) => g.dispose())
+      ;[bank, ...stars, tri, triFrame, panel, bags, mine, railMesh].forEach((g) => g.dispose())
     },
-    [bank, stars, tri, triFrame, panel, bags, mine, railMesh, pen],
+    [bank, stars, tri, triFrame, panel, bags, mine, railMesh],
   )
   useEffect(
     () => () => {
@@ -245,6 +194,7 @@ export function Props({ cmFar }: { cmFar: number }) {
       <mesh geometry={bags} material={mats.vc} />
       <mesh geometry={mine} material={mats.vc} />
       <mesh geometry={railMesh} material={mats.vc} />
+      <RepairProps cmFar={cmFar} />
       {[-1, 1].map((s, i) => (
         <group key={s} position={[s * 0.62, 1.6, winZ]} rotation={[0, -s * 0.4, 0]}>
           <mesh geometry={triFrame} material={mats.frame} position={[0, 0, 0.0]} />
@@ -252,14 +202,6 @@ export function Props({ cmFar }: { cmFar: number }) {
           <mesh geometry={stars[i]} material={mats.star} position={[0, 0, 0.012]} />
         </group>
       ))}
-      <group ref={lampRef} position={[BREAKER_POS.x - 0.03, BREAKER_POS.y + 0.1, BREAKER_POS.z]} visible={false}>
-        <mesh material={mats.lamp}>
-          <boxGeometry args={[0.02, 0.04, 0.04]} />
-        </mesh>
-      </group>
-      <group ref={penRef}>
-        <mesh geometry={pen} material={mats.vc} />
-      </group>
       <primitive object={figures.cdr.root} />
       <primitive object={figures.cmp.root} />
     </>

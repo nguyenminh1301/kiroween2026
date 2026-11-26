@@ -14,6 +14,7 @@ export const HINTS: Record<string, HintDef> = {
   walk: { key: 'W A S D', text: 'Walk. Move the mouse to look around.' },
   use: { key: 'E', text: 'Press E to use what the dot is on.' },
   sleep: { key: 'C', text: 'Hold to close your eyes and sleep.' },
+  gauge: { key: 'A D', text: 'Turn the knob with A and D or the mouse wheel. Hold the needle in the green band.' },
   idle: { key: 'E', text: 'Still there? The paper at the top right says what to do next.' },
   jump: { key: 'SPACE', text: "Jump. Gravity here is a sixth of Earth's." },
 }

@@ -135,6 +135,32 @@ export function NoiseMeterBar() {
   )
 }
 
+/** The close-up cabin pressure gauge of act 2. Shows the needle, the green band and the knob. */
+export function GaugeDial() {
+  const g = useFx((s) => s.gauge)
+  if (!g) return null
+  const deg = (r: number): number => (r * 180) / Math.PI
+  const point = (r: number, rad: number): string =>
+    `${100 + Math.sin(rad) * r},${100 - Math.cos(rad) * r}`
+  const [a0, a1] = g.bandRad
+  const tip = point(70, g.needleRad).split(',')
+  return (
+    <div className="gauge-close" data-testid="gauge">
+      <svg viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label={HUD.gauge.title}>
+        <circle cx="100" cy="100" r="96" fill="#16181a" />
+        <circle cx="100" cy="100" r="88" fill="#e8e3d2" />
+        <path d={`M ${point(68, a0)} A 68 68 0 0 1 ${point(68, a1)}`} stroke="#2f9e44" strokeWidth="12" fill="none" />
+        <line x1="100" y1="100" x2={tip[0]} y2={tip[1]} stroke="#b3262a" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="100" cy="100" r="6" fill="#16181a" />
+        <text x="100" y="150" textAnchor="middle" fontSize="12" fill="#16181a">{HUD.gauge.title}</text>
+        <text x="100" y="168" textAnchor="middle" fontSize="14" fill="#16181a">{g.needle.toFixed(1)} {HUD.gauge.unit}</text>
+      </svg>
+      <div className="gauge-knob" style={{ transform: `rotate(${deg(g.knob * 4.7 - 2.35)}deg)` }} aria-hidden="true" />
+      <div className="gauge-hold"><div className={g.inBand ? 'on' : ''} style={{ width: `${g.held * 100}%` }} /></div>
+    </div>
+  )
+}
+
 export function FxLayer() {
   const edge = useFx((s) => s.edge)
   const flash = useFx((s) => s.flash)
@@ -165,6 +191,7 @@ export function FxLayer() {
             ),
           )
         : null}
+      <GaugeDial />
       {caption ? <div className="fx-caption">{caption}</div> : null}
       {dsky ? (
         <div className="fx-dsky" data-testid="dsky">

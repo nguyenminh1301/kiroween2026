@@ -1,124 +1,85 @@
-// The act 2 sleep: blackout, flashes, whispers, breathing and the fourth sleeper.
-// Driven by `tick(dt, closed)`. Pure: effects and randomness are injected, so a test can
-// run it on a fake clock. No Three.js or React imports.
-import type { Flash } from '../../engine/fx'
+// The act 2 bedtime: hold C, the view fades to black over two seconds, the hum drops, and in the dark there
+// is slow breathing. A careful listener counts four rhythms, not three. Eyes closed for 6 s in a row marks the
+// fourth sleeper. Nothing flashes and nothing stings.
+// Driven by `tick(dt, closed)`. Pure: effects are injected, so a test can run it on a fake clock.
+// No Three.js or React imports.
 
-export const BLACKOUT_SECONDS = 0.33
-export const FLASHES_LINE_AT = 1.5
-export const BREATH_LINE_AT = 4
-export const FIGURE_AT = 11
-export const COMPLETE_DELAY = 1.2
-export const FIGURE_SHOWN = 0.8
-export const MAX_FLASHES = 6
-
-export type WhisperId = 'act2.flashes' | 'act2.breath'
+export const FADE_SECONDS = 2
+export const OPEN_SECONDS = 0.6
+/** Continuous seconds with eyes closed that count as listening closely. */
+export const NOTICE_AT = 6
+/** Total seconds with eyes closed when the act ends. */
+export const COMPLETE_AT = 12
+/** Breath rhythm periods in seconds: the commander, the pilot, the player, and the one in the empty corner. */
+export const RHYTHMS = [3.6, 4.1, 4.7, 5.3] as const
+/** Blackout level at which the breathing can be heard. */
+export const BREATH_FROM = 0.4
 
 export interface SleepDeps {
-  rng(): number
-  whisper(id: WhisperId): void
   setBlackout(v: number): void
-  setFlashes(f: Flash[]): void
-  /** The `breathe` sound from the empty corner. */
-  breathe(): void
+  /** Cabin hum level, 1 awake, near 0 in the dark. */
+  setHum(level: number): void
+  /** One breath of rhythm `index` (0 to 3). Index 3 is the fourth sleeper. */
+  breathe(index: number): void
   fourthSleeper(): void
   complete(): void
 }
 
 export interface SleepTimer {
   tick(dt: number, closed: boolean): void
+  /** Total seconds with eyes closed. */
   closedTime(): number
+  /** Seconds in a row with eyes closed. */
+  streak(): number
   blackout(): number
-  flashCount(): number
   finished(): boolean
 }
 
 export function createSleepTimer(deps: SleepDeps): SleepTimer {
-  const range = (lo: number, hi: number): number => lo + deps.rng() * (hi - lo)
-  let closedTime = 0
+  let total = 0
+  let streak = 0
   let blackout = 0
-  let flashes: Flash[] = []
-  let flashLeft = range(0.4, 1.3)
-  let breathLeft = range(2.2, 3.2)
-  let saidFlashes = false
-  let saidBreath = false
-  let wasClosed = false
-  let figureAt: number | null = null
-  let completeLeft = 0
+  let noticed = false
   let completed = false
-
-  const push = (f: Flash): void => {
-    flashes = [...flashes, f].slice(-MAX_FLASHES)
-    deps.setFlashes(flashes)
-  }
-
+  // Stagger the first breaths so the four never line up.
+  const left = RHYTHMS.map((p, i) => p * (0.25 + 0.2 * i))
   return {
     tick(dt, closed) {
-      if (!(dt > 0)) return
-      const step = dt / BLACKOUT_SECONDS
+      if (!(dt > 0) || completed) return
+      const step = dt / (closed ? FADE_SECONDS : OPEN_SECONDS)
       const next = Math.min(1, Math.max(0, blackout + (closed ? step : -step)))
       if (next !== blackout) {
         blackout = next
         deps.setBlackout(blackout)
+        deps.setHum(1 - 0.9 * blackout)
       }
-
-      if (figureAt !== null) {
-        figureAt += dt
-        if (figureAt >= FIGURE_SHOWN) {
-          figureAt = null
-          flashes = flashes.filter((f) => !f.figure)
-          deps.setFlashes(flashes)
-        }
-      }
-      if (completeLeft > 0) {
-        completeLeft -= dt
-        if (completeLeft <= 0 && !completed) {
-          completed = true
-          deps.complete()
-        }
-      }
-
       if (!closed) {
-        if (wasClosed && flashes.length > 0 && figureAt === null) {
-          flashes = []
-          deps.setFlashes(flashes)
-        }
-        wasClosed = false
+        streak = 0
         return
       }
-      wasClosed = true
-      if (closedTime >= FIGURE_AT) return
-
-      closedTime += dt
-      if (!saidFlashes && closedTime >= FLASHES_LINE_AT) {
-        saidFlashes = true
-        deps.whisper('act2.flashes')
+      total += dt
+      streak += dt
+      if (blackout >= BREATH_FROM) {
+        for (let i = 0; i < RHYTHMS.length; i++) {
+          left[i] -= dt
+          if (left[i] <= 0) {
+            left[i] += RHYTHMS[i]
+            deps.breathe(i)
+          }
+        }
       }
-      if (!saidBreath && closedTime >= BREATH_LINE_AT) {
-        saidBreath = true
-        deps.whisper('act2.breath')
-      }
-
-      flashLeft -= dt
-      if (flashLeft <= 0) {
-        flashLeft += range(0.4, 1.3)
-        push({ x: range(0.08, 0.92), y: range(0.1, 0.9), size: range(0.03, 0.09) })
-      }
-      breathLeft -= dt
-      if (breathLeft <= 0) {
-        breathLeft += range(2.2, 3.2)
-        deps.breathe()
-      }
-
-      if (closedTime >= FIGURE_AT) {
-        push({ x: 0.5, y: 0.5, size: 4, figure: true })
-        figureAt = 0
+      if (!noticed && streak >= NOTICE_AT) {
+        noticed = true
         deps.fourthSleeper()
-        completeLeft = COMPLETE_DELAY
+      }
+      if (total >= COMPLETE_AT) {
+        completed = true
+        deps.complete()
       }
     },
-    closedTime: () => closedTime,
+    closedTime: () => total,
+    streak: () => streak,
     blackout: () => blackout,
-    flashCount: () => flashes.length,
     finished: () => completed,
   }
 }

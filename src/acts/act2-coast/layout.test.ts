@@ -4,7 +4,7 @@ import { resolveCapsule } from '../../engine/collision'
 import { cmFarFor, collisionBoxes, inTunnel, LANDER_Z1, rails, railZs } from './layout'
 
 describe('act 2 layout', () => {
-  it('grows the tunnel by 1.5 m when the breaker is fixed', () => {
+  it('grows the tunnel by 1.5 m when the tunnel grows', () => {
     expect(cmFarFor(false)).toBe(1.5)
     expect(cmFarFor(true)).toBe(3)
   })
@@ -22,7 +22,7 @@ describe('act 2 layout', () => {
     expect(inTunnel(-0.3, 1.5)).toBe(true)
   })
 
-  it('leaves a capsule on the tunnel centre free at every z, before and after the fix', () => {
+  it('leaves a capsule on the tunnel centre free at every z, before and after it grows', () => {
     fc.assert(
       fc.property(
         fc.constantFrom(1.5, 3),

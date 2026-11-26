@@ -1,59 +1,69 @@
 import { describe, expect, it } from 'vitest'
-import type { Flash } from '../../engine/fx'
-import { createSleepTimer } from './sleepTimer'
+import { COMPLETE_AT, createSleepTimer, FADE_SECONDS, NOTICE_AT, RHYTHMS } from './sleepTimer'
 
 function setup() {
   const log: string[] = []
-  let flashes: Flash[] = []
-  let seed = 1
-  const timer = createSleepTimer({
-    rng: () => ((seed = (seed * 16807) % 2147483647) / 2147483647),
-    whisper: (id) => log.push(id),
-    setBlackout: () => {},
-    setFlashes: (f) => (flashes = f),
-    breathe: () => log.push('breathe'),
+  const breaths = [0, 0, 0, 0]
+  let black = 0
+  let hum = 1
+  const t = createSleepTimer({
+    setBlackout: (v) => (black = v),
+    setHum: (v) => (hum = v),
+    breathe: (i) => {
+      breaths[i]++
+      log.push(`breath${i}`)
+    },
     fourthSleeper: () => log.push('fourth'),
     complete: () => log.push('complete'),
   })
-  const run = (seconds: number, closed: boolean): void => {
-    for (let i = 0; i < Math.round(seconds * 20); i++) timer.tick(0.05, closed)
+  const run = (seconds: number, closed: boolean) => {
+    for (let i = 0; i < Math.round(seconds * 20); i++) t.tick(0.05, closed)
   }
-  return { timer, log, run, flashes: () => flashes }
+  return { t, log, breaths, run, black: () => black, hum: () => hum }
 }
 
-describe('sleep timer', () => {
-  it('adds up closed time over several presses and plays each line once', () => {
+describe('act 2 bedtime', () => {
+  it('fades to black over two seconds and drops the hum', () => {
     const s = setup()
     s.run(1, true)
-    s.run(0.5, false)
-    s.run(0.9, true)
-    expect(s.timer.closedTime()).toBeCloseTo(1.9, 5)
-    expect(s.log.filter((l) => l === 'act2.flashes')).toHaveLength(1)
-    s.run(1, false)
-    s.run(2.2, true)
-    s.run(1, true)
-    expect(s.log.filter((l) => l === 'act2.flashes')).toHaveLength(1)
-    expect(s.log.filter((l) => l === 'act2.breath')).toHaveLength(1)
-    expect(s.log.filter((l) => l === 'breathe').length).toBeGreaterThan(0)
-    expect(s.flashes().length).toBeLessThanOrEqual(6)
+    expect(s.black()).toBeCloseTo(1 / FADE_SECONDS, 1)
+    s.run(1.1, true)
+    expect(s.black()).toBe(1)
+    expect(s.hum()).toBeLessThan(0.2)
   })
 
-  it('completes after 11 s of closed time and not before', () => {
+  it('brings the view back when the eyes open', () => {
     const s = setup()
-    s.run(5, true)
-    s.run(3, false)
-    s.run(5.9, true)
-    expect(s.timer.closedTime()).toBeCloseTo(10.9, 5)
+    s.run(2.5, true)
+    s.run(1, false)
+    expect(s.black()).toBe(0)
+    expect(s.hum()).toBe(1)
+  })
+
+  it('plays four breathing rhythms at four different rates, and no flashes or stings', () => {
+    const s = setup()
+    s.run(11, true)
+    expect(s.breaths.every((n) => n > 0)).toBe(true)
+    expect(new Set(RHYTHMS).size).toBe(4)
+    expect(s.breaths[0]).toBeGreaterThan(s.breaths[3])
+    expect(s.log.some((l) => /flash|sting/.test(l))).toBe(false)
+  })
+
+  it('marks the fourth sleeper after six seconds in a row, not before, and not with short blinks', () => {
+    const s = setup()
+    s.run(NOTICE_AT - 0.5, true)
     expect(s.log).not.toContain('fourth')
-    expect(s.log).not.toContain('complete')
-    s.run(0.2, true)
-    expect(s.log).toContain('fourth')
-    expect(s.flashes().some((f) => f.figure)).toBe(true)
-    expect(s.log).not.toContain('complete')
-    s.run(1.0, true)
-    expect(s.log).not.toContain('complete')
-    s.run(0.3, true)
-    expect(s.log.filter((l) => l === 'complete')).toHaveLength(1)
-    expect(s.log.filter((l) => l === 'fourth')).toHaveLength(1)
+    s.run(0.1, false)
+    s.run(NOTICE_AT - 0.5, true)
+    expect(s.log).not.toContain('fourth')
+    s.run(1, true)
+    expect(s.log.filter((l) => l === 'fourth').length).toBe(1)
+  })
+
+  it('completes once, after the total closed time', () => {
+    const s = setup()
+    s.run(COMPLETE_AT + 1, true)
+    expect(s.log.filter((l) => l === 'complete').length).toBe(1)
+    expect(s.t.finished()).toBe(true)
   })
 })
