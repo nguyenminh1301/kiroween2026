@@ -14,20 +14,20 @@ export interface CheckpointDef {
 }
 
 export const CHECKPOINT_DEFS: Record<Checkpoint, CheckpointDef> = {
-  start: { pos: { x: 0, y: 0.2, z: 2.5 }, yaw: 0, patrolS: 0 },
+  start: { pos: { x: -0.7, y: 0.2, z: 6.6 }, yaw: 0, patrolS: 0 },
   wp0: { pos: { x: 0, y: 0.2, z: -4.2 }, yaw: 0, patrolS: 0 },
-  wp1: { pos: { x: 0, y: 0.2, z: -12 }, yaw: 0, patrolS: 6 },
-  wp2: { pos: { x: 0, y: 0.2, z: -31.5 }, yaw: 0, patrolS: 20 },
-  wp3: { pos: { x: 0, y: 0.2, z: -38.5 }, yaw: Math.PI, patrolS: 0 },
+  wp1: { pos: { x: 0, y: 0.2, z: -37.6 }, yaw: 0, patrolS: 6 },
+  wp2: { pos: { x: -0.4, y: 0.2, z: 5.9 }, yaw: Math.PI / 2, patrolS: 20 },
+  wp3: { pos: { x: 0, y: 0.2, z: -37.6 }, yaw: 0, patrolS: 0 },
 }
 
-/** Passing these z values (going to -z) sets the checkpoint. */
+/** Going to -z, passing this z sets the checkpoint. wp2 and wp3 are set by events, not by position. */
 export const CHECKPOINT_Z: ReadonlyArray<[number, Checkpoint]> = [
   [-5, 'wp0'],
-  [-12, 'wp1'],
-  [-31.5, 'wp2'],
-  [-38, 'wp3'],
+  [-37, 'wp1'],
 ]
+/** Past this z (going to -z) Buzz is at the cage. */
+export const CAGE_ARRIVE_Z = -37
 
 export const Z_HATCH_END = 4
 export const Z_FAR_END = -44
@@ -35,12 +35,46 @@ export const HALF_W = 1.2
 export const HEIGHT = 2.4
 export const CHAMFER = 0.5
 
-export const HATCH_POS: Vec3 = { x: 0, y: 1.3, z: 3.9 }
-export const CDR_POS: Vec3 = { x: 0.55, y: 0.3, z: 3.3 }
-export const MIKE_POS: Vec3 = { x: 0.85, y: 0, z: -41.5 }
-/** Where Mike's voice comes from. */
-export const MIKE_HEAD: Vec3 = { x: 0.85, y: 0.9, z: -41.5 }
-export const REVEAL_CREATURE_Z = -43.4
+/** The doorway between the cabin and the corridor, at the old hatch end. */
+export const DOORWAY = { halfW: 0.5, h: 1.9 }
+
+/** The cabin behind the corridor start: the command module room. */
+export const CABIN = { z0: Z_HATCH_END, z1: 7.5, halfW: 1.4, h: 2.4 }
+export interface BagDef {
+  id: 'buzz' | 'cdr' | 'cmp'
+  x: number
+  z: number
+}
+export const BAGS: Record<BagDef['id'], BagDef> = {
+  buzz: { id: 'buzz', x: -1.25, z: 6.75 },
+  cdr: { id: 'cdr', x: -1.25, z: 5.2 },
+  cmp: { id: 'cmp', x: 1.25, z: 6.2 },
+}
+/** Eye position and yaw lying in Buzz's bag. */
+export const SLEEP_EYE: Vec3 = { x: -1.15, y: 1.75, z: BAGS.buzz.z }
+export const SLEEP_YAW = -Math.PI / 2
+/** Where the player stands up from the bag, feet. */
+export const BAG_STAND: Vec3 = { x: -0.7, y: 0.2, z: BAGS.buzz.z - 0.15 }
+export const BAG_RADIUS = 0.55
+export const bagUsePos = (id: 'cdr' | 'cmp'): Vec3 => ({ x: BAGS[id].x - Math.sign(BAGS[id].x) * 0.05, y: 1.0, z: BAGS[id].z })
+export const BUNK_LIGHT: Vec3 = { x: 0, y: 2.3, z: 5.8 }
+
+/** The cage at the far end: bars across z = CAGE.z, a door in the middle, the room behind. */
+export const CAGE = { z: -41.3, backZ: Z_FAR_END, doorHalf: 0.35, thick: 0.1 }
+export const CAGE_DOOR_POS: Vec3 = { x: 0, y: 1.2, z: CAGE.z }
+export const CAGE_DOOR_RADIUS = 0.55
+/** Neil on the left, Mike on the right, strapped to the back wall, facing the door. */
+export const CAGED: Record<'cdr' | 'cmp', Vec3> = {
+  cdr: { x: -0.65, y: 0, z: -43.55 },
+  cmp: { x: 0.65, y: 0, z: -43.55 },
+}
+/** Where the second crewman sits, back to the creature's corner. */
+export const SEAT_POS: Vec3 = { x: 0, y: 0, z: -42.8 }
+/** Where the creature crouches behind the seated crewman. */
+export const AMBUSH_POS: Vec3 = { x: 0, y: 0, z: -43.55 }
+export const CREW_RADIUS = 0.55
+/** Voice position of a caged crewman. */
+export const cagedVoice = (who: 'cdr' | 'cmp'): Vec3 => ({ ...CAGED[who], y: 1.2 })
 
 export interface Opening {
   z0: number
@@ -77,13 +111,15 @@ export const LOCKERS: LockerDef[] = [
 ].map((l, i) => ({
   id: `act3:locker${i}`,
   center: { x: l.cx, y: LOCKER_H / 2, z: l.z },
-  inside: { x: l.cx - 0.25, y: 0.2, z: l.z },
+  inside: { x: l.cx + 0.25, y: 0.2, z: l.z },
   exit: { x: -0.6, y: 0.2, z: l.z },
   doorPos: { x: -1.28, y: 1.2, z: l.z },
 }))
 export const LOCKER_RADIUS = 0.55
 export const LOCKER_YAW = -Math.PI / 2
 export const LOCKER_EXIT_DELAY = 0.4
+/** Look limit inside a locker: about 30 degrees. */
+export const LOCKER_LOOK_LIMIT = (30 * Math.PI) / 180
 
 export const RAIL_X = 1.1
 export const RAIL_Y = 1.6
@@ -127,22 +163,38 @@ function split(lo: number, hi: number, gaps: Opening[], make: (z0: number, z1: n
   return out
 }
 
-/** Collision: floor, ceiling, walls with gaps, bay walls, lockers, side room. */
+/** The cage door as a collision slab. Removed when the cage opens. */
+export const cageDoorBox = (): Box => box(-CAGE.doorHalf, CAGE.doorHalf, 0, HEIGHT, CAGE.z - CAGE.thick / 2, CAGE.z + CAGE.thick / 2)
+
+/** Collision: floor, ceiling, walls with gaps, bay walls, lockers, side room, cabin, bags, cage bars. */
 export function collisionBoxes(): Box[] {
   const zLo = Z_FAR_END - 0.5
-  const zHi = Z_HATCH_END + 0.5
+  const zHi = CABIN.z1 + 0.5
   const W = HALF_W
+  const C = CABIN.halfW
   const boxes: Box[] = [
     box(-6, 6, -0.5, 0, zLo, zHi), // floor
     box(-6, 6, HEIGHT, HEIGHT + 0.5, zLo, zHi), // ceiling
-    box(-W, W, 0, HEIGHT, Z_HATCH_END, zHi), // hatch end
     box(-W, W, 0, HEIGHT, zLo, Z_FAR_END), // far end
+    // Doorway wall between the corridor and the cabin.
+    box(-C, -DOORWAY.halfW, 0, HEIGHT, Z_HATCH_END, Z_HATCH_END + 0.2),
+    box(DOORWAY.halfW, C, 0, HEIGHT, Z_HATCH_END, Z_HATCH_END + 0.2),
+    box(-DOORWAY.halfW, DOORWAY.halfW, DOORWAY.h, HEIGHT, Z_HATCH_END, Z_HATCH_END + 0.2),
+    // Cabin walls.
+    box(-C - 0.5, -C, 0, HEIGHT, Z_HATCH_END, zHi),
+    box(C, C + 0.5, 0, HEIGHT, Z_HATCH_END, zHi),
+    box(-C, C, 0, HEIGHT, CABIN.z1, zHi),
   ]
+  // Sleeping bags.
+  for (const b of Object.values(BAGS)) {
+    const side = Math.sign(b.x)
+    boxes.push(box(side > 0 ? b.x - 0.3 : b.x - 0.1, side > 0 ? b.x + 0.1 : b.x + 0.3, 0, 1.6, b.z - 0.33, b.z + 0.33))
+  }
   // Left wall, solid except the bays. Each bay has a back wall.
-  boxes.push(...split(zLo, zHi, BAYS, (a, b) => box(-3, -W, 0, HEIGHT, a, b)))
+  boxes.push(...split(zLo, Z_HATCH_END, BAYS, (a, b) => box(-3, -W, 0, HEIGHT, a, b)))
   for (const b of BAYS) boxes.push(box(-3, -BAY_DEPTH, 0, HEIGHT, b.z0, b.z1))
   // Right wall: thin, split by the doorways inside the room span, solid outside it.
-  boxes.push(...split(zLo, zHi, DOORS, (a, b) => box(W, ROOM.x0, 0, HEIGHT, a, b)))
+  boxes.push(...split(zLo, Z_HATCH_END, DOORS, (a, b) => box(W, ROOM.x0, 0, HEIGHT, a, b)))
   // Side room shell.
   boxes.push(box(ROOM.x0, ROOM.x1 + 0.5, 0, HEIGHT, ROOM.z0 - 0.5, ROOM.z0))
   boxes.push(box(ROOM.x0, ROOM.x1 + 0.5, 0, HEIGHT, ROOM.z1, ROOM.z1 + 0.5))
@@ -151,6 +203,10 @@ export function collisionBoxes(): Box[] {
   for (const l of LOCKERS) {
     boxes.push(box(l.center.x - LOCKER_W / 2, l.center.x + LOCKER_W / 2, 0, LOCKER_H, l.center.z - LOCKER_D / 2, l.center.z + LOCKER_D / 2))
   }
+  // Cage bars: two fixed slabs and the door.
+  boxes.push(box(-W, -CAGE.doorHalf, 0, HEIGHT, CAGE.z - CAGE.thick / 2, CAGE.z + CAGE.thick / 2))
+  boxes.push(box(CAGE.doorHalf, W, 0, HEIGHT, CAGE.z - CAGE.thick / 2, CAGE.z + CAGE.thick / 2))
+  boxes.push(cageDoorBox())
   return boxes
 }
 

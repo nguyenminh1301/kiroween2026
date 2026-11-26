@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveCapsule } from '../../engine/collision'
-import { BAYS, checkpointAt, collisionBoxes, detectBump, DOORS, LOCKERS, rails } from './layout'
+import { BAYS, CAGE, cageDoorBox, checkpointAt, collisionBoxes, detectBump, DOORS, LOCKERS, rails } from './layout'
 
 describe('act 3 layout', () => {
   it('puts rails every 1.5 m and keeps 0.6 m clear of openings', () => {
@@ -27,13 +27,30 @@ describe('act 3 layout', () => {
     expect(free.vel.z).toBe(-1)
   })
 
-  it('maps z to the furthest checkpoint passed and detects bumps', () => {
+  it('maps z to the checkpoint passed outbound and detects bumps', () => {
     expect(checkpointAt(-3)).toBeNull()
     expect(checkpointAt(-6)).toBe('wp0')
-    expect(checkpointAt(-13)).toBe('wp1')
-    expect(checkpointAt(-32)).toBe('wp2')
-    expect(checkpointAt(-39)).toBe('wp3')
+    expect(checkpointAt(-38)).toBe('wp1')
     expect(detectBump({ x: 0, y: 0, z: -1 }, { x: 0, y: 0, z: 0 })).toBe(true)
     expect(detectBump({ x: 0, y: 0, z: -1 }, { x: 0, y: 0, z: -0.9 })).toBe(false)
+  })
+
+  it('walks from the cabin through the doorway, stops at the cage door and the bars', () => {
+    const boxes = collisionBoxes()
+    const through = resolveCapsule({ x: 0, y: 0.2, z: 4.6 }, { x: 0, y: 0, z: -1 }, boxes)
+    expect(through.vel.z).toBe(-1)
+    const wall = resolveCapsule({ x: 0.9, y: 0.2, z: 4.6 }, { x: 0, y: 0, z: -2 }, boxes)
+    expect(wall.pos.z).toBeGreaterThanOrEqual(4.2)
+    const bars = resolveCapsule({ x: 0.8, y: 0.2, z: CAGE.z + 0.5 }, { x: 0, y: 0, z: -2 }, boxes)
+    expect(bars.pos.z).toBeGreaterThan(CAGE.z)
+    const door = resolveCapsule({ x: 0, y: 0.2, z: CAGE.z + 0.5 }, { x: 0, y: 0, z: -2 }, boxes)
+    expect(door.pos.z).toBeGreaterThan(CAGE.z)
+    const open = collisionBoxes().filter((b) => JSON.stringify(b) !== JSON.stringify(cageDoorBox()))
+    const free = resolveCapsule({ x: 0, y: 0.2, z: CAGE.z + 0.5 }, { x: 0, y: 0, z: -2 }, open)
+    expect(free.vel.z).toBe(-2)
+  })
+
+  it('puts the locker eye 0.25 m behind the door face', () => {
+    for (const l of LOCKERS) expect(l.center.x + 0.5 - l.inside.x).toBeCloseTo(0.25)
   })
 })
