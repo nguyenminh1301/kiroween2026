@@ -55,11 +55,12 @@ try {
       const dz = it.position.z - b.pos.z
       window.__los.player.set({ yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(dy, Math.hypot(dx, dz)) })
     }, id)
-  const useAt = async (id) => {
+  const useAt = async (id, verb = 'GRAB') => {
     await unfocused()
     await wait((id) => window.__los.interactables().find((i) => i.id === id)?.enabled, id, 30000)
     await aim(id)
-    await wait(() => window.__los.store.getState().target?.verb === 'GRAB', null, 30000)
+    await wait(([v, id]) => window.__los.store.getState().target?.verb === v || !window.__los.interactables().find((i) => i.id === id)?.enabled, [verb, id], 30000)
+    if (!(await page.evaluate((id) => window.__los.interactables().find((i) => i.id === id)?.enabled, id))) return
     await page.keyboard.press('KeyE')
   }
   /** Teleport to 4 m short of the point, then walk the rest with real W presses. */
@@ -99,8 +100,26 @@ try {
   await shot('act4-descent-20s')
   check((await info()).landerY < 2, 'lander nearly down at 20 s')
 
-  // 2. The surface.
+  // 2. The ladder down: crawl out, nine rungs, a drop, a step off. Mouse look still works.
+  await wait(() => window.__los.act4.phase === 'exit', null, 60000)
+  check(await page.evaluate(() => window.__los.player.body.mode === 'seated'), 'seated while climbing down')
+  await wait(() => window.__los.act4.time >= 2.6, null, 60000)
+  const porchY = (await pos()).y
+  await page.evaluate(() => window.__los.player.set({ yaw: 0.5 }))
+  await page.waitForTimeout(250)
+  check(await page.evaluate(() => Math.abs(window.__los.player.body.yaw - 0.5) < 0.2), 'mouse look works on the ladder')
+  await shot('act4-climb-porch')
+  await wait(() => window.__los.act4.time >= 4.4, null, 60000)
+  await shot('act4-climb-rungs')
+  const rungY = (await pos()).y
+  check(porchY > 1.8 && rungY < porchY - 0.5, `climbing down: porch ${porchY.toFixed(2)}, rung ${rungY.toFixed(2)}`)
+  await wait(() => window.__los.act4.time >= 6.4, null, 60000)
+  await shot('act4-climb-drop')
+  check((await pos()).y < rungY, 'dropping')
+
+  // 3. The surface.
   await objective('Surface tasks, any order', 120000)
+  check(await page.evaluate(() => window.__los.player.body.pos.z > 4.5), 'stepped off onto the dust beyond the footpad')
   check((await info()).phase === 'eva', 'eva phase')
   check(await page.evaluate(() => window.__los.store.getState().checkpoint === 'tasks'), 'tasks checkpoint')
   check(await page.evaluate(() => window.__los.player.body.mode === 'walk'), 'walking on the surface')
@@ -108,7 +127,7 @@ try {
   await shot('act4-surface')
   await budget('surface')
 
-  // 3. Sample, flag, seismometer, in that order, with real key presses.
+  // 4. Sample, flag, photo, seismometer, in that order, with real key presses.
   await teleport(-0.75, 3.4)
   await useAt('act4:scoop')
   await wait(() => window.__los.act4.carrying === 'scoop', null, 30000)
@@ -130,55 +149,73 @@ try {
   await page.evaluate(() => window.__los.player.set({ pitch: -0.2 }))
   await shot('act4-flag')
 
+  // 5. The photo: walk to the mark, press E, a flash and the print, then close it with E.
+  await objective('Stand by the flag for the photo', 5000)
+  await walkTo(0.2, 9.4, 1.0)
+  await useAt('act4:photo', 'POSE')
+  await page.waitForFunction(() => !!document.querySelector('[data-testid=photo]'), null, { timeout: 30000, polling: 100 })
+  await page.waitForTimeout(900)
+  await shot('act4-photo')
+  check(await page.evaluate(() => document.querySelector('[data-testid=photo] figcaption')?.textContent?.includes('AS11-40-5875')), 'photo caption names the frame')
+  check(await page.evaluate(() => document.querySelector('[data-testid=photo] img')?.complete && document.querySelector('[data-testid=photo] img').naturalWidth > 100), 'photo loaded')
+  await page.keyboard.press('KeyE')
+  await page.waitForFunction(() => !document.querySelector('[data-testid=photo]'), null, { timeout: 5000, polling: 100 })
+  check(true, 'E closes the photo')
+
   await teleport(-1.35, 3.3)
   await useAt('act4:seismokit')
   await wait(() => window.__los.act4.carrying === 'seismo', null, 30000)
   await walkTo(-8, -5)
   await useAt('act4:seismo')
 
-  // 4. The creature comes up and the run objective shows.
-  await wait(() => window.__los.act4.phase === 'emerge', null, 60000)
-  await objective('Run to the ladder', 5000)
+  // 6. Back to the ladder.
+  await wait(() => window.__los.act4.phase === 'return', null, 60000)
+  await objective('Go back to the ladder', 5000)
   check(await page.evaluate(() => window.__los.store.getState().checkpoint === 'run'), 'run checkpoint')
-  check(await page.evaluate(() => window.__los.store.getState().tension === 'CHASE'), 'tension CHASE')
-  await wait(() => window.__los.act4.creature?.phase === 'rim', null, 30000)
-  await shot('act4-emerge')
+  await shot('act4-return')
 
-  // 5. Jump once, then run to the ladder.
-  await unfocused()
-  await page.keyboard.press('Space')
-  await wait(() => window.__los.player.body.pos.y > 0.05, null, 30000)
-  check(true, 'left the ground')
-  await teleport(-3.5, 7.5)
-  await walkTo(0, 5.5, 0.9)
-  await wait(() => window.__los.act4.phase === 'emerge', null, 30000)
-  await useAt('act4:ladder')
-  await wait(() => window.__los.act4.phase === 'climb' || window.__los.act4.phase === 'liftoff', null, 30000)
+  // 7. The soft limit: walking straight out stops short of 80 m.
+  await teleport(0, 76, 0)
+  await page.evaluate(() => window.__los.player.set({ yaw: Math.PI, pitch: 0 }))
+  await page.keyboard.down('KeyW')
+  await page.waitForTimeout(3500)
+  await page.keyboard.up('KeyW')
+  const far = await pos()
+  check(Math.hypot(far.x, far.z) <= 80.2, `soft limit holds at ${Math.hypot(far.x, far.z).toFixed(1)} m`)
+  await shot('act4-far')
 
-  // 6. Liftoff.
-  await wait(() => window.__los.act4.phase === 'liftoff' && window.__los.act4.time >= 1.1, null, 30000)
-  await shot('act4-leap')
-  await wait(() => window.__los.act4.time >= 3.2, null, 60000)
-  await shot('act4-climb')
+  // 8. Climb up: faster, then liftoff.
+  await teleport(0, 5.2, 0)
+  await useAt('act4:ladder', 'CLIMB')
+  await wait(() => window.__los.act4.phase === 'climb', null, 30000)
+  await wait(() => window.__los.act4.time >= 1.2, null, 30000)
+  await shot('act4-climb-up')
+  await wait(() => window.__los.act4.phase === 'liftoff' && window.__los.act4.time >= 0.5, null, 30000)
+  await shot('act4-liftoff-start')
+  await wait(() => window.__los.act4.time >= 2.4, null, 60000)
+  check(await page.evaluate(() => document.querySelector('[data-testid=readout]')?.textContent?.includes('LUMINARY 099')), 'AGC readout panel shows')
+  await shot('act4-readout')
+  await wait(() => window.__los.act4.time >= 4.4, null, 60000)
+  check(await page.evaluate(() => document.querySelector('[data-testid=readout]')?.textContent?.includes('BURN_BABY_BURN--MASTER_IGNITION_ROUTINE')), 'routine name typed in the panel')
   check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('burn-baby-burn')), 'burn-baby-burn noticed')
   await budget('liftoff')
+  await wait(() => window.__los.act4.time >= 5.9, null, 60000)
+  check(await page.evaluate(() => !document.querySelector('[data-testid=readout]')), 'readout gone after 4 s')
+  await shot('act4-liftoff-5s')
   await wait(() => window.__los.act4.time >= 9.5, null, 60000)
   await shot('act4-liftoff')
   await wait(() => window.__los.loader.state.getState().act === 'act5-home' || window.__los.loader.state.getState().status === 'loading', null, 120000)
   check(true, 'act 5 loading')
 
-  // 7. Caught at run: stand still.
+  // 9. The run checkpoint: back at the ladder, all tasks done.
   await load('run')
-  await wait(() => window.__los.act4.phase === 'emerge', null, 30000)
+  await wait(() => window.__los.act4.phase === 'return', null, 30000)
   check(await page.evaluate(() => window.__los.store.getState().checkpoint === 'run'), 'run checkpoint at load')
-  await page.waitForFunction(() => !!document.querySelector('[data-testid=caught]'), null, { timeout: 90000, polling: 100 })
-  await page.waitForTimeout(300)
-  await shot('act4-caught')
-  await wait(() => !document.querySelector('[data-testid=caught]') && window.__los.act4?.creature?.phase === 'rising', null, 30000)
-  check(await page.evaluate(() => window.__los.store.getState().checkpoint === 'run'), 'restarted at run')
   const p = await pos()
-  check(Math.hypot(p.x + 8, p.z + 5) < 1.5, 'back at the seismometer site')
+  check(Math.hypot(p.x, p.z - 5.2) < 1, 'run checkpoint is on the dust by the ladder')
+  check(await page.evaluate(() => !window.__los.interactables().some((i) => i.id.includes('creature'))), 'no creature')
 } catch (e) {
+  try { errors.push('state: ' + JSON.stringify(await browser.contexts()[0].pages()[0].evaluate(() => ({ a: window.__los.act4, i: window.__los.interactables().map((i) => [i.id, i.enabled]) })))) } catch { /* no page */ }
   errors.push(`script: ${e.message.split('\n')[0]} at ${(e.stack.match(/act4.mjs:(\d+)/g) ?? []).join(' ')}`)
   try {
     await browser.contexts()[0]?.pages()[0]?.screenshot({ path: join(shotDir, 'act4-fail.png') })

@@ -4,7 +4,7 @@ This file describes how Kiro built LOSS OF SIGNAL. It sticks to what the repo sh
 
 ## Who wrote what
 
-Kiro wrote all of the code in `src/`, `scripts/` and `e2e/`. The work was planned in phases outside Kiro, and one prompt per phase was written from that plan. For phases 1 to 5 the prompt was pasted into the Kiro IDE. From phase 6 on, it was passed to Kiro CLI.
+Kiro wrote all of the code in `src/`, `scripts/` and `e2e/`. The work was planned in phases outside Kiro, and one prompt per phase was written from that plan. For phases 1 to 5 the prompt was pasted into the Kiro IDE. From phase 6 on, it was passed to Kiro CLI in non-interactive mode.
 
 ## Steering (`.kiro/steering/`)
 
@@ -56,9 +56,19 @@ The `play-fixes` and `look-fixes` spec folders are not in the repo, so their tas
 
 Phases 1 to 5 ran in the Kiro IDE in Spec mode. The author approved the requirements, design and tasks of each spec in the IDE before Kiro carried out the tasks. The steering files were written, and one task was run, in Vibe mode.
 
-From phase 6 on, Kiro CLI ran headless. It used a custom agent with no sub-agent tool and with all other tools trusted. In this mode Kiro wrote the spec, committed it and carried out every task without an approval step.
+From phase 6 on, Kiro CLI ran in non-interactive mode. It used a custom agent with no sub-agent tool and with all other tools trusted. In this mode Kiro wrote the spec, committed it and carried out every task without an approval step.
 
 Each phase was reviewed in a fresh clone. The review ran the tests, lint, build, budget check, copy check and the e2e chain, and compared the e2e screenshots with the reference shots in `docs/reference/shots/`. Fixes went back to Kiro as new prompts.
+
+## The last round: three prompts from the player's notes
+
+After the first full build, a player played the whole game and sent notes. Three prompts answered them, each run by Kiro CLI in non-interactive mode, one task at a time in one chat.
+
+1. **Acts 0 to 2.** Repairs in act 2 (an oxygen line fixed with a hammer and a tap, cabin pressure with a dial, the computer, then the snapped breaker), and fixes found in play.
+2. **Act 3 became a nightmare.** The far side is now Buzz's dream, played as real until he wakes in the cabin with the crew turned toward him, and picks one of two answers. The Archive records the answer.
+3. **Acts 4 and 5.** Act 4 lost its creature: the horror ended with the dream, so the Moon is calm. New in act 4: a first-person ladder climb (down in 8 s, up in 5 s), the flag photo (Neil takes the real NASA picture AS11-40-5875, shown as a framed print and credited in `CREDITS.md` and the Archive), a Moon that reaches the horizon (a 200 m detailed area, rings out to 2.5 km that fall off with the Moon's curve, and an 80 m soft walking limit), and a rebuilt lander (engine bells, dish footpads and probes, an ascent stage that lifts off on its own flame while the descent stage stays as the pad, and a green AGC readout for `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE`). Act 5 now ends re-entry inside the air (no stars after the burn, deep to light blue sky, a cloud layer), with a full parachute sequence, a sharper USS Hornet, three escorts, a raft with swimmers and a Sea King 66 whose downwash ruffles the sea.
+
+The caption of the photo uses the real astronaut's name because it quotes a NASA credit line. Game text and dialogue keep the changed crew names.
 
 ## What went wrong and how it was fixed
 

@@ -23,10 +23,10 @@ Play with headphones. Much of the game is told through sound and the radio.
 
 1. **Pad 39A.** Dawn on the swing arm. Wave to the crowd, then walk to the White Room and board.
 2. **Launch.** Strapped in for the countdown, liftoff and staging, then the burn that leaves Earth orbit.
-3. **Coast.** Zero gravity on the way to the Moon. Fix a fault in the lander, then try to sleep.
-4. **Far side.** Lunar orbit, behind the Moon.
-5. **Tranquility.** The landing and the surface.
-6. **Splashdown.** The trip home.
+3. **Coast.** Zero gravity on the way to the Moon. Repair the cabin and the lander (oxygen line, pressure, computer, the snapped breaker knob), then try to sleep.
+4. **Far side.** A nightmare Buzz wakes up from. He walks a rust-red corridor by flashlight to find Neil and Mike while something hunts by sound, carries them back one at a time, and wakes in the real cabin to pick one of two answers.
+5. **Tranquility.** The landing, then a calm Moon: climb down the ladder, plant the flag (Neil takes your picture, shown as the real NASA photo AS11-40-5875), take a soil sample, set up the seismometer, climb back up and lift off. Only the radio and your breathing.
+6. **Splashdown.** Re-entry, blackout, drogue and main parachutes, the Pacific, the USS Hornet and Sea King 66.
 
 After the last chapter, the Archive screen lists the details you noticed and the ones you missed.
 
@@ -38,12 +38,14 @@ The crew names are changed. The flight details below come from the real mission.
 - A broken circuit breaker knob in the lunar module, pushed in with a felt-tip pen.
 - Light flashes the crew saw with their eyes closed, later linked to cosmic rays.
 - Loss of signal behind the Moon: no radio contact with Earth for about 45 minutes on each orbit.
+- The Apollo 11 seismometer recording the crew's footsteps, and the flag knocked over by the ascent engine blast.
 - The ascent engine firing down onto the descent stage, which served as the launch pad.
 - The Apollo Guidance Computer routine `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE`.
 - Recovery by the USS Hornet and the Sea King helicopter with the number 66.
 
 Sources shown on the Archive screen:
 
+- NASA photo AS11-40-5875 (public domain): https://www.hq.nasa.gov/alsj/a11/images11.html
 - NASA Apollo 11 Flight Journal: https://www.nasa.gov/history/afj/ap11fj/index.html
 - Flight Journal, launch day: https://www.nasa.gov/history/afj/ap11fj/01launch.html
 - NASA technical report on the light flashes: https://ntrs.nasa.gov/citations/19740020361

@@ -446,6 +446,7 @@ export function startAct4(requested: string): void {
       }
       if (phase === 'exit') {
         climbT += dt
+        clock = climbT
         const fr = climbDownAt(climbT)
         applyClimb(fr)
         if (climbT >= DOWN_SECONDS) {
@@ -454,6 +455,7 @@ export function startAct4(requested: string): void {
         }
       } else if (phase === 'climb') {
         climbT += dt
+        clock = climbT
         const fr = climbUpAt(climbT, climbFrom ?? undefined)
         applyClimb(fr)
         if (climbT >= UP_SECONDS) {
