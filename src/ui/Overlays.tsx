@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { HUD } from '../content/hud'
 import { VERB_LABELS } from '../content/verbs'
 import { MENUS } from '../content/menus'
@@ -67,7 +67,7 @@ export function Dialogue() {
   if (!line) cls.push('narrator')
   if (sub.mood === 'shout') cls.push('shout')
   return (
-    <div className={cls.join(' ')} style={{ fontSize: 20 * scale }} data-testid="subtitle">
+    <div className={cls.join(' ')} style={{ '--sub-scale': scale } as CSSProperties} data-testid="subtitle">
       {line ? (
         <div className="dlg-name" style={sub.speaker === 'UNKNOWN' ? { color: '#ff6a55' } : undefined}>
           {line.name}

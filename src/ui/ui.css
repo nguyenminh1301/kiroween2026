@@ -329,9 +329,12 @@
   bottom: 8%;
   transform: translateX(-50%);
   z-index: 30;
-  width: min(900px, 92vw);
+  width: min(900px, 90vw);
   box-sizing: border-box;
   text-align: center;
+  /* Scales down on narrow windows so three lines hold the longest line (90 characters). */
+  font-size: calc(clamp(11px, 4.4vw, 20px) * var(--sub-scale, 1));
+  overflow-wrap: anywhere;
   font-family: var(--serif-type);
   color: #fff;
   line-height: 1.35;
@@ -339,6 +342,11 @@
 }
 .dialogue .dlg-text {
   font-weight: 700;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 .dialogue.shout .dlg-text {
   text-transform: uppercase;
@@ -369,7 +377,7 @@
   top: 18px;
   right: 18px;
   z-index: 20;
-  max-width: min(520px, 46vw);
+  max-width: min(520px, 90vw);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -391,7 +399,7 @@
   padding: 10px 14px;
   transform: rotate(-0.6deg);
   font-family: var(--type);
-  font-size: 21px;
+  font-size: clamp(12px, 3.8vw, 21px);
   line-height: 1.2;
   animation: drop-in 0.5s ease-out;
 }
@@ -403,6 +411,13 @@
 }
 .objective .obj-text {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 .stamp-key {
   flex: none;
@@ -417,7 +432,8 @@
 .hint-slip {
   padding: 7px 12px;
   font-family: var(--type);
-  font-size: 15px;
+  font-size: clamp(11px, 3.2vw, 15px);
+  overflow-wrap: anywhere;
   line-height: 1.25;
   transform: rotate(0.5deg);
   animation: drop-in 0.4s ease-out;
@@ -520,9 +536,18 @@
   color: var(--ink);
   text-align: center;
 }
+.fx-card {
+  font-size: clamp(14px, 4.6vw, 22px);
+}
 .fx-card p {
   margin: 0;
-  max-width: 720px;
+  max-width: min(720px, 90vw);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 
 /* ---------- archive ---------- */

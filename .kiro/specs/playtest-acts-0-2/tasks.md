@@ -7,4 +7,4 @@
 - [x] 5. Act 1: windows with one world (req 6)
 - [x] 6. Act 2: no turns, three repairs (reqs 1, 7)
 - [x] 7. Act 2: quiet bedtime and Archive text (req 8)
-- [ ] 8. Narrow window text (req 9)
+- [x] 8. Narrow window text (req 9)
