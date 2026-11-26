@@ -171,6 +171,7 @@ export function FxLayer() {
   const card = useFx((s) => s.card)
   const dsky = useFx((s) => s.dsky)
   const photo = useFx((s) => s.photo)
+  const readout = useFx((s) => s.readout)
   return (
     <>
       {edge > 0 ? <div className="fx-edge" style={{ opacity: edge }} data-testid="edge" /> : null}
@@ -194,6 +195,16 @@ export function FxLayer() {
           )
         : null}
       <GaugeDial />
+      {readout ? (
+        <div className="fx-readout" data-testid="readout">
+          <div className="hd">{readout.header}</div>
+          {readout.lines.map((l, i) => (
+            <div key={i} className={i === readout.lines.length - 1 ? 'ln cur' : 'ln'}>
+              {l}
+            </div>
+          ))}
+        </div>
+      ) : null}
       {photo ? (
         <>
           <div className="fx-photo-flash" />

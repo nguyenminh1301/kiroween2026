@@ -5,7 +5,11 @@ import {
   LIFTOFF_SHAKE,
   LIFTOFF_SHOTS,
   ascentRise,
-  captionOn,
+  BLAST_DUST,
+  BLAST_SCRAPS,
+  blastDustAt,
+  readoutAt,
+  scrapAt,
   fireLevel,
   flagTip,
   liftoffEvents,
@@ -23,8 +27,32 @@ describe('liftoff', () => {
     expect(fireLevel(8.4)).toBe(0)
     expect(flagTip(1.7)).toBe(0)
     expect(flagTip(2.6)).toBe(1)
-    expect(captionOn(5.3)).toBe(true)
-    expect(captionOn(5.4)).toBe(false)
+  })
+
+  it('types the readout line by line, then removes it after 4 s', () => {
+    const lines = ['ONE', 'TWO LINES']
+    expect(readoutAt(1.3, 'HEAD', lines)).toBeNull()
+    expect(readoutAt(1.4, 'HEAD', lines)?.lines).toEqual([])
+    expect(readoutAt(1.4 + 0.25 + 1 / 38 + 0.001, 'HEAD', lines)?.lines).toEqual(['O'])
+    expect(readoutAt(1.4 + 1.2, 'HEAD', lines)?.lines).toEqual(['ONE', 'TWO LINES'])
+    expect(readoutAt(1.4 + 4, 'HEAD', lines)).toBeNull()
+    expect(readoutAt(2.2, 'HEAD', lines)?.header).toBe('HEAD')
+  })
+
+  it('throws foil and dust off the deck: up and out, then down onto the dust', () => {
+    for (let i = 0; i < BLAST_SCRAPS; i++) {
+      const start = scrapAt(i, 0)
+      expect(start.y).toBeCloseTo(3.04, 5)
+      const late = scrapAt(i, 30)
+      expect(late.y).toBeCloseTo(0.03, 5)
+      expect(Math.hypot(late.x, late.z)).toBeGreaterThan(Math.hypot(start.x, start.z))
+      expect(scrapAt(i, 40)).toEqual(late)
+    }
+    for (let i = 0; i < BLAST_DUST; i++) {
+      const d = blastDustAt(i, 2)
+      expect(d.y).toBeGreaterThanOrEqual(0.05)
+      expect(Math.hypot(d.x, d.z)).toBeGreaterThan(Math.hypot(blastDustAt(i, 0).x, blastDustAt(i, 0).z))
+    }
   })
 
   it('has the shots and the shake from the plan', () => {
@@ -42,17 +70,16 @@ describe('liftoff', () => {
       events: liftoffEvents(
         {
           say: (id, o) => log.push(`say:${id}${o?.urgent ? ':urgent' : ''}`),
-          caption: (t) => log.push(`caption:${t}`),
+          readout: (on) => log.push(`readout:${on}`),
           anomaly: (a) => log.push(`anomaly:${a}`),
           end: () => log.push('end'),
         },
-        'BURN',
       ),
     }
     dueEvents(def, 0, 0, 1.4).forEach((e) => e.run())
-    expect(log).toEqual(['say:act4.liftoff:urgent', 'caption:BURN', 'anomaly:burn-baby-burn'])
+    expect(log).toEqual(['say:act4.liftoff:urgent', 'readout:true', 'anomaly:burn-baby-burn'])
     log.length = 0
     dueEvents(def, 2, 1.4, 14).forEach((e) => e.run())
-    expect(log).toEqual(['say:act4.flagdown', 'caption:null', 'say:act4.columbia', 'end'])
+    expect(log).toEqual(['say:act4.flagdown', 'readout:false', 'say:act4.columbia', 'end'])
   })
 })

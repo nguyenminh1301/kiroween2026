@@ -14,6 +14,8 @@ export const act4State = {
   /** Ascent engine fire, 0 to 1. */
   fire: 0,
   flagTip: 0,
+  /** Seconds since the ascent engine lit, or -1 before. Drives the blast scraps and dust. */
+  blast: -1,
   /** The climb hands at the bottom of the view: shown on the rails, moving with `phase`. */
   climb: { hands: false, phase: 0 },
   tasks: createTasks() as TaskState,
@@ -28,6 +30,7 @@ export function resetAct4State(): void {
   act4State.ascentRise = 0
   act4State.fire = 0
   act4State.flagTip = 0
+  act4State.blast = -1
   act4State.climb = { hands: false, phase: 0 }
   act4State.tasks = createTasks()
   act4State.carrying = null

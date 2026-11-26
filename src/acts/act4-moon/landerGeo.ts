@@ -1,9 +1,9 @@
 // Geometry for the lunar module and the surface props, built in code with vertex colors.
 // Each builder returns one merged geometry. No React imports.
-import { BufferGeometry, Color, ConeGeometry, Float32BufferAttribute } from 'three'
-import { QuadBuilder, cbox, ccyl, cstrut, mergeColored, type P3 } from '../../procgen/coloredGeo'
+import { BufferGeometry, Color } from 'three'
+import { QuadBuilder, cbox, ccyl, cfrustum, cstrut, mergeColored, type P3 } from '../../procgen/coloredGeo'
 import { createRng } from '../../procgen/rng'
-import { FOOTPAD_DIST, FOOTPAD_RADIUS, PORCH_FLOOR, RUNGS, STAGE_BOTTOM, STAGE_TOP, ladderZ, rungY } from './layout'
+import { ASCENT_BELL_Y, BELL_EXIT_RADIUS, BELL_EXIT_Y, FOOTPAD_DIST, FOOTPAD_RADIUS, PORCH_FLOOR, RUNGS, STAGE_BOTTOM, STAGE_TOP, ladderZ, rungY } from './layout'
 
 const FOIL = '#B8A06A'
 const FOIL_HI = '#E8D494'
@@ -78,11 +78,20 @@ export function buildDescentBody(): BufferGeometry {
   q.fan([0, STAGE_TOP, 0], hi.slice().reverse(), '#8a8a84')
   q.fan([0, STAGE_BOTTOM, 0], lo, '#2a2a28')
   const body = q.build()
-  const bell = new ConeGeometry(0.55, 0.8, 8, 1, true)
-  bell.translate(0, STAGE_BOTTOM - 0.4, 0)
-  const bellPaint = new Float32BufferAttribute(new Float32Array(bell.attributes.position.count * 3).fill(0.18), 3)
-  bell.setAttribute('color', bellPaint)
-  return mergeColored([body, bell])
+  // The descent engine bell: 1.5 m wide at the exit, silver at the top and black below, in the middle of the stage bottom.
+  const mid = (STAGE_BOTTOM + BELL_EXIT_Y) / 2
+  const half = (STAGE_BOTTOM - BELL_EXIT_Y) / 2
+  const rMid = (0.5 + BELL_EXIT_RADIUS) / 2
+  const parts: BufferGeometry[] = [
+    body,
+    cfrustum(0.5, rMid, half, SILVER, 0, STAGE_BOTTOM - half / 2, 0, 16, true),
+    cfrustum(rMid, BELL_EXIT_RADIUS, half, FOIL_BLACK, 0, mid - half / 2, 0, 16, true),
+    // The lip of the bell, and a gold foil collar around its throat.
+    cfrustum(BELL_EXIT_RADIUS, BELL_EXIT_RADIUS + 0.03, 0.04, '#3a3a38', 0, BELL_EXIT_Y, 0, 16, true),
+    cfrustum(1.05, 0.7, 0.2, FOIL, 0, STAGE_BOTTOM - 0.1, 0, 16),
+    cfrustum(1.1, 1.05, 0.05, FOIL_HI, 0, STAGE_BOTTOM - 0.02, 0, 16),
+  ]
+  return mergeColored(parts)
 }
 
 /** Four splayed legs, footpads, the ladder, the porch and the equipment bay panel. */
@@ -99,13 +108,14 @@ export function buildLegs(): BufferGeometry {
     const foot: P3 = [dx * FOOTPAD_DIST, 0.25, dz * FOOTPAD_DIST]
     parts.push(cstrut(top, foot, 0.1, STRUT))
     parts.push(cstrut([dx * 1.9, 1.2, dz * 1.9], [dx * (FOOTPAD_DIST - 0.4), 0.35, dz * (FOOTPAD_DIST - 0.4)], 0.06, STRUT))
-    parts.push(ccyl(FOOTPAD_RADIUS, 0.14, '#b09a62', dx * FOOTPAD_DIST, 0.07, dz * FOOTPAD_DIST, 'y', 10))
-    // Footpad rim and the contact probe sticking out from the pad.
-    parts.push(ccyl(FOOTPAD_RADIUS * 1.05, 0.04, '#7d6a40', dx * FOOTPAD_DIST, 0.16, dz * FOOTPAD_DIST, 'y', 10))
-    if (dx !== 0 || dz < 0) {
-      const out: P3 = [dx * (FOOTPAD_DIST + 1.5), 0.55, dz * (FOOTPAD_DIST + 1.5)]
-      parts.push(cstrut([dx * FOOTPAD_DIST, 0.2, dz * FOOTPAD_DIST], out, 0.018, '#d8d8d4'))
-      parts.push(cbox(0.06, 0.06, 0.06, '#d8d8d4', out[0], out[1], out[2]))
+    // A round dish footpad about 0.9 m wide: a shallow bowl with a raised rim and a small hub.
+    parts.push(cfrustum(FOOTPAD_RADIUS, FOOTPAD_RADIUS * 0.8, 0.08, '#b09a62', dx * FOOTPAD_DIST, 0.07, dz * FOOTPAD_DIST, 14))
+    parts.push(cfrustum(FOOTPAD_RADIUS * 1.02, FOOTPAD_RADIUS, 0.05, '#7d6a40', dx * FOOTPAD_DIST, 0.14, dz * FOOTPAD_DIST, 14))
+    parts.push(cfrustum(0.07, 0.14, 0.08, '#d8cc98', dx * FOOTPAD_DIST, 0.16, dz * FOOTPAD_DIST, 8))
+    // A long thin contact probe from under the pad, out and down to the dust. Not under the ladder leg (front, +z).
+    if (!(dx === 0 && dz > 0)) {
+      const out: P3 = [dx * (FOOTPAD_DIST + 1.7), 0.03, dz * (FOOTPAD_DIST + 1.7)]
+      parts.push(cstrut([dx * FOOTPAD_DIST, 0.06, dz * FOOTPAD_DIST], out, 0.02, '#e0e0dc'))
     }
   }
   // Cross braces between the legs.
@@ -144,6 +154,8 @@ export function buildAscent(): BufferGeometry {
     q.quad(lo[k], lo[(k + 1) % 6], hi[(k + 1) % 6], hi[k], 0, 0, 1, 1, k % 2 ? GREY : SILVER)
   }
   q.fan([0, 4.75, 0], hi.slice().reverse(), GREY_DARK)
+  // Closed bottom: the ascent stage is a sealed cabin.
+  q.fan([0, STAGE_TOP, 0], lo, '#4a4a46')
   // Front is +z. Two triangular windows set into the two front faces, each with a silver frame.
   const onFace = (k: number, u: number, v: number, out: number): P3 => {
     const a0 = lo[k]
@@ -171,6 +183,9 @@ export function buildAscent(): BufferGeometry {
   // Docking target on top: a ring, a dark centre and a cross.
   q.fan([0, 4.76, 0.2], Array.from({ length: 10 }, (_, k) => [Math.sin((k * Math.PI) / 5) * 0.5, 4.76, 0.2 + Math.cos((k * Math.PI) / 5) * 0.5] as P3).reverse(), '#a9a9a4')
   const parts: BufferGeometry[] = [q.build()]
+  // The ascent engine bell, under the closed bottom: silver at the top, black at the exit.
+  parts.push(cfrustum(0.12, 0.25, (STAGE_TOP - ASCENT_BELL_Y) / 2, SILVER, 0, STAGE_TOP - (STAGE_TOP - ASCENT_BELL_Y) / 4, 0, 12, true))
+  parts.push(cfrustum(0.25, 0.38, (STAGE_TOP - ASCENT_BELL_Y) / 2, FOIL_BLACK, 0, ASCENT_BELL_Y + (STAGE_TOP - ASCENT_BELL_Y) / 4, 0, 12, true))
   // Thruster quads and antennas.
   for (const [x, z] of [
     [1.5, 0.9],

@@ -46,6 +46,7 @@ import {
   type Checkpoint,
 } from './layout'
 import {
+  FIRE_AT,
   LIFTOFF_DURATION,
   LIFTOFF_SHAKE,
   LIFTOFF_SHOTS,
@@ -53,6 +54,7 @@ import {
   fireLevel,
   flagTip,
   liftoffEvents,
+  readoutAt,
 } from './liftoff'
 import { DOWN_SECONDS, UP_SECONDS, climbDownAt, climbUpAt, type ClimbFrame } from './climb'
 import { limitPosition } from './limits'
@@ -119,6 +121,8 @@ export function startAct4(requested: string): void {
     fx.setDsky(null)
     fx.setCaption(null)
     fx.setFlash(null)
+    fx.setReadout(null)
+    fx.setPhoto(null)
   })
 
   addPlayerSystem({
@@ -386,6 +390,8 @@ export function startAct4(requested: string): void {
   function liftoff(): void {
     phase = 'liftoff'
     let pending = 2
+    let lastReadout = ''
+    let readoutLines = 0
     const fin = (): void => {
       if (--pending === 0) completeAct()
     }
@@ -396,17 +402,28 @@ export function startAct4(requested: string): void {
       events: liftoffEvents(
         {
           say: (id, o) => say(id, { urgent: o?.urgent, then: id === 'act4.columbia' ? fin : undefined }),
-          caption: (t) => fxStore.getState().setCaption(t),
+          readout: (on) => {
+            if (!on) fxStore.getState().setReadout(null)
+          },
           anomaly: (id) => gameStore.getState().addAnomalySeen(id),
           end: fin,
         },
-        HUD.burnRoutine,
       ),
       onTick(t) {
         clock = t
         act4State.ascentRise = ascentRise(t)
         act4State.fire = fireLevel(t)
         act4State.flagTip = flagTip(t)
+        act4State.blast = t >= FIRE_AT ? t - FIRE_AT : -1
+        const ro = readoutAt(t, HUD.burnPanel.header, HUD.burnPanel.lines)
+        const fx = fxStore.getState()
+        const key = ro ? ro.lines.join('|') : ''
+        if (ro && key !== lastReadout) {
+          if (ro.lines.length > readoutLines) audio.play('readout')
+          readoutLines = ro.lines.length
+          lastReadout = key
+          fx.setReadout(ro)
+        }
       },
     }).start()
   }

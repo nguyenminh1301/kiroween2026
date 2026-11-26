@@ -59,6 +59,12 @@ export interface PhotoView {
   alt: string
 }
 
+/** The green AGC readout panel: a header and the lines typed so far. */
+export interface ReadoutView {
+  header: string
+  lines: string[]
+}
+
 export interface FxState {
   meter: NoiseMeter | null
   /** Screen edge darkness, 0 to 1. */
@@ -79,6 +85,8 @@ export interface FxState {
   setGauge: (g: GaugeView | null) => void
   setBlackout: (v: number) => void
   photo: PhotoView | null
+  readout: ReadoutView | null
+  setReadout: (r: ReadoutView | null) => void
   setPhoto: (p: PhotoView | null) => void
   setFlashes: (f: Flash[]) => void
   setCaption: (s: string | null) => void
@@ -89,7 +97,7 @@ export interface FxState {
   clearFx: () => void
 }
 
-const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, photo: null as PhotoView | null }
+const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, photo: null as PhotoView | null, readout: null as ReadoutView | null }
 
 export const fxStore = createStore<FxState>()((set) => ({
   ...EMPTY,
@@ -97,6 +105,7 @@ export const fxStore = createStore<FxState>()((set) => ({
   setEdge: (v) => set({ edge: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
   setFlash: (flash) => set({ flash }),
   setPhoto: (photo) => set({ photo }),
+  setReadout: (readout) => set({ readout }),
   setBlackout: (v) => set({ blackout: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
   setFlashes: (flashes) => set({ flashes: [...flashes] }),
   setCaption: (caption) => set({ caption }),

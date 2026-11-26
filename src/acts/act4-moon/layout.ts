@@ -14,6 +14,11 @@ export const STAGE_TOP = 3.0
 export const STAGE_BOTTOM = 0.8
 export const STAGE_HALF = 1.9
 export const ASCENT_TOP = 5.1
+/** Where the descent engine bell ends, 1.5 m wide: the plume starts here. */
+export const BELL_EXIT_Y = 0.35
+export const BELL_EXIT_RADIUS = 0.75
+/** Where the ascent engine bell ends, under the closed bottom of the ascent stage. */
+export const ASCENT_BELL_Y = 2.68
 export const FOOTPAD_DIST = 4.1
 export const FOOTPAD_RADIUS = 0.45
 

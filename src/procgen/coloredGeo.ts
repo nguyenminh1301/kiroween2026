@@ -65,6 +65,23 @@ export function cbox(w: number, h: number, d: number, color: string, x: number, 
   return paint(g, color)
 }
 
+/** A truncated cone along y: radius `rTop` at the top, `rBottom` at the bottom. Open ends when `open` is set (a bell). */
+export function cfrustum(
+  rTop: number,
+  rBottom: number,
+  len: number,
+  color: string,
+  x: number,
+  y: number,
+  z: number,
+  sides = 10,
+  open = false,
+): BufferGeometry {
+  const g = new CylinderGeometry(rTop, rBottom, len, sides, 1, open)
+  g.translate(x, y, z)
+  return paint(g, color)
+}
+
 export function ccyl(
   r: number,
   len: number,

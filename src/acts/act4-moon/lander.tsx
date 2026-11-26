@@ -6,6 +6,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   ConeGeometry,
+  CircleGeometry,
   CylinderGeometry,
   DoubleSide,
   MeshBasicMaterial,
@@ -20,7 +21,7 @@ import { flickerScale } from '../../engine/settings'
 import { gameStore } from '../../engine/store'
 import { registerSystem } from '../../engine/frameDriver'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { FLAG_KIT, PHOTO_SPOT, SCOOP_SPOT, SEISMO_KIT, STAGE_BOTTOM, STAGE_TOP } from './layout'
+import { ASCENT_BELL_Y, BELL_EXIT_Y, FLAG_KIT, PHOTO_SPOT, SCOOP_SPOT, SEISMO_KIT, STAGE_TOP } from './layout'
 import {
   buildAscent,
   buildBag,
@@ -34,6 +35,7 @@ import {
   buildArm,
 } from './landerGeo'
 import { dustShape } from './descent'
+import { BLAST_DUST, BLAST_SCRAPS, blastDustAt, scrapAt } from './liftoff'
 import { act4State } from './state'
 import { SITES, groundAt } from './terrain'
 
@@ -68,9 +70,25 @@ export function Lander() {
         g.translate(0, -0.5, 0)
         return g
       })(),
+      // The ascent flame: narrow at the bell, wide at the far end, hanging below the origin.
       fire: (() => {
-        const g = new ConeGeometry(1, 1, 12, 1, true)
-        g.translate(0, 0.5, 0)
+        const g = new CylinderGeometry(0.25, 1, 1, 14, 1, true)
+        g.translate(0, -0.5, 0)
+        return g
+      })(),
+      blastDisc: (() => {
+        const g = new CircleGeometry(1, 20)
+        g.rotateX(-Math.PI / 2)
+        return g
+      })(),
+      scraps: (() => {
+        const g = new BufferGeometry()
+        g.setAttribute('position', new BufferAttribute(new Float32Array(BLAST_SCRAPS * 3), 3))
+        return g
+      })(),
+      blastDust: (() => {
+        const g = new BufferGeometry()
+        g.setAttribute('position', new BufferAttribute(new Float32Array(BLAST_DUST * 3), 3))
         return g
       })(),
       photoRing: (() => {
@@ -99,6 +117,9 @@ export function Lander() {
       plumeHalo: glow('#7fa4ff', 0.28),
       fire: glow('#ffb347', 0.75),
       fireCore: glow('#ffffff', 0.9),
+      blastDisc: glow('#ffd9a0', 0.6),
+      scraps: new PointsMaterial({ color: '#e8d494', size: 4, sizeAttenuation: false, fog: false }),
+      blastDust: new PointsMaterial({ color: '#e4dcc6', size: 3, sizeAttenuation: false, transparent: true, opacity: 0.8, depthWrite: false, fog: false }),
       ring: new MeshBasicMaterial({ color: '#E2782F', side: DoubleSide }),
       dust: new MeshBasicMaterial({ color: '#e4dcc6', transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }),
       dustWall: new MeshBasicMaterial({ color: '#d6cdb6', transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }),
@@ -111,6 +132,9 @@ export function Lander() {
   const ascent = useRef<Group>(null)
   const plume = useRef<Group>(null)
   const fire = useRef<Group>(null)
+  const blastDisc = useRef<Mesh>(null)
+  const scraps = useRef<Points>(null)
+  const blastDust = useRef<Points>(null)
   const dust = useRef<Mesh>(null)
   const dustWall = useRef<Mesh>(null)
   const dustPts = useRef<Points>(null)
@@ -139,9 +163,9 @@ export function Lander() {
       const flick = 1 - 0.08 * flickerScale(gameStore.getState().settings.reducedMotion) * (1 - Math.sin(t * 40))
       if (plume.current) {
         plume.current.visible = s.plume
-        const len = Math.min(7, 3 + s.landerY * 0.4, s.landerY + 0.4) * flick
+        const len = Math.min(7, 3 + s.landerY * 0.4, s.landerY + BELL_EXIT_Y) * flick
         plume.current.scale.set(1.3, Math.max(0.2, len), 1.3)
-        plume.current.position.y = STAGE_BOTTOM - 0.4
+        plume.current.position.y = BELL_EXIT_Y
       }
       if (dust.current && dustWall.current && dustPts.current) {
         const on = s.dust > 0
@@ -169,13 +193,39 @@ export function Lander() {
       }
       if ('emissive' in mat) mat.emissive.setRGB(0.32 * s.fill, 0.27 * s.fill, 0.17 * s.fill)
       if (fire.current) {
+        // The flame belongs to the ascent stage: it hangs from the ascent bell and rises with it.
         fire.current.visible = s.fire > 0
-        const h = Math.max(0.5, 0.6 + s.ascentRise * 0.7) * (0.9 + 0.1 * Math.sin(t * 50))
-        const r = 2.4 * (0.5 + 0.5 * s.fire)
+        const h = 2.6 * (0.55 + 0.45 * s.fire) * (0.92 + 0.08 * Math.sin(t * 50))
+        const r = 1.35 * (0.6 + 0.4 * s.fire)
         fire.current.scale.set(r, h, r)
-        fire.current.position.y = STAGE_TOP + 0.02
         mats.fire.opacity = 0.75 * Math.min(1, s.fire * 2)
         mats.fireCore.opacity = 0.9 * Math.min(1, s.fire * 2)
+      }
+      if (blastDisc.current) {
+        const near = Math.max(0, 1 - s.ascentRise / 5)
+        blastDisc.current.visible = s.fire > 0 && near > 0
+        blastDisc.current.scale.set(1.5 + s.ascentRise * 0.5, 1, 1.5 + s.ascentRise * 0.5)
+        mats.blastDisc.opacity = 0.7 * near * Math.min(1, s.fire * 2)
+      }
+      if (scraps.current && blastDust.current) {
+        const on = s.blast >= 0
+        scraps.current.visible = on
+        blastDust.current.visible = on
+        if (on) {
+          const sp = geos.scraps.attributes.position as BufferAttribute
+          for (let i = 0; i < BLAST_SCRAPS; i++) {
+            const p = scrapAt(i, s.blast)
+            sp.setXYZ(i, p.x, p.y, p.z)
+          }
+          sp.needsUpdate = true
+          const dp = geos.blastDust.attributes.position as BufferAttribute
+          for (let i = 0; i < BLAST_DUST; i++) {
+            const p = blastDustAt(i, s.blast)
+            dp.setXYZ(i, p.x, p.y, p.z)
+          }
+          dp.needsUpdate = true
+          mats.blastDust.opacity = 0.8 * Math.max(0, 1 - s.blast / 7)
+        }
       }
       const done = s.tasks.done
       if (flag.current) {
@@ -231,15 +281,16 @@ export function Lander() {
         <mesh geometry={geos.legs} material={mat} frustumCulled={false} />
         <group ref={ascent}>
           <mesh geometry={geos.ascent} material={mat} frustumCulled={false} />
+          <group ref={fire} visible={false} position={[0, ASCENT_BELL_Y, 0]}>
+            <mesh geometry={geos.fire} material={mats.fire} />
+            <mesh geometry={geos.fire} material={mats.fireCore} scale={[0.4, 1, 0.4]} />
+          </group>
         </group>
+        <mesh ref={blastDisc} geometry={geos.blastDisc} material={mats.blastDisc} position={[0, STAGE_TOP + 0.04, 0]} visible={false} frustumCulled={false} />
         <group ref={plume} visible={false}>
           <mesh geometry={geos.plume} material={mats.plume} />
           <mesh geometry={geos.plume} material={mats.plumeCore} scale={[0.5, 1, 0.5]} />
           <mesh geometry={geos.plume} material={mats.plumeHalo} scale={[1.9, 1.15, 1.9]} />
-        </group>
-        <group ref={fire} visible={false}>
-          <mesh geometry={geos.fire} material={mats.fire} />
-          <mesh geometry={geos.fire} material={mats.fireCore} scale={[0.35, 1, 0.35]} />
         </group>
         <mesh ref={kitFlag} geometry={geos.flagKit} material={mat} position={[FLAG_KIT.x, FLAG_KIT.y, FLAG_KIT.z]} rotation={[0, 0, 0.08]} />
         <mesh ref={kitScoop} geometry={geos.scoop} material={mat} position={[SCOOP_SPOT.x, SCOOP_SPOT.y, SCOOP_SPOT.z]} />
@@ -247,6 +298,8 @@ export function Lander() {
       </group>
       <mesh ref={dust} geometry={geos.dust} material={mats.dust} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.12, 0]} visible={false} frustumCulled={false} />
       <mesh ref={dustWall} geometry={geos.dustWall} material={mats.dustWall} position={[0, 0.05, 0]} visible={false} frustumCulled={false} />
+      <points ref={scraps} geometry={geos.scraps} material={mats.scraps} visible={false} frustumCulled={false} />
+      <points ref={blastDust} geometry={geos.blastDust} material={mats.blastDust} visible={false} frustumCulled={false} />
       <points ref={dustPts} geometry={geos.dustPoints} material={mats.dustPoints} visible={false} frustumCulled={false} />
       <group ref={flag} position={[f.x, groundAt(f.x, f.z), f.z]} visible={false}>
         <mesh geometry={geos.flag} material={mat} />
