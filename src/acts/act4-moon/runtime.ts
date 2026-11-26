@@ -1,6 +1,7 @@
 // Act 4 start-up: descent, EVA tasks, the flag photo, the ladder, liftoff and hand-off.
 // Everything goes through cleanup helpers, so unloading removes it. No Three.js or React imports.
 import { audio, radio, startAudioSession } from '../../audio'
+import { breathAllowed } from '../../audio/scene'
 import { CHECKLISTS } from '../../content/checklists'
 import { HUD, PHOTO } from '../../content/hud'
 import { completeAct } from '../../engine/actFlow'
@@ -181,7 +182,7 @@ export function startAct4(requested: string): void {
 
   // ---- Descent ----
   function descent(): void {
-    audio.setScene({ hum: 0.25, bed: 'none', breath: true })
+    audio.setScene({ hum: 0.25, bed: 'none', breath: breathAllowed('act4-moon', 'lander') })
     store.setTension('UNEASE')
     vitals(0.3, 110)
     act4State.landerY = START_HEIGHT
@@ -231,7 +232,7 @@ export function startAct4(requested: string): void {
     act4State.plume = false
     act4State.dust = 0
     act4State.fill = 0
-    audio.setScene({ hum: 0, bed: 'none', breath: true })
+    audio.setScene({ hum: 0, bed: 'none', breath: breathAllowed('act4-moon', 'surface') })
     gameStore.getState().setTension('CALM')
     vitals(0.2, 96)
     gameStore.getState().setCheckpoint('tasks')
@@ -248,7 +249,7 @@ export function startAct4(requested: string): void {
     act4State.plume = false
     act4State.dust = 0
     act4State.fill = 0
-    audio.setScene({ hum: 0, bed: 'none', breath: true })
+    audio.setScene({ hum: 0, bed: 'none', breath: breathAllowed('act4-moon', 'surface') })
     gameStore.getState().setTension('CALM')
     vitals(0.2, 96)
     gameStore.getState().setCheckpoint('tasks')
@@ -377,6 +378,7 @@ export function startAct4(requested: string): void {
   function climb(): void {
     if (phase !== 'return') return
     phase = 'climb'
+    audio.setScene({ hum: 0.25, bed: 'none', breath: breathAllowed('act4-moon', 'lander') })
     climbT = 0
     clangs = 0
     focus.clearFocus()
@@ -476,7 +478,7 @@ export function startAct4(requested: string): void {
     tasks = takePhoto(tasks)!
     phase = 'eva'
     act4State.tasks = tasks
-    audio.setScene({ hum: 0, bed: 'none', breath: true })
+    audio.setScene({ hum: 0, bed: 'none', breath: breathAllowed('act4-moon', 'surface') })
     vitals(0.2, 96)
     toLadder()
   }

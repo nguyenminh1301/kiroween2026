@@ -6,7 +6,7 @@ import { engine, type BusName } from './engine'
 import { makeLoopData, type LoopKind } from './loopSynth'
 import { playTracked } from './play'
 import { BIRD_CHIRPS, HEART_THUMP } from './recipes'
-import { DEFAULT_SCENE, resolveScene, type AmbienceScene } from './scene'
+import { BREATH_LEVEL, DEFAULT_SCENE, resolveScene, type AmbienceScene } from './scene'
 import { tensionLevels } from './tension'
 import type { TensionState } from '../types'
 
@@ -267,7 +267,7 @@ export const ambience = {
       phase = (phase + (dt * rate) / 60) % 1
       if (ch.breath.cur && ch.breath.node) {
         const on = scene.breath && !s.holdingBreath
-        const level = on ? (ch.breath.sample ? 0.8 : 0.9 * breathEnvelope(phase)) : 0
+        const level = on ? BREATH_LEVEL * (ch.breath.sample ? 0.8 : 0.9 * breathEnvelope(phase)) : 0
         ch.breath.node.gain.setTargetAtTime(level, now, 0.08)
         if (ch.breath.sample) ch.breath.cur.s.playbackRate.setTargetAtTime(Math.min(2.5, Math.max(0.5, rate / 12)), now, 0.2)
       }

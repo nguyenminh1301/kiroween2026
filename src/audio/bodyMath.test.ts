@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { breathRate, heartbeatLevel } from './bodyMath'
+import { BREATH_LEVEL, DEFAULT_SCENE, breathAllowed, resolveScene } from './scene'
 
 describe('breathRate', () => {
   it('maps 60, 120 and 180 bpm', () => {
@@ -24,5 +25,25 @@ describe('heartbeatLevel', () => {
     expect(heartbeatLevel(140)).toBeCloseTo(0.5)
     expect(heartbeatLevel(180)).toBe(1)
     expect(heartbeatLevel(NaN)).toBe(0)
+  })
+})
+
+describe('breathAllowed', () => {
+  it('plays only on the Moon surface and in the dream', () => {
+    expect(breathAllowed('act4-moon', 'surface')).toBe(true)
+    expect(breathAllowed('act3-farside', 'dream')).toBe(true)
+  })
+  it('is off on the pad, in the cabin and in the lander', () => {
+    expect(breathAllowed('act0-pad', 'pad')).toBe(false)
+    expect(breathAllowed('act1-launch', 'cabin')).toBe(false)
+    expect(breathAllowed('act2-coast', 'cabin')).toBe(false)
+    expect(breathAllowed('act5-home', 'cabin')).toBe(false)
+    expect(breathAllowed('act3-farside', 'cabin')).toBe(false)
+    expect(breathAllowed('act4-moon', 'lander')).toBe(false)
+  })
+  it('defaults to off and runs at half level', () => {
+    expect(DEFAULT_SCENE.breath).toBe(false)
+    expect(resolveScene({}).breath).toBe(false)
+    expect(BREATH_LEVEL).toBe(0.5)
   })
 })

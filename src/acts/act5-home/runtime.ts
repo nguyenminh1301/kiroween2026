@@ -38,7 +38,7 @@ export function startAct5(): void {
   startAudioSession()
   let ocean = 0
   let heli = 0
-  const setAmbience = (): void => audio.setScene({ hum: 0.5, bed: 'ship', breath: true, ocean, heli })
+  const setAmbience = (): void => audio.setScene({ hum: 0.5, bed: 'ship', breath: false, ocean, heli })
   setAmbience()
   store.setFear(0.2)
   store.setHeartRate(100)

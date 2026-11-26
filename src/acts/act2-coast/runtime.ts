@@ -70,7 +70,7 @@ export function startAct2(): void {
   const step = { boxes: collisionBoxes(cmFarFor(false)), seatForwardYaw: 0 }
   addPlayerSystem(step)
   startAudioSession()
-  audio.setScene({ hum: 1, bed: 'ship', breath: true })
+  audio.setScene({ hum: 1, bed: 'ship', breath: false })
   gameStore.getState().setFear(0.1)
   gameStore.getState().setHeartRate(76)
 
@@ -232,7 +232,7 @@ export function startAct2(): void {
 
   const timer = createSleepTimer({
     setBlackout: (v) => fxStore.getState().setBlackout(v),
-    setHum: (level) => audio.setScene({ hum: level, bed: 'ship', breath: true }),
+    setHum: (level) => audio.setScene({ hum: level, bed: 'ship', breath: false }),
     breathe(i) {
       const pos = [cdrPos, mikePos, undefined, breathPos][i]?.(act2State.cmFar)
       audio.play('breathe', { position: pos, gain: i === 3 ? 0.55 : 0.8 })

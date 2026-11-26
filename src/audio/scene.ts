@@ -21,7 +21,7 @@ export const DEFAULT_SCENE: AmbienceScene = {
   ocean: 0,
   heli: 0,
   steps: 0,
-  breath: true,
+  breath: false,
 }
 
 const level = (v: unknown, def: number): number =>
@@ -43,3 +43,19 @@ export function resolveScene(partial: Partial<AmbienceScene> = {}): AmbienceScen
     breath: partial.breath === undefined ? d.breath : partial.breath === true,
   }
 }
+
+/** Where the player is, for the breathing rule. */
+export type BreathPlace = 'pad' | 'cabin' | 'lander' | 'surface' | 'dream'
+
+/**
+ * Breathing is heard only in a sealed suit outside the spacecraft (act 4 surface)
+ * and in the act 3 dream. Never in the cabin or on the pad.
+ */
+export function breathAllowed(act: string, place: BreathPlace): boolean {
+  if (act === 'act3-farside') return place === 'dream'
+  if (act === 'act4-moon') return place === 'surface'
+  return false
+}
+
+/** Level of the breathing loop relative to the old level (about half). */
+export const BREATH_LEVEL = 0.5

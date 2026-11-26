@@ -56,7 +56,7 @@ export function startAct1(): void {
 
   addPlayerSystem({ boxes: [], seatForwardYaw: 0 })
   startAudioSession()
-  audio.setScene({ hum: 0.6, bed: 'ship', breath: true })
+  audio.setScene({ hum: 0.6, bed: 'ship', breath: false })
   gameStore.getState().setFear(0.05)
   gameStore.getState().setHeartRate(84)
 

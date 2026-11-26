@@ -119,7 +119,7 @@ export function startSandbox(): void {
 
   // Audio sandbox: the first click or key press unlocks audio. Keys 1 to 5 try the radio, a positional knock and tension.
   startAudioSession()
-  audio.setScene({ bed: 'ship', breath: true })
+  audio.setScene({ bed: 'ship', breath: false })
   const unlock = (): void => audio.unlock()
   addListener(window as unknown as ListenerTarget, 'pointerdown', unlock as (ev: never) => void)
   addListener(window as unknown as ListenerTarget, 'keydown', ((e: KeyboardEvent) => {

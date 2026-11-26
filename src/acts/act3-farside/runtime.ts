@@ -1,6 +1,7 @@
 // Act 3 start-up: walking body, flashlight ambience, lockers, cage, carrying, the creature, noise and beats.
 // Everything goes through cleanup helpers, so unloading removes it. No Three.js or React imports.
 import { audio, radio, startAudioSession } from '../../audio'
+import { breathAllowed } from '../../audio/scene'
 import { CHECKLISTS } from '../../content/checklists'
 import { HUD } from '../../content/hud'
 import { createBreath, stepBreath } from '../../director/breath'
@@ -106,7 +107,7 @@ export function startAct3(requested: string): void {
   } = { boxes: allBoxes, seatForwardYaw: asleep ? SLEEP_YAW : LOCKER_YAW }
   addPlayerSystem(step)
   startAudioSession()
-  audio.setScene({ hum: 1, bed: 'engine', breath: true })
+  audio.setScene({ hum: 1, bed: 'engine', breath: breathAllowed('act3-farside', 'dream') })
 
   const vit = initialVitals(cp)
   let tension: Tension = createTension(vit.tension, vit.fear)
@@ -189,13 +190,13 @@ export function startAct3(requested: string): void {
       if (on) {
         act3State.creatureVisible = false
         act3State.chase = false
-        audio.setScene({ hum: 1, bed: 'none', breath: true })
+        audio.setScene({ hum: 1, bed: 'none', breath: breathAllowed('act3-farside', 'dream') })
       }
     },
     startLunge: () => {
       act3State.silent = false
       act3State.lunge = 0
-      audio.setScene({ hum: 1, bed: 'engine', breath: true })
+      audio.setScene({ hum: 1, bed: 'engine', breath: breathAllowed('act3-farside', 'dream') })
     },
     wakeUp: () => {
       act3State.lunge = null
@@ -214,7 +215,7 @@ export function startAct3(requested: string): void {
         pitch: 0.1,
         mode: 'seated',
       })
-      audio.setScene({ hum: 0.6, bed: 'ship', breath: true })
+      audio.setScene({ hum: 0.6, bed: 'ship', breath: breathAllowed('act3-farside', 'cabin') })
       fxStore.getState().setMeter(null)
     },
     openChoice: (open) => gameStore.getState().setChoiceOpen(open),
