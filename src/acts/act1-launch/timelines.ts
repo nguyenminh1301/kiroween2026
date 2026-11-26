@@ -147,7 +147,6 @@ export function launchEvents(h: LaunchHooks): TimelineEvent[] {
       },
     },
     { at: 13, run: () => h.setSky(SKY.space) },
-    { at: 14.5, run: () => h.say('act1.o2') },
   ]
 }
 

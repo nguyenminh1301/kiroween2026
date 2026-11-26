@@ -10,7 +10,6 @@ function setup() {
       opts.onStart?.()
       pending.set(id, done)
     },
-    noticeBootprints: () => log.push('prints'),
     setObjective: (k) => log.push(`obj:${k}`),
     showHint: (id) => log.push(`hint:${id}`),
     cheer: (l) => log.push(`cheer:${l}`),
@@ -57,10 +56,10 @@ describe('act 0 beats', () => {
     expect(log).not.toContain('say:act0.intro2')
   })
 
-  it('wave gives the board objective once and says nothing by itself', () => {
+  it('wave gives the board objective once and the crew say the wave line', () => {
     const { beats, log } = setup()
     beats.wave()
-    expect(log).toEqual(['cheer:1', 'obj:act0Board'])
+    expect(log).toEqual(['cheer:1', 'obj:act0Board', 'say:act0.wave'])
     beats.wave()
     expect(log.filter((l) => l === 'obj:act0Board').length).toBe(1)
     expect(log.filter((l) => l === 'cheer:1').length).toBe(2)
@@ -70,23 +69,19 @@ describe('act 0 beats', () => {
     const { beats, log, end } = setup()
     beats.enterRoom()
     expect(log.some((l) => l.startsWith('say:'))).toBe(false)
-    beats.talk('pad1')
-    beats.talk('pad1')
-    expect(log.filter((l) => l === 'say:act0.pad3').length).toBe(1)
-    expect(log).toContain('prints')
-    end('act0.pad3')
-    beats.talk('pad1')
-    expect(log.filter((l) => l === 'say:act0.pad3').length).toBe(2)
+    beats.talk('gunter')
+    beats.talk('gunter')
+    expect(log.filter((l) => l === 'say:act0.gunter1').length).toBe(1)
+    end('act0.gunter1')
+    beats.talk('gunter')
+    expect(log.at(-1)).toBe('say:act0.gunter2')
   })
 
-  it('the walkway crew say a different line after the wave', () => {
-    const { beats, log, end } = setup()
-    beats.talk('pad0')
-    expect(log.at(-1)).toBe('say:act0.pad1')
-    end('act0.pad1')
-    beats.wave()
-    beats.talk('pad0')
-    expect(log.at(-1)).toBe('say:act0.pad2')
+  it('each pad crewman has a line', () => {
+    const { beats, log } = setup()
+    beats.talk('tech1')
+    beats.talk('tech2')
+    expect(log).toEqual(['say:act0.tech1', 'say:act0.tech2'])
   })
 
   it('can board without talking to anyone', () => {
@@ -94,7 +89,7 @@ describe('act 0 beats', () => {
     beats.board()
     end('act0.board')
     expect(log.at(-1)).toBe('complete')
-    expect(log.some((l) => l.startsWith('say:act0.pad'))).toBe(false)
+    expect(log.some((l) => l.startsWith('say:act0.tech') || l.startsWith('say:act0.gunter'))).toBe(false)
   })
 
   it('cheers every 9 s, 7 s after the wave, and stops in the room', () => {

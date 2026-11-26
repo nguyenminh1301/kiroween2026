@@ -50,7 +50,6 @@ describe('launch timeline', () => {
       [10, 'staging'],
       [10, 'act1.staging'],
       [13, 'sky #000000'],
-      [14.5, 'act1.o2'],
     ])
   })
 

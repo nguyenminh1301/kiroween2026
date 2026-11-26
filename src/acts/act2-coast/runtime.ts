@@ -224,7 +224,7 @@ export function startAct2(): void {
       use() {
         if (!R.clearLine(i)) return
         audio.play('key')
-        if (R.s.compDone) repairDone('comp')
+        if (R.s.compDone) repairDone('site')
         else setObjective('repairs')
       },
     })

@@ -13,7 +13,7 @@ import { focus } from '../../interaction/Focus'
 import { registerInteractable, registerSighting } from '../../interaction/interactables'
 import { showHint } from '../../ui/hints'
 import type { Vec3 } from '../../types'
-import { createBeats, type BeatDeps } from './beats'
+import { createBeats, type BeatDeps, type CrewId } from './beats'
 import { crowdAim, decayExcitement } from './crowdLogic'
 import {
   BOOTPRINT_ANOMALY,
@@ -23,6 +23,7 @@ import {
   inWhiteRoom,
   PAD0_POS,
   PAD1_POS,
+  PAD2_POS,
   PLAYER_START,
 } from './room'
 import { act0State, resetAct0State } from './state'
@@ -31,9 +32,11 @@ const LOGIC_PRIORITY = 300
 
 const headAt = (p: Vec3): Vec3 => ({ x: p.x, y: 1.7, z: p.z })
 const LINE_POSITION: Record<string, Vec3> = {
-  'act0.pad1': headAt(PAD0_POS),
-  'act0.pad2': headAt(PAD0_POS),
-  'act0.pad3': headAt(PAD1_POS),
+  'act0.tech1': headAt(PAD0_POS),
+  'act0.tech2': headAt(PAD2_POS),
+  'act0.wave': headAt(PAD0_POS),
+  'act0.gunter1': headAt(PAD1_POS),
+  'act0.gunter2': headAt(PAD1_POS),
 }
 
 export function startAct0(): void {
@@ -72,7 +75,6 @@ export function startAct0(): void {
         })
     },
     setBeat: (n) => radio.setBeat(n),
-    noticeBootprints: () => gameStore.getState().addAnomalySeen(BOOTPRINT_ANOMALY.id),
     setObjective: (key) => gameStore.getState().setObjective(key ? CHECKLISTS[key] : null),
     showHint: (id) => void showHint(id),
     cheer(level) {
@@ -104,7 +106,7 @@ export function startAct0(): void {
     enabled: () => !beats.state().boarded,
     use: () => beats.board(),
   })
-  const talkTo = (who: 'pad0' | 'pad1', at: Vec3): void => {
+  const talkTo = (who: CrewId, at: Vec3): void => {
     registerInteractable({
       id: `act0:talk-${who}`,
       verb: 'TALK',
@@ -115,8 +117,9 @@ export function startAct0(): void {
       use: () => beats.talk(who),
     })
   }
-  talkTo('pad0', PAD0_POS)
-  talkTo('pad1', PAD1_POS)
+  talkTo('tech1', PAD0_POS)
+  talkTo('tech2', PAD2_POS)
+  talkTo('gunter', PAD1_POS)
   registerSighting({ ...BOOTPRINT_ANOMALY })
 
   addSystem(

@@ -17,8 +17,6 @@ export interface BeatDeps {
   say(id: string, opts: SayOptions, done: () => void): void
   /** A new beat started: queued lines of earlier beats are dropped. */
   setBeat?(beat: number): void
-  /** The player talked to the crew member in the White Room: they noticed the extra boot prints. */
-  noticeBootprints(): void
   setObjective(key: ObjectiveKey | null): void
   showHint(id: string): void
   /** Play the cheer and raise the crowd excitement to at least `level`. */
@@ -26,6 +24,8 @@ export interface BeatDeps {
   playSwitch(): void
   complete(): void
 }
+
+export type CrewId = 'tech1' | 'tech2' | 'gunter'
 
 export const START_DELAY = 0.8
 export const PERIODIC_CHEER = 0.7
@@ -35,7 +35,7 @@ export interface Beats {
   /** The player used WAVE. */
   wave(): void
   /** The player pressed E on a crew member. */
-  talk(who: 'pad0' | 'pad1'): void
+  talk(who: CrewId): void
   /** The player is inside the White Room. Call every frame or on change. */
   enterRoom(): void
   /** The player used the hatch. */
@@ -51,6 +51,7 @@ export function createBeats(deps: BeatDeps): Beats {
   let boarded = false
   let cheerLeft = cheerPeriod(false)
   let beat = 0
+  let gunterTalks = 0
   const talkUntil = new Map<string, number>()
   const go = (n: number): void => {
     beat = n
@@ -94,13 +95,14 @@ export function createBeats(deps: BeatDeps): Beats {
       go(1)
       cheerLeft = cheerPeriod(true)
       deps.setObjective('act0Board')
+      say('act0.wave', {})
     },
     talk(who) {
       if (boarded || (talkUntil.get(who) ?? -1) > clock) return
       // Block repeat presses while the line plays. A dropped line never calls back, so it also expires.
       talkUntil.set(who, clock + 12)
-      const id = who === 'pad1' ? 'act0.pad3' : waved ? 'act0.pad2' : 'act0.pad1'
-      say(id, { onStart: who === 'pad1' ? deps.noticeBootprints : undefined }, () => talkUntil.delete(who))
+      const id = who === 'tech1' ? 'act0.tech1' : who === 'tech2' ? 'act0.tech2' : gunterTalks++ === 0 ? 'act0.gunter1' : 'act0.gunter2'
+      say(id, {}, () => talkUntil.delete(who))
     },
     enterRoom() {
       if (inRoom || boarded) return

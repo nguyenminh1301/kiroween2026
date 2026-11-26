@@ -17,6 +17,8 @@ export const SPEAKER_NAMES: Record<Speaker, string> = {
   UNKNOWN: 'HOUSTON?',
   PAD: 'GUNTER WENT',
   NARRATOR: '',
+  LAUNCH: 'LAUNCH CONTROL',
+  TECH: 'PAD CREW',
   HORNET: 'USS HORNET',
 }
 
@@ -30,86 +32,101 @@ export const LINES: Record<string, Line> = {
   },
   'act0.intro2': {
     speaker: 'NARRATOR',
-    voiced: true,
-    text: 'You are one of the three. Before you climb in, look down. They came for you.',
+    text: "You're Buzz Aldren, lunar module pilot. Neil and Mike are already aboard.",
   },
-  'act0.pad1': {
+  'act0.tech1': {
+    speaker: 'TECH',
+    text: "Morning, Buzz. Wind's calm, sky's clear. Couldn't ask for better.",
+  },
+  'act0.tech2': {
+    speaker: 'TECH',
+    text: 'Give the beach a wave. Some of them have been out there since last night.',
+  },
+  'act0.wave': { speaker: 'TECH', mood: 'shout', text: 'Hear that? They saw you.' },
+  'act0.gunter1': {
     speaker: 'PAD',
-    text: 'Hear that? Go to the rail and wave. Some of them drove all night for this.',
+    text: "Morning, Buzz. You're in the middle couch. Watch your head going in.",
   },
-  'act0.pad2': {
-    speaker: 'PAD',
-    mood: 'shout',
-    text: 'Ha! They saw you, Buzz! Okay, hero. Hatch is in the White Room, end of the arm.',
-  },
-  'act0.pad3': {
-    speaker: 'PAD',
-    text: 'Strange. I counted four sets of boot prints up here this morning.',
-  },
-  'act0.board': {
-    speaker: 'CDR',
-    text: 'There you are, Buzz. Strap in. We have a Moon to catch.',
-  },
+  'act0.gunter2': { speaker: 'PAD', text: 'See you when you get back.' },
+  'act0.board': { speaker: 'CDR', text: "Morning, Buzz. Get strapped in, we're right on time." },
   'act1.count': {
-    speaker: 'CAPCOM',
+    speaker: 'LAUNCH',
     text: 'Twelve, eleven, ten, nine. Ignition sequence start.',
     seconds: 4,
   },
-  'act1.liftoff': { speaker: 'CAPCOM', mood: 'shout', text: 'Liftoff! We have a liftoff!', seconds: 3 },
-  'act1.staging': {
-    speaker: 'CDR',
-    text: 'Staging. Look up at the window, Buzz. Watch the sky go out.',
+  'act1.count2': {
+    speaker: 'LAUNCH',
+    text: 'Six, five, four, three, two, one, zero. All engines running.',
+    seconds: 4.5,
   },
-  'act1.o2': {
-    speaker: 'CDR',
-    text: 'Huh. Cabin oxygen is running high. That is what four men would breathe.',
+  'act1.liftoff': { speaker: 'LAUNCH', mood: 'shout', text: 'Liftoff! We have a liftoff!', seconds: 3 },
+  'act1.clock': { speaker: 'CDR', text: 'Liftoff. The clock is running.', seconds: 3 },
+  'act1.tower': { speaker: 'CAPCOM', text: "Roger. You've cleared the tower.", seconds: 3 },
+  'act1.roll': { speaker: 'CDR', text: 'Roll program.', seconds: 2 },
+  'act1.rollok': { speaker: 'CAPCOM', text: 'Roger, roll.', seconds: 2 },
+  'act1.maxq': {
+    speaker: 'CAPCOM',
+    text: 'Apollo 11, Houston. Through max Q. Thrust is good on all five.',
+    seconds: 4.5,
   },
-  'act1.switch': {
+  'act1.staging': { speaker: 'CDR', text: "Staging. And we've got ignition on the second stage.", seconds: 4 },
+  'act1.jettison': {
     speaker: 'CDR',
-    text: 'Probably a bad sensor. Kill it. Red switch, right by your hand.',
+    text: "Tower's gone. The cover went with it. We have windows.",
+    seconds: 4,
+  },
+  'act1.sky': { speaker: 'CMP', text: "Sky's already black out there.", seconds: 3 },
+  'act1.orbit': {
+    speaker: 'CAPCOM',
+    text: "Apollo 11, Houston. Shutdown confirmed. You're in orbit.",
+    seconds: 4.5,
   },
   'act1.key': {
     speaker: 'CDR',
-    text: 'Good. Now the computer in front of you. Three presses and we leave orbit.',
+    text: "Computer's yours, Buzz. Key in what's on the card.",
   },
-  'act1.tli': { speaker: 'CAPCOM', text: 'Apollo 11, Houston. You are go for TLI.' },
-  'act1.earth': {
-    speaker: 'CMP',
-    text: 'Oh, would you look at that. The whole Earth fits in the window.',
+  'act1.tli': { speaker: 'CAPCOM', text: 'Apollo 11, this is Houston. You are go for TLI.' },
+  'act1.tliburn': { speaker: 'CDR', text: "Ignition. There's the push.", seconds: 3 },
+  'act1.tlidone': { speaker: 'CMP', text: "Shutdown. That's it, we're on our way.", seconds: 3.5 },
+  'act1.earth': { speaker: 'CMP', text: "Look out your window, Buzz. That's the whole Earth." },
+  'act1.look': {
+    speaker: 'CDR',
+    text: "Take a good look. We won't see it that size again for a week.",
   },
-  'act1.moon': { speaker: 'CDR', text: 'And that little one is where we are going.' },
   'act1.rest': {
     speaker: 'CAPCOM',
-    text: 'Apollo 11, Houston. You are on your way. Get some rest, it is a long drive.',
+    text: "Apollo 11, Houston. Nice burn. Get some rest, you've got three days.",
   },
   'act2.jobs': {
     speaker: 'CAPCOM',
-    text: 'Columbia, Houston. Three small items on the list before you sleep.',
+    text: 'Apollo 11, Houston. A few housekeeping items before your rest period.',
   },
-  'act2.out': {
-    speaker: 'CDR',
-    text: 'The jobs are spread out. One here, one in the tunnel, one in the lander.',
-  },
+  'act2.out': { speaker: 'CDR', text: "List's on the wall, Buzz. Some up here, some down in Eagle." },
   'act2.o2': {
     speaker: 'CMP',
-    text: 'That hiss is the oxygen line again. Give the joint a tap.',
+    text: 'Hear that rattle? Oxygen line again. A couple of taps usually settles it.',
   },
-  'act2.o2done': { speaker: 'CAPCOM', text: 'Oxygen flow looks steady now. Thank you.' },
+  'act2.o2done': { speaker: 'CAPCOM', text: 'Roger. Oxygen flow is steady.' },
   'act2.press': {
     speaker: 'CDR',
-    text: 'Cabin pressure reads low. Bring it back to five.',
+    text: "Cabin pressure's a little low. Bring it back up to five.",
   },
-  'act2.pressdone': { speaker: 'CAPCOM', text: 'We see five point zero. Nice work.' },
-  'act2.comp': {
+  'act2.pressdone': { speaker: 'CAPCOM', text: 'Copy, five point zero.' },
+  'act2.panel': {
+    speaker: 'CMP',
+    text: "Breakers on that panel don't match the card. Set them like it says.",
+  },
+  'act2.paneldone': { speaker: 'CAPCOM', text: 'Panel looks good from here.' },
+  'act2.site': {
     speaker: 'CDR',
-    text: 'Computer has three faults up. Clear them one at a time.',
+    text: "Eagle's computer wants the landing site numbers. They're on the card.",
   },
-  'act2.compdone': { speaker: 'CAPCOM', text: 'Computer is clean. You are go for the night.' },
+  'act2.sitedone': { speaker: 'CAPCOM', text: 'We copy the site. Eagle is ready.' },
   'act2.longer': {
     speaker: 'CMP',
-    text: 'You were gone a while. That tunnel is three pushes. Did you get lost in there?',
+    text: "You were gone a while. It's three pushes down that tunnel.",
   },
-  'act2.sleep': { speaker: 'CDR', text: 'Lights out. Get in your bag, Buzz. Big day tomorrow.' },
+  'act2.sleep': { speaker: 'CDR', text: "That's the list. Lights out, Buzz. Big day tomorrow." },
   'act3.los': { speaker: 'LOS', text: 'Loss of signal. No Houston until we come around.', seconds: 3.5 },
   'act3.hold': { speaker: 'CDR', mood: 'whisper', text: 'Hold your breath. Do not make a sound.' },
   'act3.impostor': { speaker: 'CAPCOM', text: 'Columbia, Houston. Say again, how many crew aboard?' },

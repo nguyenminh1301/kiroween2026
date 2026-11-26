@@ -12,7 +12,6 @@ describe('DSKY', () => {
   it('shows the scripted display after each press', () => {
     const s = createStages()
     s.launchDone()
-    s.flip()
     s.press()
     expect(s.dsky()).toMatchObject({ prog: '01', verb: '37' })
     s.press()
@@ -25,8 +24,6 @@ describe('DSKY', () => {
     const s = createStages()
     expect(s.press()).toBe(0)
     s.launchDone()
-    expect(s.press()).toBe(0)
-    s.flip()
     expect(s.press()).toBe(1)
     s.press()
     s.press()

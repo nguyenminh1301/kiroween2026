@@ -19,6 +19,8 @@ export const RAIL_HEIGHT = 1.2
 export const PLAYER_START: Vec3 = { x: 0, y: 0, z: 5 }
 export const PAD0_POS: Vec3 = { x: 0.7, y: 0, z: 2.6 }
 export const PAD1_POS: Vec3 = { x: 0.9, y: 0, z: -8.2 }
+/** The second crewman on the arm, by the left rail. */
+export const PAD2_POS: Vec3 = { x: -0.65, y: 0, z: -2.4 }
 export const HATCH_POS: Vec3 = { x: 0, y: 1.25, z: -8.95 }
 export const HATCH_RADIUS = 0.6
 export const SUN_DIRECTION: Vec3 = { x: -0.6, y: 0.2, z: -1 }
@@ -94,9 +96,10 @@ export const COLLISION_BOXES: Box[] = [
   box(-ROOM_HALF - 0.2, 0, ROOM_Z_END - 0.2, -ROOM_HALF, ROOM_HEIGHT + 0.2, WALK_Z_END),
   box(ROOM_HALF, 0, ROOM_Z_END - 0.2, ROOM_HALF + 0.2, ROOM_HEIGHT + 0.2, WALK_Z_END),
   box(-ROOM_HALF, 0, ROOM_Z_END - 0.2, ROOM_HALF, ROOM_HEIGHT, ROOM_Z_END),
-  // The two pad crew stand still.
+  // The three pad crew stand still.
   box(PAD0_POS.x - 0.2, 0, PAD0_POS.z - 0.2, PAD0_POS.x + 0.2, 1.8, PAD0_POS.z + 0.2),
   box(PAD1_POS.x - 0.2, 0, PAD1_POS.z - 0.2, PAD1_POS.x + 0.2, 1.8, PAD1_POS.z + 0.2),
+  box(PAD2_POS.x - 0.2, 0, PAD2_POS.z - 0.2, PAD2_POS.x + 0.2, 1.8, PAD2_POS.z + 0.2),
 ]
 
 export interface Bootprint {

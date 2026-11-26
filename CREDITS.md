@@ -48,7 +48,6 @@ Recordings in `public/audio/`, trimmed, converted to mono MP3 and loudness-norma
 |------|------|-------|
 | All spoken lines in `public/audio/vo/` | ElevenLabs text to speech (premade voices) | Generated for the earlier build of this game and copied in as finished files. Created with ElevenLabs, free plan: attribution required, check the plan terms before any commercial use. |
 | `public/audio/vo/act0.intro1.mp3` | ElevenLabs text to speech | Narrator, act 0. Same terms as above. |
-| `public/audio/vo/act0.intro2.mp3` | ElevenLabs text to speech | Narrator, act 0. Same terms as above. |
 | `public/audio/vo/act5.end.mp3` | ElevenLabs text to speech | Narrator, act 5. Same terms as above. |
 | `public/audio/crowd_cheer.mp3` | ElevenLabs sound effects | Same terms as above. |
 

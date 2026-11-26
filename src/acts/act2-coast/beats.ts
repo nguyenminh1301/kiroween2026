@@ -4,7 +4,7 @@
 // player's view. No Three.js or React imports.
 
 export type ObjectiveKey = 'repairs' | 'act2Back' | 'act2Sleep' | 'act2Eyes'
-export type RepairName = 'o2' | 'press' | 'comp'
+export type RepairName = 'o2' | 'press' | 'panel' | 'site'
 /** What the player does next after a step: more repairs, the trip back, or bed. */
 export type Next = 'repairs' | 'back' | 'sleep'
 
@@ -24,6 +24,8 @@ export interface Act2Beats {
   begin(): void
   /** The player came near the oxygen line joint. */
   nearJoint(): void
+  /** The player came near the breaker panel. */
+  nearPanel(): void
   /** The player floated into the lander. */
   enterLander(): void
   /** A repair is done. */
@@ -40,7 +42,8 @@ export interface Act2Beats {
 const DONE_LINE: Record<RepairName, string> = {
   o2: 'act2.o2done',
   press: 'act2.pressdone',
-  comp: 'act2.compdone',
+  panel: 'act2.paneldone',
+  site: 'act2.sitedone',
 }
 
 export function createAct2Beats(d: Act2BeatDeps): Act2Beats {
@@ -70,9 +73,13 @@ export function createAct2Beats(d: Act2BeatDeps): Act2Beats {
       go()
       say('act2.o2')
     },
+    nearPanel() {
+      go()
+      say('act2.panel')
+    },
     enterLander() {
       go()
-      say('act2.comp')
+      say('act2.site')
     },
     repairDone(which, next) {
       go()

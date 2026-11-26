@@ -1,7 +1,7 @@
-// The act 1 stage machine: launch, switch, keyin, tli, done. Pure: no Three.js or React imports.
-import { dskyAfterPress, initialDsky, withKeyRel, type DskyState } from '../../procgen/cabin/dsky'
+// The act 1 stage machine: launch, keyin, tli, done. Pure: no Three.js or React imports.
+import { dskyAfterPress, initialDsky, type DskyState } from '../../procgen/cabin/dsky'
 
-export type Stage = 'launch' | 'switch' | 'keyin' | 'tli' | 'done'
+export type Stage = 'launch' | 'keyin' | 'tli' | 'done'
 
 export const KEY_PRESSES = 3
 
@@ -11,8 +11,6 @@ export interface Stages {
   dsky(): DskyState
   /** The launch timeline ended. Only works in `launch`. */
   launchDone(): boolean
-  /** The red switch was flipped. Works once, only in `switch`. */
-  flip(): boolean
   /** A DSKY press. Works only in `keyin`. Returns the press number (1 to 3) or 0 when ignored. */
   press(): number
   /** The TLI timeline ended. Only works in `tli`. */
@@ -29,13 +27,7 @@ export function createStages(): Stages {
     dsky: () => dsky,
     launchDone() {
       if (stage !== 'launch') return false
-      stage = 'switch'
-      return true
-    },
-    flip() {
-      if (stage !== 'switch') return false
       stage = 'keyin'
-      dsky = withKeyRel(dsky, true)
       return true
     },
     press() {

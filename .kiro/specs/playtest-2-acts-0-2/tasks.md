@@ -1,7 +1,7 @@
 # Tasks
 
 - [x] 1. Breathing only on the surface and in the dream (req 1)
-- [ ] 2. New dialogue, speakers, recordings (req 2)
+- [x] 2. New dialogue, speakers, recordings (req 2)
 - [ ] 3. Act 0 hatch scene (req 3)
 - [ ] 4. Act 1 longer launch, no oxygen check (req 4)
 - [ ] 5. Eye height, brighter cabin, crew and drifting items (req 5)

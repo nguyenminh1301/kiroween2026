@@ -9,18 +9,14 @@ import { getPlayerBody, setPlayerBody } from '../../engine/playerRuntime'
 import { addPlayerSystem } from '../../engine/playerSystem'
 import { gameStore } from '../../engine/store'
 import { focus } from '../../interaction/Focus'
-import { registerInteractable, registerSighting } from '../../interaction/interactables'
+import { registerInteractable } from '../../interaction/interactables'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
 import { showHint } from '../../ui/hints'
 import {
   BODY_POS,
   DSKY_POS,
   DSKY_RADIUS,
-  O2_POS,
-  O2_RADIUS,
   START_PITCH,
-  SWITCH_POS,
-  SWITCH_RADIUS,
 } from '../../procgen/cabin/layout'
 import { setCameraShaker } from '../../engine/cameraShake'
 import { launchEnvelope, shakeSample, tliEnvelope } from './shake'
@@ -74,7 +70,7 @@ export function startAct1(): void {
       if (alive) done()
     })
   }
-  const setObjective = (key: 'act1Switch' | 'act1Key' | null): void =>
+  const setObjective = (key: 'act1Key' | null): void =>
     gameStore.getState().setObjective(key ? CHECKLISTS[key] : null)
   const syncDsky = (): void => {
     cabinState.dsky = stages.dsky()
@@ -95,7 +91,7 @@ export function startAct1(): void {
           },
           earthLines: () =>
             say('act1.earth', {}, () =>
-              say('act1.moon', {}, () =>
+              say('act1.look', {}, () =>
                 say('act1.rest', {}, () => {
                   stages.tliDone()
                   completeAct()
@@ -115,9 +111,9 @@ export function startAct1(): void {
   function onLaunchEnd(): void {
     if (!stages.launchDone()) return
     act1State.view = 'cabin'
-    say('act1.switch', {
+    say('act1.key', {
       onStart: () => {
-        setObjective('act1Switch')
+        setObjective('act1Key')
         void showHint('use')
       },
     })
@@ -150,21 +146,6 @@ export function startAct1(): void {
   }).start()
 
   registerInteractable({
-    id: 'act1:switch',
-    verb: 'FLIP',
-    position: { ...SWITCH_POS },
-    radius: SWITCH_RADIUS,
-    enabled: () => stages.stage() === 'switch',
-    use() {
-      if (!stages.flip()) return
-      audio.play('switch')
-      cabinState.switchFlipped = true
-      syncDsky()
-      setObjective('act1Key')
-      say('act1.key')
-    },
-  })
-  registerInteractable({
     id: 'act1:dsky',
     verb: 'KEY IN',
     position: { ...DSKY_POS },
@@ -181,5 +162,4 @@ export function startAct1(): void {
       }
     },
   })
-  registerSighting({ id: 'o2-for-four', position: { ...O2_POS }, radius: O2_RADIUS, maxDistance: 3 })
 }
