@@ -44,16 +44,14 @@ export function canopyTexture(): Texture {
   })
 }
 
-/** White stencil text on a clear background, for the helicopter's side. */
-export function stencilTexture(lines: string[]): Texture {
-  return make(256, 128, (c) => {
-    c.clearRect(0, 0, 256, 128)
-    c.fillStyle = '#f4f1e6'
+/** Bold black text on a clear background, for the helicopter's number and name. */
+export function markTexture(text: string, color = '#101214'): Texture {
+  return make(128, 64, (c) => {
+    c.clearRect(0, 0, 128, 64)
+    c.fillStyle = color
     c.textAlign = 'center'
     c.textBaseline = 'middle'
-    c.font = 'bold 52px monospace'
-    c.fillText(lines[0] ?? '', 128, 34)
-    c.font = 'bold 64px monospace'
-    c.fillText(lines[1] ?? '', 128, 94)
+    c.font = `bold ${text.length > 3 ? 40 : 66}px sans-serif`
+    c.fillText(text, 64, 35)
   })
 }
