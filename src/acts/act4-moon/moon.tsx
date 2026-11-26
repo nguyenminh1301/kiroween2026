@@ -18,8 +18,8 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { createRng } from '../../procgen/rng'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { SITES, groundAt, rocks } from './terrain'
-import { buildTerrainGeometry } from './terrainGeo'
+import { SITES, groundAt, rocks, surfaceAt } from './terrain'
+import { buildFarGeometry, buildTerrainGeometry } from './terrainGeo'
 
 const EARTH_POS: [number, number, number] = [-40, 75, -110]
 
@@ -51,11 +51,12 @@ function ringsGeometry(): BufferGeometry {
 
 export function Moon() {
   const terrain = useMemo(buildTerrainGeometry, [])
+  const far = useMemo(buildFarGeometry, [])
   const terrainMat = useMemo(() => createMaterial({ color: '#ffffff', textureName: 'regolith', textureSeed: 9 }), [])
   const rockMat = useMemo(() => createMaterial({ color: '#e6e1d2', textureName: 'regolith', textureSeed: 4 }), [])
   const rockGeo = useMemo(() => new IcosahedronGeometry(1, 0), [])
   const rockList = useMemo(() => rocks(), [])
-  const stars = useMemo(() => starGeometry(700, 450), [])
+  const stars = useMemo(() => starGeometry(700, 3500), [])
   const starMat = useMemo(() => new PointsMaterial({ color: '#ffffff', size: 1, sizeAttenuation: false, fog: false }), [])
   const earth = useMemo(() => new SphereGeometry(6, 16, 12), [])
   const earthMat = useMemo(() => createMaterial({ kind: 'unlit', textureName: 'earthCloud', textureSeed: 3, fog: false, snap: false }), [])
@@ -68,7 +69,7 @@ export function Moon() {
     rockList.forEach((r, i) => {
       q.setFromEuler(new Euler(r.tilt, r.yaw, r.tilt * 0.5))
       mat.compose(
-        new Vector3(r.x, groundAt(r.x, r.z) + r.size * 0.15, r.z),
+        new Vector3(r.x, surfaceAt(r.x, r.z) + r.size * 0.15, r.z),
         q,
         new Vector3(r.size, r.size * 0.6, r.size * 1.25),
       )
@@ -82,6 +83,7 @@ export function Moon() {
   useEffect(
     () => () => {
       terrain.dispose()
+      far.dispose()
       rockGeo.dispose()
       stars.dispose()
       earth.dispose()
@@ -93,12 +95,13 @@ export function Moon() {
       disposeMaterial(rockMat)
       disposeMaterial(earthMat)
     },
-    [terrain, rockGeo, stars, earth, rings, starMat, ringMat, rockMesh, terrainMat, rockMat, earthMat],
+    [terrain, far, rockGeo, stars, earth, rings, starMat, ringMat, rockMesh, terrainMat, rockMat, earthMat],
   )
 
   return (
     <>
       <mesh geometry={terrain} material={terrainMat} frustumCulled={false} />
+      <mesh geometry={far} material={terrainMat} frustumCulled={false} />
       <primitive object={rockMesh} />
       <points geometry={stars} material={starMat} frustumCulled={false} />
       <mesh geometry={earth} material={earthMat} position={EARTH_POS} frustumCulled={false} />

@@ -6,7 +6,7 @@ import { Moon } from './moon'
 export function Scene() {
   return (
     <>
-      <PlayerCamera />
+      <PlayerCamera far={4000} />
       <ambientLight color="#6a6a76" intensity={1.6} />
       <directionalLight color="#fff1dc" intensity={2.3} position={[40, 24, 60]} />
       <Moon />

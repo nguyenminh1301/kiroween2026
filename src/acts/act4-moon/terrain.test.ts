@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { collisionBoxes, runStart, yawToward } from './layout'
-import { PITS, SITES, groundAt, rocks } from './terrain'
+import { FAR_EDGE, PITS, SITES, curveDrop, farCraters, groundAt, rocks, surfaceAt } from './terrain'
+import { buildFarGeometry, buildTerrainGeometry } from './terrainGeo'
 
 describe('terrain', () => {
   it('is flat at the lander and the task sites', () => {
@@ -71,5 +72,47 @@ describe('layout', () => {
     expect(r.pos.z).toBeGreaterThan(4.3)
     expect(-Math.cos(r.yaw)).toBeLessThan(0)
     expect(yawToward(0, 0, 0, -1)).toBeCloseTo(0)
+  })
+})
+
+describe('far field', () => {
+  it('drops about 1.8 m by the 2.5 km edge, the Moon curve', () => {
+    expect(curveDrop(FAR_EDGE, 0)).toBeGreaterThan(1.7)
+    expect(curveDrop(FAR_EDGE, 0)).toBeLessThan(1.9)
+    expect(surfaceAt(FAR_EDGE, 0)).toBeLessThan(-1.7)
+  })
+
+  it('meets the detailed grid without a crack', () => {
+    const near = buildTerrainGeometry().attributes.position
+    const far = buildFarGeometry().attributes.position
+    // Loop 0 of ring 0 is the first 528 vertices; the grid edge row j = 0 holds the same x and z.
+    for (let i = 0; i < 132; i += 11) {
+      const x = near.getX(i)
+      const z = near.getZ(i)
+      let found = false
+      for (let k = 0; k < 528; k++) {
+        if (Math.abs(far.getX(k) - x) < 1e-6 && Math.abs(far.getZ(k) - z) < 1e-6) {
+          found = true
+          expect(Math.abs(far.getY(k) - near.getY(i))).toBeLessThan(0.01)
+        }
+      }
+      expect(found).toBe(true)
+    }
+  })
+
+  it('stays inside the triangle budget with the near grid', () => {
+    const tris = buildTerrainGeometry().index!.count / 3 + buildFarGeometry().index!.count / 3
+    expect(tris).toBeLessThan(75000)
+  })
+
+  it('has craters and rocks that thin out with distance', () => {
+    const inner = farCraters().filter((c) => Math.hypot(c.x, c.z) < 600).length
+    const outer = farCraters().filter((c) => Math.hypot(c.x, c.z) >= 1200).length
+    expect(inner).toBeGreaterThan(0)
+    const all = rocks()
+    const nearRocks = all.filter((r) => Math.hypot(r.x, r.z) < 100).length
+    const farRocks = all.filter((r) => Math.hypot(r.x, r.z) > 600).length
+    expect(nearRocks).toBeGreaterThan(farRocks)
+    expect(outer).toBeLessThan(farCraters().length)
   })
 })

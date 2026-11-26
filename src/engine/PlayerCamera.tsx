@@ -14,13 +14,18 @@ export const CAMERA_PRIORITY = 600
  * Puts the R3F camera on the player's eye, or on the active Timeline's Shot, plus
  * shake. Registers one frame system; it never calls useFrame.
  */
-export function PlayerCamera() {
+export function PlayerCamera({ far }: { far?: number } = {}) {
   const camera = useThree((s) => s.camera)
 
   useEffect(() => {
     const cam = camera as PerspectiveCamera
     const baseFov = cam.fov
-    const baseFar = cam.far
+    const baseFar = far ?? cam.far
+    const restoreFar = cam.far
+    if (cam.far !== baseFar) {
+      cam.far = baseFar
+      cam.updateProjectionMatrix()
+    }
     const remove = registerSystem('camera', CAMERA_PRIORITY, () => {
       const body = getPlayerBody()
       if (!body) return
@@ -62,10 +67,10 @@ export function PlayerCamera() {
     return () => {
       remove()
       cam.fov = baseFov
-      cam.far = baseFar
+      cam.far = restoreFar
       cam.updateProjectionMatrix()
     }
-  }, [camera])
+  }, [camera, far])
 
   return null
 }

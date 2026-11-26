@@ -1,12 +1,21 @@
-// Moon terrain: a 120 m height field of rolling regolith, craters, three pits and flat zones.
+// Moon terrain: a 198 m detailed height field of rolling regolith, craters, three pits and flat zones,
+// and a far field out to 2.5 km that falls away with the Moon's curve. The far rings are built in terrainGeo.
 // Pure: no Three.js or React imports. `groundAt` reads the same grid the mesh is built from.
 import { createRng } from '../../procgen/rng'
 
-export const SIZE = 120
-export const CELLS = 80
+export const SIZE = 198
+export const CELLS = 132
 export const SEED = 9
 export const CELL = SIZE / CELLS
-const HALF = SIZE / 2
+export const HALF = SIZE / 2
+/** Moon radius in metres, for the horizon drop. */
+export const MOON_RADIUS = 1737400
+/** The far field ends here. */
+export const FAR_EDGE = 2500
+/** The player stays inside this radius (soft limit). */
+export const WALK_LIMIT = 80
+/** How far the sea of terrain drops below the flat plane at distance sq. */
+export const curveDrop = (x: number, z: number): number => (x * x + z * z) / (2 * MOON_RADIUS)
 
 export interface Pit {
   x: number
@@ -61,20 +70,24 @@ interface Crater {
   rim: number
 }
 
+function hash(ix: number, iz: number, seed: number): number {
+  let h = Math.imul(ix | 0, 374761393) ^ Math.imul(iz | 0, 668265263) ^ Math.imul(seed | 0, 1103515245)
+  h = Math.imul(h ^ (h >>> 13), 1274126177)
+  h ^= h >>> 16
+  return ((h >>> 0) / 4294967296) * 2 - 1
+}
+
+/** Smooth value noise on an infinite lattice with `cell` metres between points. Range about -1 to 1. */
 function lattice(seed: number, cell: number): (x: number, z: number) => number {
-  const rng = createRng(seed)
-  const n = Math.ceil(SIZE / cell) + 3
-  const v = Array.from({ length: n * n }, () => rng() * 2 - 1)
   return (x, z) => {
-    const fx = (x + HALF) / cell + 1
-    const fz = (z + HALF) / cell + 1
+    const fx = x / cell
+    const fz = z / cell
     const ix = Math.floor(fx)
     const iz = Math.floor(fz)
     const tx = smooth(fx - ix)
     const tz = smooth(fz - iz)
-    const at = (a: number, b: number): number => v[Math.min(n - 1, Math.max(0, b)) * n + Math.min(n - 1, Math.max(0, a))]
-    const top = at(ix, iz) * (1 - tx) + at(ix + 1, iz) * tx
-    const bot = at(ix, iz + 1) * (1 - tx) + at(ix + 1, iz + 1) * tx
+    const top = hash(ix, iz, seed) * (1 - tx) + hash(ix + 1, iz, seed) * tx
+    const bot = hash(ix, iz + 1, seed) * (1 - tx) + hash(ix + 1, iz + 1, seed) * tx
     return top * (1 - tz) + bot * tz
   }
 }
@@ -85,7 +98,7 @@ function parts() {
   if (built) return built
   const rng = createRng(SEED)
   const craters: Crater[] = []
-  for (let tries = 0; craters.length < 46 && tries < 400; tries++) {
+  for (let tries = 0; craters.length < 125 && tries < 900; tries++) {
     const r = 2.5 + rng() * rng() * 7
     const x = (rng() * 2 - 1) * (HALF - 4)
     const z = (rng() * 2 - 1) * (HALF - 4)
@@ -102,7 +115,9 @@ export const craters = (): readonly Crater[] => parts().craters
 
 function rawHeight(x: number, z: number): number {
   const p = parts()
-  let h = p.big(x, z) * 0.7 + p.small(x, z) * 0.22
+  // The fine noise fades out past the detailed area: far away the far field takes over.
+  const fine = 1 - smooth((Math.hypot(x, z) - 120) / 200)
+  let h = fine === 0 ? 0 : (p.big(x, z) * 0.7 + p.small(x, z) * 0.22) * fine
   for (const c of p.craters) {
     const d = Math.hypot(x - c.x, z - c.z)
     if (d < c.r * 1.45) h += craterProfile(d, c.r, c.depth, c.rim)
@@ -124,6 +139,47 @@ export function heightFn(x: number, z: number): number {
   return w === 0 ? 0 : rawHeight(x, z) * w
 }
 
+const smoothstep = smooth
+
+/** Craters beyond the detailed area. Few, and bigger the farther they are. */
+let farList: Crater[] | null = null
+export function farCraters(): readonly Crater[] {
+  if (farList) return farList
+  const rng = createRng(SEED + 7)
+  const out: Crater[] = []
+  for (let i = 0; i < 80; i++) {
+    // Log-uniform distance: dense near the edge of the detailed area, sparse far out.
+    const base = HALF + 12
+    const d = base * Math.exp(rng() * Math.log((FAR_EDGE - 400) / base))
+    const a = rng() * Math.PI * 2
+    const r = 8 + d * (0.025 + rng() * 0.05)
+    const depth = r * (0.05 + rng() * 0.05)
+    out.push({ x: Math.cos(a) * d, z: Math.sin(a) * d, r, depth, rim: depth * 0.35 })
+  }
+  farList = out
+  return out
+}
+
+let farNoise: { hills: (x: number, z: number) => number; swell: (x: number, z: number) => number } | null = null
+
+/** The far terms: low hills and big craters, fading in past 90 m and out toward the 2.5 km edge. */
+export function farHeight(x: number, z: number): number {
+  const d = Math.hypot(x, z)
+  const fadeIn = smoothstep((d - 90) / 220)
+  if (fadeIn === 0) return 0
+  const fadeOut = 1 - smoothstep((d - 1700) / 800)
+  if (!farNoise) farNoise = { hills: lattice(SEED + 4, 170), swell: lattice(SEED + 5, 700) }
+  let h = farNoise.hills(x, z) * 2.2 + farNoise.swell(x, z) * 16
+  for (const c of farCraters()) {
+    const dc = Math.hypot(x - c.x, z - c.z)
+    if (dc < c.r * 1.45) h += craterProfile(dc, c.r, c.depth, c.rim)
+  }
+  return h * fadeIn * fadeOut
+}
+
+/** Height of the surface at any (x, z): near terrain plus the far terms. No curve drop. */
+export const terrainHeight = (x: number, z: number): number => heightFn(x, z) + farHeight(x, z)
+
 let grid: Float32Array | null = null
 
 /** Grid heights, (CELLS + 1)^2, row by row from z = -60. */
@@ -131,7 +187,7 @@ export function heightGrid(): Float32Array {
   if (grid) return grid
   const n = CELLS + 1
   const g = new Float32Array(n * n)
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) g[j * n + i] = heightFn(-HALF + i * CELL, -HALF + j * CELL)
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) g[j * n + i] = terrainHeight(-HALF + i * CELL, -HALF + j * CELL)
   grid = g
   return g
 }
@@ -151,6 +207,12 @@ export function groundAt(x: number, z: number): number {
   return a * (1 - tz) + b * tz
 }
 
+/** Surface height anywhere: the grid inside it, the far field with the curve drop outside. */
+export function surfaceAt(x: number, z: number): number {
+  if (Math.abs(x) <= HALF && Math.abs(z) <= HALF) return groundAt(x, z)
+  return terrainHeight(x, z) - curveDrop(x, z)
+}
+
 export interface Rock {
   x: number
   z: number
@@ -159,17 +221,23 @@ export interface Rock {
   tilt: number
 }
 
-/** Scattered angular rocks, kept off the lander, the sites and the pits. */
-export function rocks(count = 90): Rock[] {
+/**
+ * Scattered angular rocks, kept off the lander, the sites and the pits. Dense near the lander and sparse
+ * far out, and bigger with distance so they still read.
+ */
+export function rocks(count = 360): Rock[] {
   const rng = createRng(SEED + 3)
   const out: Rock[] = []
   for (let tries = 0; out.length < count && tries < count * 8; tries++) {
-    const x = (rng() * 2 - 1) * (HALF - 2)
-    const z = (rng() * 2 - 1) * (HALF - 2)
-    const size = 0.12 + rng() * rng() * 0.9
+    const u = rng()
+    const d = 6 + u * u * u * 1400
+    const a = rng() * Math.PI * 2
+    const x = Math.cos(a) * d
+    const z = Math.sin(a) * d
+    const size = (0.12 + rng() * rng() * 0.9) * (1 + d / 90)
     const yaw = rng() * Math.PI * 2
     const tilt = (rng() - 0.5) * 0.6
-    if (Math.hypot(x, z) < 6) continue
+    if (d < 6) continue
     if (Object.values(SITES).some((s) => Math.hypot(x - s.x, z - s.z) < 2.5)) continue
     if (PITS.some((p) => Math.hypot(x - p.x, z - p.z) < p.r * 1.5)) continue
     out.push({ x, z, size, yaw, tilt })

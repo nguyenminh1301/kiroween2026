@@ -55,6 +55,7 @@ import {
   liftoffEvents,
 } from './liftoff'
 import { DOWN_SECONDS, UP_SECONDS, climbDownAt, climbUpAt, type ClimbFrame } from './climb'
+import { limitPosition } from './limits'
 import { act4State, resetAct4State } from './state'
 import {
   ITEM_FOR,
@@ -135,6 +136,7 @@ export function startAct4(requested: string): void {
   let ready = false
   let climbT = 0
   let clangs = 0
+  let farCooldown = 0
   let climbFrom: Vec3 | null = null
   let photo: { close: () => void } | null = null
   let clock = 0
@@ -416,6 +418,15 @@ export function startAct4(requested: string): void {
     (dt) => {
       const body = getPlayerBody()
       if (!body) return
+      if (phase === 'eva' || phase === 'return') {
+        const lim = limitPosition(body.pos.x, body.pos.z, dt)
+        if (lim.x !== body.pos.x || lim.z !== body.pos.z) updatePlayerBody({ pos: { x: lim.x, y: body.pos.y, z: lim.z }, vel: body.vel })
+        farCooldown = Math.max(0, farCooldown - dt)
+        if (lim.warn && farCooldown === 0) {
+          farCooldown = 25
+          say('act4.far')
+        }
+      }
       if (phase === 'exit') {
         climbT += dt
         const fr = climbDownAt(climbT)
