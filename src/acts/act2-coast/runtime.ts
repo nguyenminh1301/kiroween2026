@@ -175,8 +175,10 @@ export function startAct2(): void {
       e.preventDefault()
     }
   }
-  window.addEventListener('wheel', onWheel, { passive: false })
-  cleanupRegistry.register(() => window.removeEventListener('wheel', onWheel))
+  if (typeof window !== 'undefined') {
+    window.addEventListener('wheel', onWheel, { passive: false })
+    cleanupRegistry.register(() => window.removeEventListener('wheel', onWheel))
+  }
   addSystem(
     'act2-gauge',
     GAUGE_PRIORITY,
