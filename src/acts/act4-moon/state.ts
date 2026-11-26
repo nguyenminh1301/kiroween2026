@@ -12,6 +12,9 @@ export const act4State = {
   fill: 0,
   /** True while a cabin shot is on: the hull is hidden, the interior shows. */
   cabinView: false,
+  /** Reaction control firing rate: 0 off, 1 in the descent, 2 in the climb. `rcsT` is the clock it runs on. */
+  rcsRate: 0,
+  rcsT: 0,
   /** Ascent stage climb in the liftoff, metres. */
   ascentRise: 0,
   /** Ascent engine fire, 0 to 1. */
@@ -32,6 +35,8 @@ export function resetAct4State(): void {
   act4State.dust = 0
   act4State.fill = 0
   act4State.cabinView = false
+  act4State.rcsRate = 0
+  act4State.rcsT = 0
   act4State.ascentRise = 0
   act4State.fire = 0
   act4State.flagTip = 0

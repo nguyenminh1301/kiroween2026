@@ -1,6 +1,7 @@
 import { isDebugUrl } from '../engine/inputRuntime'
 import { startPersistence } from '../engine/persistence'
-import { setCompleteHandler, setRestartHandler } from '../engine/actFlow'
+import { importAct } from '../acts/registry'
+import { setCompleteHandler, setPreloadHandler, setRestartHandler } from '../engine/actFlow'
 import { gameStore } from '../engine/store'
 import { installDebug } from './debug'
 import { startInteraction } from '../interaction/interactionRuntime'
@@ -21,6 +22,7 @@ export function boot(): void {
     if (next) void playAct(next)
     else loader.finish()
   })
+  setPreloadHandler((next) => void importAct(next).catch(() => {}))
   setRestartHandler(() => void restartCheckpoint())
   gameStore.getState().setScreen(isDebugUrl() ? 'game' : initialScreen(readEnv()))
   if (isDebugUrl()) void loader.loadAct('sandbox')

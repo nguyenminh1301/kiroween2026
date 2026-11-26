@@ -4,7 +4,7 @@ import { audio, radio, startAudioSession } from '../../audio'
 import { breathAllowed } from '../../audio/scene'
 import { CHECKLISTS } from '../../content/checklists'
 import { HUD, PHOTO } from '../../content/hud'
-import { completeAct } from '../../engine/actFlow'
+import { completeAct, preloadNextAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { fxStore } from '../../engine/fx'
 import { MOON_JUMP_SPEED, MOON_GRAVITY, MOON_WALK_SPEED } from '../../engine/movement'
@@ -53,6 +53,7 @@ import {
   LIFTOFF_SHAKE,
   LIFTOFF_SHOTS,
   ascentRise,
+  fadeAt,
   fireLevel,
   flagTip,
   liftoffEvents,
@@ -226,6 +227,8 @@ export function startAct4(requested: string): void {
         act4State.dust = dustAt(t)
         act4State.fill = descentFill(t)
         act4State.cabinView = cabinShotAt(DESCENT_SHOTS, t)
+        act4State.rcsT = t
+        act4State.rcsRate = t > 1 && t < DESCENT_DURATION - 1 ? 1 : 0
       },
     }).start()
   }
@@ -283,6 +286,7 @@ export function startAct4(requested: string): void {
     clangs = 0
     fxStore.getState().setDsky(null)
     act4State.landerY = 0
+    act4State.rcsRate = 0
     act4State.cabinView = false
     act4State.plume = false
     act4State.dust = 0
@@ -491,13 +495,17 @@ export function startAct4(requested: string): void {
             if (!on) fxStore.getState().setReadout(null)
           },
           anomaly: (id) => gameStore.getState().addAnomalySeen(id),
+          preload: preloadNextAct,
           end: fin,
         },
       ),
       onTick(t) {
         clock = t
         act4State.ascentRise = ascentRise(t)
+        fxStore.getState().setBlackout(fadeAt(t))
         act4State.cabinView = cabinShotAt(LIFTOFF_SHOTS, t)
+        act4State.rcsT = t
+        act4State.rcsRate = t > FIRE_AT + 0.3 && t < LIFTOFF_DURATION - 3 ? 2 : 0
         act4State.fire = fireLevel(t)
         act4State.flagTip = flagTip(t)
         act4State.blast = t >= FIRE_AT ? t - FIRE_AT : -1

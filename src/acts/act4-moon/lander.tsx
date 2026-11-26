@@ -11,6 +11,7 @@ import {
   DoubleSide,
   MeshBasicMaterial,
   Points,
+  Quaternion,
   PointsMaterial,
   RingGeometry,
   Vector3,
@@ -38,13 +39,20 @@ import { dustShape } from './descent'
 import { PROP_SPOTS, buildInterior } from './interiorGeo'
 import { faceAt } from './layout'
 import { buildProp, type PropKind } from '../../procgen/cabin/props'
-import { BLAST_DUST, BLAST_SCRAPS, blastDustAt, scrapAt } from './liftoff'
+import { RCS_COUNT, rcsFlash, rcsMount } from './rcs'
+import { BLAST_DUST, BLAST_SCRAPS, FIRE_RADIUS_TAIL, FIRE_RADIUS_TOP, blastDustAt, fireShape, scrapAt } from './liftoff'
 import { act4State } from './state'
 import { SITES, groundAt } from './terrain'
 
 const LANDER_PRIORITY = 650
 
 const DUST_POINTS = 220
+
+const RCS_MOUNTS = Array.from({ length: RCS_COUNT }, (_, i) => {
+  const m = rcsMount(i)
+  const q = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), new Vector3(m.dir.x, m.dir.y, m.dir.z))
+  return { pos: [m.pos.x, m.pos.y, m.pos.z] as [number, number, number], q }
+})
 
 const PROPS: { id: string; kind: PropKind; pos: [number, number, number]; yaw: number }[] = (
   [
@@ -62,6 +70,9 @@ const PROPS: { id: string; kind: PropKind; pos: [number, number, number]; yaw: n
 
 const glow = (color: string, opacity: number): MeshBasicMaterial =>
   new MeshBasicMaterial({ color, transparent: true, opacity, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, fog: false })
+
+const fireMat = (color: string, opacity: number): MeshBasicMaterial =>
+  new MeshBasicMaterial({ color, vertexColors: true, transparent: true, opacity, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, fog: false })
 
 export function Lander() {
   const mat = useMemo(() => {
@@ -99,10 +110,24 @@ export function Lander() {
         g.translate(0, -0.5, 0)
         return g
       })(),
-      // The ascent flame: narrow at the bell, wide at the far end, hanging below the origin.
+      // The ascent flame: a long narrow cone, opaque at the bell, fading to nothing at the tail.
+      // Unit length, hanging below the origin; vertex alpha carries the soft tail.
       fire: (() => {
-        const g = new CylinderGeometry(0.25, 1, 1, 14, 1, true)
+        const g = new CylinderGeometry(FIRE_RADIUS_TOP, FIRE_RADIUS_TAIL, 1, 12, 8, true)
         g.translate(0, -0.5, 0)
+        const pos = g.attributes.position
+        const col = new Float32Array(pos.count * 4)
+        for (let i = 0; i < pos.count; i++) {
+          const down = -pos.getY(i)
+          col.set([1, 1, 1, (1 - down) ** 1.6], i * 4)
+        }
+        g.setAttribute('color', new BufferAttribute(col, 4))
+        return g
+      })(),
+      puff: (() => {
+        const g = new ConeGeometry(0.07, 0.45, 6, 1, true)
+        // Point along +y with the wide end away from the nozzle.
+        g.translate(0, 0.225, 0)
         return g
       })(),
       blastDisc: (() => {
@@ -144,8 +169,9 @@ export function Lander() {
       plume: glow('#a8c4ff', 0.85),
       plumeCore: glow('#ffffff', 1),
       plumeHalo: glow('#7fa4ff', 0.28),
-      fire: glow('#ffb347', 0.75),
-      fireCore: glow('#ffffff', 0.9),
+      fire: fireMat('#ffb347', 0.8),
+      fireCore: fireMat('#ffffff', 0.9),
+      puff: glow('#ffffff', 0.95),
       blastDisc: glow('#ffd9a0', 0.6),
       scraps: new PointsMaterial({ color: '#e8d494', size: 4, sizeAttenuation: false, fog: false }),
       blastDust: new PointsMaterial({ color: '#e4dcc6', size: 3, sizeAttenuation: false, transparent: true, opacity: 0.8, depthWrite: false, fog: false }),
@@ -163,6 +189,7 @@ export function Lander() {
   const inside = useRef<Group>(null)
   const plume = useRef<Group>(null)
   const fire = useRef<Group>(null)
+  const puffs = useRef<(Mesh | null)[]>([])
   const blastDisc = useRef<Mesh>(null)
   const scraps = useRef<Points>(null)
   const blastDust = useRef<Points>(null)
@@ -228,11 +255,18 @@ export function Lander() {
       if (fire.current) {
         // The flame belongs to the ascent stage: it hangs from the ascent bell and rises with it.
         fire.current.visible = s.fire > 0
-        const h = 2.6 * (0.55 + 0.45 * s.fire) * (0.92 + 0.08 * Math.sin(t * 50))
-        const r = 1.35 * (0.6 + 0.4 * s.fire)
-        fire.current.scale.set(r, h, r)
-        mats.fire.opacity = 0.75 * Math.min(1, s.fire * 2)
+        const sh = fireShape(s.fire)
+        const h = sh.length * (0.96 + 0.04 * Math.sin(t * 50))
+        fire.current.scale.set(sh.width, h, sh.width)
+        mats.fire.opacity = 0.8 * Math.min(1, s.fire * 2)
         mats.fireCore.opacity = 0.9 * Math.min(1, s.fire * 2)
+      }
+      for (let i = 0; i < RCS_COUNT; i++) {
+        const m = puffs.current[i]
+        if (!m) continue
+        const f = s.rcsRate > 0 ? rcsFlash(i, s.rcsT, s.rcsRate) : 0
+        m.visible = f > 0
+        if (f > 0) m.scale.set(1, 0.5 + f, 1)
       }
       if (blastDisc.current) {
         const near = Math.max(0, 1 - s.ascentRise / 5)
@@ -325,6 +359,9 @@ export function Lander() {
             <mesh geometry={geos.fire} material={mats.fire} />
             <mesh geometry={geos.fire} material={mats.fireCore} scale={[0.4, 1, 0.4]} />
           </group>
+          {RCS_MOUNTS.map((m, i) => (
+            <mesh key={i} ref={(o) => (puffs.current[i] = o)} geometry={geos.puff} material={mats.puff} position={m.pos} quaternion={m.q} visible={false} frustumCulled={false} />
+          ))}
         </group>
         <mesh ref={blastDisc} geometry={geos.blastDisc} material={mats.blastDisc} position={[0, STAGE_TOP + 0.04, 0]} visible={false} frustumCulled={false} />
         <group ref={plume} visible={false}>

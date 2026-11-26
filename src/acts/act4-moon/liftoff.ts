@@ -15,9 +15,26 @@ export const READOUT_CPS = 38
 export const BLAST_SCRAPS = 70
 export const BLAST_DUST = 130
 export const FLAG_TIP_DELAY = 0.4
+/** The next act is fetched this far into the shot, so the switch has nothing left to load. */
+export const PRELOAD_AT = 9
+/** The picture fades to black from here and is black at the end of the shot. */
+export const FADE_FROM = 12.6
 
 /** How far the ascent stage has climbed `t` seconds in. */
 export const ascentRise = (t: number): number => (t <= FIRE_AT ? 0 : (t - FIRE_AT) ** 1.8 * 0.9)
+
+/** Height of the ascent stage, base to top, metres. */
+export const ASCENT_LENGTH = 2.1
+/** The flame is a long narrow cone that fades over three stage lengths. */
+export const FIRE_LENGTH = ASCENT_LENGTH * 3
+export const FIRE_RADIUS_TOP = 0.3
+export const FIRE_RADIUS_TAIL = 0.55
+
+/** Flame length and width scale for a fire level 0 to 1. */
+export function fireShape(level: number): { length: number; width: number } {
+  const l = Math.min(1, Math.max(0, level))
+  return { length: FIRE_LENGTH * (0.45 + 0.55 * l), width: 0.6 + 0.4 * l }
+}
 
 /** 0 before ignition, 1 at ignition, 0 again after 7 s. */
 export const fireLevel = (t: number): number => (t < FIRE_AT ? 0 : Math.max(0, 1 - (t - FIRE_AT) / FIRE_FADE))
@@ -78,6 +95,9 @@ export function blastDustAt(i: number, tau: number): Vec3 {
   const r = 1.8 + speed * t * (1 - 0.06 * t)
   return { x: Math.cos(a) * r, y: Math.max(0.05, 0.1 + vy * t - 0.5 * MOON_G * t * t * 0.6), z: Math.sin(a) * r }
 }
+
+/** Black level, 0 to 1: 0 until `FADE_FROM`, then a straight ramp to 1 at the end. */
+export const fadeAt = (t: number): number => Math.min(1, Math.max(0, (t - FADE_FROM) / (LIFTOFF_DURATION - FADE_FROM)))
 
 /** Flag tip, 0 upright to 1 fallen. */
 export const flagTip = (t: number): number => Math.min(1, Math.max(0, (t - FIRE_AT - FLAG_TIP_DELAY) / 0.8))
@@ -155,6 +175,7 @@ export interface LiftoffHooks {
   say(id: string, opts?: { urgent?: boolean }): void
   readout(on: boolean): void
   anomaly(id: string): void
+  preload(): void
   end(): void
 }
 
@@ -177,6 +198,7 @@ export function liftoffEvents(h: LiftoffHooks): TimelineEvent[] {
         h.anomaly('flag-knocked')
       },
     },
+    { at: PRELOAD_AT, run: () => h.preload() },
     { at: 10.5, run: () => h.say('act4.columbia') },
     { at: LIFTOFF_DURATION, run: () => h.end() },
   ]

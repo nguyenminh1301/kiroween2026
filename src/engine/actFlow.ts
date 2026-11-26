@@ -35,3 +35,18 @@ export function restartAct(): void {
   const h = restartHandler
   if (h) queueMicrotask(h)
 }
+
+let preloadHandler: ((next: ActId) => void) | null = null
+
+/** Install the handler that fetches an act chunk ahead of time. */
+export function setPreloadHandler(fn: ((next: ActId) => void) | null): void {
+  preloadHandler = fn
+}
+
+/** Start fetching the next act while the current one is still playing, so the switch does not wait. */
+export function preloadNextAct(): void {
+  const from = gameStore.getState().act
+  if (!from || !preloadHandler) return
+  const next = nextAct(from)
+  if (next) preloadHandler(next)
+}
