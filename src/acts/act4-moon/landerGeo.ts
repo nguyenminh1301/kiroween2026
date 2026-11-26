@@ -166,3 +166,13 @@ export function buildSeismo(): BufferGeometry {
     cstrut([0, 0.28, 0], [0.05, 0.75, 0], 0.015, '#d8d8d4'),
   ])
 }
+
+/** A gloved hand and wrist cuff holding a carried item. Origin at the grip, fingers toward -z. */
+export function buildGlove(): BufferGeometry {
+  return mergeColored([
+    cbox(0.05, 0.04, 0.07, '#e4dfd0', 0, 0, -0.01),
+    cbox(0.03, 0.025, 0.04, '#d8d3c4', 0, 0.005, -0.06),
+    ccyl(0.03, 0.05, '#9a9588', 0.0, -0.01, 0.045, 'z', 8),
+    cbox(0.05, 0.05, 0.14, '#e4dfd0', 0.0, -0.035, 0.12),
+  ])
+}

@@ -30,6 +30,7 @@ import {
   buildLegs,
   buildScoop,
   buildSeismo,
+  buildGlove,
 } from './landerGeo'
 import { dustShape } from './descent'
 import { act4State } from './state'
@@ -58,6 +59,7 @@ export function Lander() {
       scoop: buildScoop(),
       bag: buildBag(),
       seismo: buildSeismo(),
+      glove: buildGlove(),
       plume: (() => {
         const g = new ConeGeometry(0.5, 1, 10, 1, true)
         g.rotateX(Math.PI)
@@ -175,7 +177,7 @@ export function Lander() {
       if (kitSeismo.current) kitSeismo.current.visible = !done.seismo && s.carrying !== 'seismo'
       if (held.current) {
         held.current.visible = s.carrying !== null
-        off.set(0.34, -0.3, -0.6).applyQuaternion(camera.quaternion).add(camera.position)
+        off.set(0.3, -0.24, -0.6).applyQuaternion(camera.quaternion).add(camera.position)
         held.current.position.copy(off)
         held.current.quaternion.copy(camera.quaternion)
         if (heldFlag.current) heldFlag.current.visible = s.carrying === 'flag'
@@ -227,9 +229,11 @@ export function Lander() {
       <mesh ref={bag} geometry={geos.bag} material={mat} position={[sm.x, groundAt(sm.x, sm.z), sm.z]} visible={false} />
       <mesh ref={seismo} geometry={geos.seismo} material={mat} position={[se.x, groundAt(se.x, se.z), se.z]} visible={false} />
       <group ref={held} visible={false}>
-        <mesh ref={heldFlag} geometry={geos.flagKit} material={mat} rotation={[0.9, 0, 0.3]} scale={0.7} />
-        <mesh ref={heldScoop} geometry={geos.scoop} material={mat} rotation={[0.5, 0.3, 0]} />
-        <mesh ref={heldSeismo} geometry={geos.seismo} material={mat} scale={0.6} rotation={[0.3, 0.4, 0]} />
+        {/* Small, low and to the right, as if held in a gloved hand: about 15 percent of the screen height. */}
+        <mesh ref={heldFlag} geometry={geos.flagKit} material={mat} rotation={[0.9, 0, 0.3]} scale={0.1} />
+        <mesh ref={heldScoop} geometry={geos.scoop} material={mat} rotation={[0.5, 0.3, 0]} scale={0.3} />
+        <mesh ref={heldSeismo} geometry={geos.seismo} material={mat} scale={0.13} position={[0, -0.05, 0]} rotation={[0.3, 0.4, 0]} />
+        <mesh geometry={geos.glove} material={mat} position={[0.0, -0.075, 0.02]} />
       </group>
     </>
   )
