@@ -20,14 +20,14 @@ export function drawRust(seed: number): PixelData {
     let c = lerp(RUST, OXIDE, Math.max(0, (b - 0.42) * 3.4))
     c = lerp(c, DARK, Math.max(0, (0.42 - b) * 3) + fine(x, y) * 0.3)
     // Vertical streaks: thin columns that run down the plate.
-    const s = streak(x * 3, Math.floor(y / 48) * 3)
+    const s = streak(x, Math.floor(y / 32) * 32)
     if (s > 0.62) c = lerp(c, DARK, Math.min(0.7, (s - 0.62) * 5))
     if (speck() < 0.03) c = lerp(c, DARK, 0.7)
     // Plates are 64 px square: a dark seam, a lit edge beside it.
     const mx = x % 64
     const my = y % 64
-    if (mx < 2 || my < 2) return SEAM
-    if (mx === 2 || my === 2) return lerp(c, OXIDE, 0.6)
+    if (mx < 1 || my < 1 || mx > 62 || my > 62) return SEAM
+    if (mx === 1 || my === 1 || mx === 62 || my === 62) return lerp(c, OXIDE, 0.6)
     // Bolts near each plate corner.
     for (const [bx, by] of [[8, 8], [55, 8], [8, 55], [55, 55]]) {
       const d = Math.hypot(mx - bx, my - by)
