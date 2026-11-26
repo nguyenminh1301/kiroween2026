@@ -38,6 +38,33 @@ describe('act 3 map', () => {
     expect(reachable(START, CAGE_CELL, (c, r) => behindHatch(c, r) || leftLoop(c, r) || rightLoop(c, r))).toBe(false)
   })
 
+  it('keeps the side rooms apart: each one opens only onto its loop', () => {
+    // The loops are cut: a room must not reach the other room or the cage by itself.
+    const leftStore: [number, number] = [-9.6, -7.4]
+    const rightStore: [number, number] = [9.6, -8.6]
+    const bays: Array<[number, number]> = [[-10.2, -15.2], [10.2, -14.0]]
+    const noLoops = (c: number, r: number): boolean => leftLoop(c, r) || rightLoop(c, r) || (c >= 9 && c <= 10) || (r >= 6 && r <= 7)
+    for (const from of [leftStore, rightStore, ...bays]) {
+      for (const to of [leftStore, rightStore, ...bays, CAGE_CELL]) {
+        const same = from === to
+        expect(reachable(from, to, noLoops), `${from} to ${to}`).toBe(same)
+      }
+    }
+  })
+
+  it('keeps the wall boxes out of every open cell', () => {
+    const walls = GRID.wallBoxes(2.4)
+    for (const [c, r] of GRID.openCells()) {
+      const m = GRID.center(c, r)
+      for (const [dx, dz] of [[0, 0], [0.5, 0.5], [-0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]]) {
+        const x = m.x + dx
+        const z = m.z + dz
+        const hit = walls.some((b) => x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z)
+        expect(hit, `cell ${c},${r}`).toBe(false)
+      }
+    }
+  })
+
   it('stops the player at the hatch', () => {
     const boxes = collisionBoxes()
     const hit = resolveCapsule({ x: 0, y: 0.2, z: HATCH.z + 0.8 }, { x: 0, y: 0, z: -3 }, boxes)

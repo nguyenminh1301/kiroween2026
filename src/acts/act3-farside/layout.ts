@@ -55,7 +55,7 @@ const MAP_RECTS: Rect[] = [
   { c0: 0, r0: 14, c1: 2, r1: 19 }, // left crew bay
   { c0: 3, r0: 15, c1: 3, r1: 16 }, // its door
   { c0: 6, r0: 18, c1: 7, r1: 19 }, // left dead end
-  { c0: 17, r0: 9, c1: 18, r1: 12 }, // right store room
+  { c0: 17, r0: 8, c1: 18, r1: 11 }, // right store room
   { c0: 16, r0: 10, c1: 16, r1: 10 }, // its door
   { c0: 17, r0: 13, c1: 19, r1: 18 }, // right crew bay
   { c0: 16, r0: 14, c1: 16, r1: 15 }, // its door
