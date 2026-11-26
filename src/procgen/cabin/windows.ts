@@ -5,6 +5,7 @@
 import type { Vec3 } from '../../types'
 import { wallRadius } from './cabinGeo'
 import { EYE, SHELL_SIDES } from './layout'
+import { turnAboutY } from './spin'
 
 export type WindowKey = 'hatch' | 'left' | 'right' | 'rdvLeft' | 'rdvRight'
 
@@ -100,7 +101,8 @@ const EARTH_RIGHT = norm(cross(EARTH_DIR, { x: 0, y: 1, z: 0 }))
 const EARTH_UP = cross(EARTH_RIGHT, EARTH_DIR)
 
 /** Position inside the Earth disc as (a, b) in -1..1 (b up), or null when `dir` misses it. */
-export function earthDisc(dir: Vec3): { a: number; b: number } | null {
+export function earthDisc(dirIn: Vec3, sway = 0): { a: number; b: number } | null {
+  const dir = sway === 0 ? dirIn : turnAboutY(dirIn, sway)
   if (dot(dir, EARTH_DIR) <= 0) return null
   const a = dot(dir, EARTH_RIGHT) / EARTH_RADIUS
   const b = dot(dir, EARTH_UP) / EARTH_RADIUS

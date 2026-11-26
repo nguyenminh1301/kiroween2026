@@ -2,6 +2,7 @@
 // Every texel is looked up by its world direction, so all windows show one outside world. The view is the
 // window's own quad, so nothing in it can leave the frame.
 // Pure pixels: no Three.js, no canvas.
+import { earthSway, turnAboutY } from './cabin/spin'
 import { earthDisc, starAt } from './cabin/windows'
 import { drawEarthCloud } from './textures/earthCloud'
 import type { PixelData } from './textures/helpers'
@@ -16,6 +17,8 @@ export interface WindowViewState {
   t: number
   /** Show the Earth disc. */
   earth: boolean
+  /** Spacecraft yaw in radians. The stars drift by it. Default 0. */
+  spin?: number
 }
 
 export interface WindowViewSpec {
@@ -25,6 +28,8 @@ export interface WindowViewSpec {
   /** The direction from the eye through each texel (3 floats, row by row from the top), see cabin/windows.ts. */
   dirs: Float32Array
   seed: number
+  /** Only the Earth window shows the Earth. Default true. */
+  earthWindow?: boolean
 }
 
 let earthPixels: PixelData | null = null
@@ -53,6 +58,7 @@ export function paintWindowView(buf: Uint8Array, spec: WindowViewSpec, st: Windo
   const dark = Math.min(1, Math.max(0, (0.45 * 255 * 3 - (sr + sg + sb)) / (0.3 * 255 * 3)))
   if (st.earth && !earthPixels) earthPixels = drawEarthCloud(3)
   const flick = Math.floor(st.t * 14)
+  const sway = earthSway(st.t)
   for (let y = 0; y < h; y++) {
     const v = y / (h - 1)
     for (let x = 0; x < w; x++) {
@@ -97,7 +103,7 @@ export function paintWindowView(buf: Uint8Array, spec: WindowViewSpec, st: Windo
           b = mix(sb, 238, haze)
         }
       } else if (dark > 0) {
-        const star = starAt({ x: dirs[(y * w + x) * 3], y: dirs[(y * w + x) * 3 + 1], z: dirs[(y * w + x) * 3 + 2] })
+        const star = starAt(turnAboutY({ x: dirs[(y * w + x) * 3], y: dirs[(y * w + x) * 3 + 1], z: dirs[(y * w + x) * 3 + 2] }, st.spin ?? 0))
         if (star > 0) {
           const s = 110 + star * 145
           r = mix(r, s, dark)
@@ -105,9 +111,9 @@ export function paintWindowView(buf: Uint8Array, spec: WindowViewSpec, st: Windo
           b = mix(b, s, dark)
         }
       }
-      if (st.earth && st.mode === 'sky' && earthPixels) {
+      if (st.earth && spec.earthWindow !== false && st.mode === 'sky' && earthPixels) {
         const i3 = (y * w + x) * 3
-        const disc = earthDisc({ x: dirs[i3], y: dirs[i3 + 1], z: dirs[i3 + 2] })
+        const disc = earthDisc({ x: dirs[i3], y: dirs[i3 + 1], z: dirs[i3 + 2] }, sway)
         if (disc) {
           const dx = disc.a
           const dy = -disc.b

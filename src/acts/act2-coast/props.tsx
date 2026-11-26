@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react'
 import { PlaneGeometry, Shape, ShapeGeometry, type BufferGeometry, type Mesh } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
 import { buildFigure } from '../../procgen/figure'
+import { spinAngle } from '../../procgen/cabin/spin'
 import { driftOffset, driftSpin } from '../../procgen/cabin/drift'
 import { buildProp, type PropKind } from '../../procgen/cabin/props'
 import { createRng } from '../../procgen/rng'
@@ -219,14 +220,18 @@ export function Props({ cmFar }: { cmFar: number }) {
     return { cdr, cmp, cy: c.y, my: m.y }
   }, [cmFar])
 
+  const starRefs = useMemo(() => [null, null] as (Mesh | null)[], [])
   useEffect(() => {
     return registerSystem('act2-props', PROP_PRIORITY, (_dt, t) => {
+      // The spacecraft turns once in 120 s: the stars slide across the lander windows.
+      const slide = Math.sin(spinAngle(t)) * 0.09
+      starRefs.forEach((m) => m?.position.set(slide, Math.cos(spinAngle(t)) * 0.04, 0.012))
       figures.cdr.setPose('sleeping', t * 0.3)
       figures.cmp.setPose('sleeping', t * 0.3 + 2)
       figures.cdr.root.position.y = figures.cy + Math.sin(t * 0.7) * 0.04
       figures.cmp.root.position.y = figures.my + Math.sin(t * 0.7 + 2) * 0.04
     })
-  }, [figures])
+  }, [figures, starRefs])
 
   useEffect(
     () => () => {
@@ -262,7 +267,7 @@ export function Props({ cmFar }: { cmFar: number }) {
         <group key={s} position={[s * 0.62, 1.6, winZ]} rotation={[0, -s * 0.4, 0]}>
           <mesh geometry={triFrame} material={mats.frame} position={[0, 0, 0.0]} />
           <mesh geometry={tri} material={mats.glass} position={[0, 0, 0.01]} />
-          <mesh geometry={stars[i]} material={mats.star} position={[0, 0, 0.012]} />
+          <mesh ref={(m) => void (starRefs[i] = m)} geometry={stars[i]} material={mats.star} position={[0, 0, 0.012]} />
         </group>
       ))}
       <primitive object={figures.cdr.root} />

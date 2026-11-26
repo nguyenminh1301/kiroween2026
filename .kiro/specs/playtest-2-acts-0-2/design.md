@@ -11,3 +11,4 @@ Decisions
 - Bedtime: one fade, no breaths. Act ends 4 s after black.
 - Assumption: the unused `act2.comp` and `act2.compdone` lines become `act2.panel` and `act2.site` pairs as listed in the prompt.
 - Decision (task 5): the player sits in the middle couch, eye 0.7 m above the cushion (`SEAT_Y` + 0.7). Neil sits left and Mike right and loop the 9 s `working` pose. Act 2 has no seat, so its start eye stays; no player body is drawn in either act. The Earth radius shrank to 0.1 so the disc fits the right window from the middle seat.
+- Decision (task 6): the turn is applied to the star lookup by yaw. The Earth stays in the right window only and sways 3 degrees across it each turn, so it never leaves the frame. Act 2 lander windows slide their star planes by the same angle.

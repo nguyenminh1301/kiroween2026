@@ -32,6 +32,30 @@ describe('window view', () => {
     expect(leftBlue).toBe(0)
   })
 
+  it('shows the Earth only in the window flagged for it, and keeps it in view through the whole turn', () => {
+    const blue = (b: Uint8Array) => {
+      let n = 0
+      for (let i = 0; i < b.length; i += 4) if (b[i + 2] > 60 && b[i + 2] > b[i] + 20) n++
+      return n
+    }
+    const b = new Uint8Array(spec.w * spec.h * 4)
+    paintWindowView(b, { ...spec, earthWindow: false }, { mode: 'sky', sky: [0, 0, 0], t: 0, earth: true })
+    expect(blue(b)).toBe(0)
+    for (const t of [0, 10, 30, 60, 90]) {
+      paintWindowView(b, spec, { mode: 'sky', sky: [0, 0, 0], t, earth: true, spin: 0 })
+      expect(blue(b)).toBeGreaterThan(60)
+    }
+  })
+
+  it('moves the stars when the spacecraft turns', () => {
+    const a = new Uint8Array(spec.w * spec.h * 4)
+    const b = new Uint8Array(spec.w * spec.h * 4)
+    const st = { mode: 'sky' as const, sky: [0, 0, 0] as const, t: 0, earth: false }
+    paintWindowView(a, spec, { ...st, spin: 0 })
+    paintWindowView(b, spec, { ...st, spin: 0.5 })
+    expect(Buffer.compare(Buffer.from(a), Buffer.from(b))).not.toBe(0)
+  })
+
   it('paints plasma orange and sea blue', () => {
     const b = new Uint8Array(spec.w * spec.h * 4)
     paintWindowView(b, spec, { mode: 'plasma', sky: [0, 0, 0], t: 1, earth: false })

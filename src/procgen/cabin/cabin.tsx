@@ -24,6 +24,7 @@ import { COUCH_X, SHELL_SIDES } from './layout'
 import { viewDirections, windowDefs } from './windows'
 import { cabinState } from './cabinState'
 import { buildProp } from './props'
+import { spinAngle } from './spin'
 
 const WINDOW_PRIORITY = 650
 
@@ -61,7 +62,7 @@ function Windows() {
         tex.generateMipmaps = false
         tex.colorSpace = SRGBColorSpace
         const mat = new MeshBasicMaterial({ map: tex, fog: false, side: DoubleSide })
-        return { buf, tex, mat, spec: { w, h, round: s.round, dirs: viewDirections(s, w, h), seed: 40 + i } }
+        return { buf, tex, mat, spec: { w, h, round: s.round, dirs: viewDirections(s, w, h), seed: 40 + i, earthWindow: s.key === 'right' } }
       }),
     [specs],
   )
@@ -87,6 +88,7 @@ function Windows() {
         sky: [c.r * 255, c.g * 255, c.b * 255] as const,
         t: clock,
         earth: cabinState.earth,
+        spin: spinAngle(clock),
       }
       for (const v of views) {
         paintWindowView(v.buf, v.spec, st)
