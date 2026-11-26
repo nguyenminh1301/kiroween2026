@@ -33,9 +33,8 @@ import {
   CHECKPOINTS,
   EVA_START,
   FLAG_KIT,
-  LADDER_FOOT,
+  CABIN_EYE,
   LADDER_SPOT,
-  PORCH,
   RADIUS,
   PHOTO_SPOT,
   SCOOP_SPOT,
@@ -55,6 +54,7 @@ import {
   flagTip,
   liftoffEvents,
 } from './liftoff'
+import { DOWN_SECONDS, UP_SECONDS, climbDownAt, climbUpAt, type ClimbFrame } from './climb'
 import { act4State, resetAct4State } from './state'
 import {
   ITEM_FOR,
@@ -79,11 +79,10 @@ import {
 import { SITES, groundAt } from './terrain'
 
 const LOGIC_PRIORITY = 300
-const CLIMB_SECONDS = 1.3
 const PHOTO_SECONDS = 5
 const PHOTO_GUARD = 0.5
 
-type Phase = 'descent' | 'eva' | 'return' | 'climb' | 'liftoff'
+type Phase = 'descent' | 'exit' | 'eva' | 'return' | 'climb' | 'liftoff'
 
 const LINE_FOR_TAKE: Record<Item, string> = { flag: 'act4.plant', scoop: 'act4.takescoop', seismo: 'act4.takeseismo' }
 const LINE_FOR_DO: Record<TaskId, string> = { flag: 'act4.flag', sample: 'act4.sample', seismo: 'act4.seismo' }
@@ -135,6 +134,8 @@ export function startAct4(requested: string): void {
   let tasks: TaskState = createTasks()
   let ready = false
   let climbT = 0
+  let clangs = 0
+  let climbFrom: Vec3 | null = null
   let photo: { close: () => void } | null = null
   let clock = 0
   setAct4Source(() => ({
@@ -189,7 +190,7 @@ export function startAct4(requested: string): void {
           dsky: (r) => fxStore.getState().setDsky(r),
           beep: () => audio.play('alarm'),
         }),
-        { at: DESCENT_DURATION, run: () => alive && eva(true) },
+        { at: DESCENT_DURATION, run: () => alive && exitHatch() },
       ],
       onTick(t) {
         clock = t
@@ -200,6 +201,37 @@ export function startAct4(requested: string): void {
         act4State.fill = descentFill(t)
       },
     }).start()
+  }
+
+  // ---- The ladder, down ----
+  const applyClimb = (fr: ClimbFrame): void => {
+    updatePlayerBody({ pos: { x: fr.eye.x, y: fr.eye.y - 1.65, z: fr.eye.z }, mode: 'seated' })
+    const c = act4State.climb
+    c.hands = fr.hands
+    c.phase = fr.handPhase
+    while (clangs < fr.clangs) {
+      clangs++
+      audio.play('clang')
+    }
+  }
+
+  /** Crawl backward out of the hatch, climb down nine rungs, drop onto the footpad, step off. About 8 s. */
+  function exitHatch(): void {
+    phase = 'exit'
+    climbT = 0
+    clangs = 0
+    fxStore.getState().setDsky(null)
+    act4State.landerY = 0
+    act4State.plume = false
+    act4State.dust = 0
+    act4State.fill = 0
+    audio.setScene({ hum: 0, bed: 'none', breath: true })
+    gameStore.getState().setTension('CALM')
+    vitals(0.2, 96)
+    gameStore.getState().setCheckpoint('tasks')
+    gameStore.getState().setMoveMode('seated')
+    updatePlayerBody({ yaw: 0, pitch: -0.15, mode: 'seated' })
+    applyClimb(climbDownAt(0))
   }
 
   // ---- EVA ----
@@ -218,8 +250,6 @@ export function startAct4(requested: string): void {
       gameStore.getState().setMoveMode('walk')
       updatePlayerBody({
         pos: { x: EVA_START.x, y: groundAt(EVA_START.x, EVA_START.z), z: EVA_START.z },
-        yaw: EVA_START.yaw,
-        pitch: 0,
         mode: 'walk',
       })
     }
@@ -330,7 +360,7 @@ export function startAct4(requested: string): void {
   })
   registerInteractable({
     id: 'act4:ladder',
-    verb: 'GRAB',
+    verb: 'CLIMB',
     position: { ...LADDER_SPOT },
     radius: RADIUS.ladder,
     enabled: () => phase === 'return',
@@ -342,10 +372,12 @@ export function startAct4(requested: string): void {
     if (phase !== 'return') return
     phase = 'climb'
     climbT = 0
+    clangs = 0
     focus.clearFocus()
     gameStore.getState().setObjective(null)
     gameStore.getState().setMoveMode('seated')
-    updatePlayerBody({ pos: { ...LADDER_FOOT }, vel: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0.5, mode: 'seated' })
+    const b = getPlayerBody()
+    climbFrom = b ? { x: b.pos.x, y: b.pos.y + 1.65, z: b.pos.z } : null
     audio.play('grab')
   }
 
@@ -384,20 +416,23 @@ export function startAct4(requested: string): void {
     (dt) => {
       const body = getPlayerBody()
       if (!body) return
-      if (phase === 'climb') {
+      if (phase === 'exit') {
         climbT += dt
-        const u = Math.min(1, climbT / CLIMB_SECONDS)
-        updatePlayerBody({
-          pos: {
-            x: LADDER_FOOT.x + (PORCH.x - LADDER_FOOT.x) * u,
-            y: LADDER_FOOT.y + (PORCH.y - LADDER_FOOT.y) * u,
-            z: LADDER_FOOT.z + (PORCH.z - LADDER_FOOT.z) * u,
-          },
-          vel: { x: 0, y: 0, z: 0 },
-          pitch: 0.5,
-          mode: 'seated',
-        })
-        if (u >= 1) liftoff()
+        const fr = climbDownAt(climbT)
+        applyClimb(fr)
+        if (climbT >= DOWN_SECONDS) {
+          act4State.climb.hands = false
+          eva(true)
+        }
+      } else if (phase === 'climb') {
+        climbT += dt
+        const fr = climbUpAt(climbT, climbFrom ?? undefined)
+        applyClimb(fr)
+        if (climbT >= UP_SECONDS) {
+          act4State.climb.hands = false
+          updatePlayerBody({ pos: { x: CABIN_EYE.x, y: CABIN_EYE.y - 1.65, z: CABIN_EYE.z } })
+          liftoff()
+        }
       }
     },
     { pausable: true },

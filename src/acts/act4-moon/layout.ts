@@ -17,9 +17,21 @@ export const ASCENT_TOP = 5.1
 export const FOOTPAD_DIST = 4.1
 export const FOOTPAD_RADIUS = 0.45
 
-export const LADDER_FOOT: Vec3 = { x: 0, y: 0.1, z: 4.3 }
-export const PORCH: Vec3 = { x: 0, y: 1.6, z: 2.6 }
-export const LADDER_SPOT: Vec3 = { x: 0, y: 1.1, z: 3.9 }
+/** The porch floor, level with the top of the descent stage. */
+export const PORCH_FLOOR = 3.0
+export const PORCH: Vec3 = { x: 0, y: PORCH_FLOOR, z: 2.45 }
+/** Nine rungs on the front leg, bottom rung 1.1 m above the footpad top. */
+export const RUNGS = 9
+export const RUNG_BOTTOM = 1.1
+export const RUNG_STEP = 0.22
+export const PAD_TOP = 0.15
+export const rungY = (i: number): number => RUNG_BOTTOM + RUNG_STEP * i
+/** The ladder leans out: z of rung height `y`. */
+export const ladderZ = (y: number): number => 3.45 - (y - RUNG_BOTTOM) * 0.5
+export const LADDER_FOOT: Vec3 = { x: 0, y: PAD_TOP, z: 4.05 }
+export const LADDER_SPOT: Vec3 = { x: 0, y: 1.0, z: 4.0 }
+/** The cabin end of the crawl: inside the ascent stage, behind the hatch. */
+export const CABIN_EYE: Vec3 = { x: 0, y: 3.55, z: 0.5 }
 export const FLAG_KIT: Vec3 = { x: 0.65, y: 0.9, z: 3.6 }
 export const SCOOP_SPOT: Vec3 = { x: -0.75, y: 1.7, z: 2.2 }
 export const SEISMO_KIT: Vec3 = { x: -1.35, y: 1.7, z: 1.95 }
@@ -31,7 +43,8 @@ export const SEAT_POS: Vec3 = { x: 0, y: 3.3, z: 0 }
 
 export const RADIUS = { flagKit: 0.6, tool: 0.35, site: 0.8, ladder: 0.7 } as const
 
-export const EVA_START = { x: 1.3, z: 6.4, yaw: 0.36 }
+/** Where the step off the footpad ends. */
+export const EVA_START = { x: 0.25, z: 4.95, yaw: 0 }
 export const LAST_TASK: TaskId = 'seismo'
 
 /** Yaw that faces from (fx, fz) toward (tx, tz). Yaw 0 faces -z, positive turns left. */

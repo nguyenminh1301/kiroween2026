@@ -3,7 +3,7 @@
 import { BufferGeometry, Color, ConeGeometry, Float32BufferAttribute } from 'three'
 import { QuadBuilder, cbox, ccyl, cstrut, mergeColored, type P3 } from '../../procgen/coloredGeo'
 import { createRng } from '../../procgen/rng'
-import { FOOTPAD_DIST, FOOTPAD_RADIUS, STAGE_BOTTOM, STAGE_TOP } from './layout'
+import { FOOTPAD_DIST, FOOTPAD_RADIUS, PORCH_FLOOR, RUNGS, STAGE_BOTTOM, STAGE_TOP, ladderZ, rungY } from './layout'
 
 const FOIL = '#B8A06A'
 const FOIL_HI = '#E8D494'
@@ -114,19 +114,17 @@ export function buildLegs(): BufferGeometry {
     const pb: P3 = [dirs[b][0] * 1.9, 1.5, dirs[b][1] * 1.9]
     parts.push(cstrut(pa, pb, 0.04, '#6e6040'))
   }
-  // Ladder on the front leg.
-  const top: P3 = [0, 1.75, 1.95]
-  const bot: P3 = [0, 0.15, 4.25]
-  for (const sx of [-0.22, 0.22]) parts.push(cstrut([sx, top[1], top[2]], [sx, bot[1], bot[2]], 0.06, '#c9b57a'))
-  for (let i = 0; i <= 7; i++) {
-    const f = i / 7
-    const y = top[1] + (bot[1] - top[1]) * f
-    const z = top[2] + (bot[2] - top[2]) * f
-    parts.push(cbox(0.5, 0.04, 0.07, '#c9b57a', 0, y, z))
-  }
-  for (const sx of [-0.25, 0.25]) parts.push(cstrut([sx, 1.95, 2.05], [sx, 2.0, 2.7], 0.03, '#d8d8d4'))
-  parts.push(cbox(1.0, 0.06, 0.95, '#a9a9a4', 0, 1.55, 2.4))
-  parts.push(cbox(1.0, 0.03, 0.03, '#d8d8d4', 0, 2.0, 2.7))
+  // Ladder on the front leg: two rails, nine rungs, a porch at the level of the stage top.
+  const railTop = PORCH_FLOOR
+  const railBot = rungY(0) - 0.15
+  for (const sx of [-0.24, 0.24]) parts.push(cstrut([sx, railTop, ladderZ(railTop)], [sx, railBot, ladderZ(railBot)], 0.05, '#c9b57a'))
+  for (let i = 0; i < RUNGS; i++) parts.push(cbox(0.5, 0.035, 0.06, '#d8cc98', 0, rungY(i), ladderZ(rungY(i))))
+  parts.push(cstrut([0.24, 1.5, ladderZ(1.5)], [0, 1.5, 2.6], 0.03, '#8c7a4a'))
+  parts.push(cstrut([-0.24, 1.5, ladderZ(1.5)], [0, 1.5, 2.6], 0.03, '#8c7a4a'))
+  parts.push(cbox(1.0, 0.06, 0.9, '#a9a9a4', 0, PORCH_FLOOR - 0.03, 2.45))
+  parts.push(cbox(0.9, 0.08, 0.1, '#6e6040', 0, 2.8, 2.0))
+  for (const sx of [-0.32, 0.32]) parts.push(cstrut([sx, PORCH_FLOOR, 2.85], [sx, PORCH_FLOOR + 0.5, 2.85], 0.03, '#d8d8d4'))
+  parts.push(cbox(0.7, 0.03, 0.03, '#d8d8d4', 0, PORCH_FLOOR + 0.5, 2.85))
   parts.push(cbox(1.15, 0.9, 0.28, '#5b5b58', -1.05, 1.65, 2.0))
   return mergeColored(parts)
 }
@@ -194,8 +192,9 @@ export function buildAscent(): BufferGeometry {
   parts.push(ccyl(0.38, 0.05, '#e8e6de', -0.7, 5.3, -1.0, 'z', 10))
   parts.push(cstrut([0.2, 4.74, -0.7], [0.2, 5.9, -0.7], 0.012, '#d8d8d4'))
   // Forward hatch and its landing light panel.
-  parts.push(cbox(0.55, 0.6, 0.05, '#8c8c88', 0, 3.4, 1.3))
-  parts.push(cbox(0.4, 0.45, 0.02, '#bdbdb8', 0, 3.4, 1.34))
+  parts.push(cbox(0.75, 0.8, 0.5, '#8c8c88', 0, 3.55, 1.2))
+  parts.push(cbox(0.55, 0.6, 0.03, '#0b1016', 0, 3.55, 1.46))
+  parts.push(cbox(0.7, 0.04, 0.04, '#d8d8d4', 0, 3.95, 1.46))
   // RCS quad struts.
   for (const [x, z] of [[1.5, 0.9], [-1.5, 0.9], [1.5, -0.9], [-1.5, -0.9]]) parts.push(cstrut([x * 0.82, 3.9, z * 0.82], [x, 3.9, z], 0.03, '#8c8c88'))
   return mergeColored(parts)
@@ -251,5 +250,16 @@ export function buildGlove(): BufferGeometry {
     cbox(0.03, 0.025, 0.04, '#d8d3c4', 0, 0.005, -0.06),
     ccyl(0.03, 0.05, '#9a9588', 0.0, -0.01, 0.045, 'z', 8),
     cbox(0.05, 0.05, 0.14, '#e4dfd0', 0.0, -0.035, 0.12),
+  ])
+}
+
+/** One arm in a white sleeve and a glove, for the ladder view. Origin at the glove; the sleeve runs toward +z and down. Left arm: mirror x. */
+export function buildArm(): BufferGeometry {
+  return mergeColored([
+    cbox(0.11, 0.07, 0.15, '#e4dfd0', 0, 0, -0.02),
+    cbox(0.1, 0.03, 0.05, '#d8d3c4', 0, 0.045, -0.12),
+    cbox(0.04, 0.04, 0.1, '#d8d3c4', -0.05, 0.0, -0.1),
+    cbox(0.1, 0.09, 0.16, '#9a9588', 0, -0.01, 0.11),
+    cstrut([0, -0.02, 0.15], [0.06, -0.3, 0.45], 0.12, '#ece7d8'),
   ])
 }

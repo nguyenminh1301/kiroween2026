@@ -31,6 +31,7 @@ import {
   buildScoop,
   buildSeismo,
   buildGlove,
+  buildArm,
 } from './landerGeo'
 import { dustShape } from './descent'
 import { act4State } from './state'
@@ -60,6 +61,7 @@ export function Lander() {
       bag: buildBag(),
       seismo: buildSeismo(),
       glove: buildGlove(),
+      arm: buildArm(),
       plume: (() => {
         const g = new ConeGeometry(0.5, 1, 10, 1, true)
         g.rotateX(Math.PI)
@@ -120,6 +122,9 @@ export function Lander() {
   const kitScoop = useRef<Mesh>(null)
   const kitSeismo = useRef<Mesh>(null)
   const held = useRef<Group>(null)
+  const hands = useRef<Group>(null)
+  const handL = useRef<Mesh>(null)
+  const handR = useRef<Mesh>(null)
   const heldFlag = useRef<Mesh>(null)
   const heldScoop = useRef<Mesh>(null)
   const heldSeismo = useRef<Mesh>(null)
@@ -183,6 +188,18 @@ export function Lander() {
       if (kitFlag.current) kitFlag.current.visible = !done.flag && s.carrying !== 'flag'
       if (kitScoop.current) kitScoop.current.visible = !done.sample && s.carrying !== 'scoop'
       if (kitSeismo.current) kitSeismo.current.visible = !done.seismo && s.carrying !== 'seismo'
+      if (hands.current) {
+        const c = s.climb
+        hands.current.visible = c.hands
+        if (c.hands) {
+          off.set(0, 0, 0).applyQuaternion(camera.quaternion).add(camera.position)
+          hands.current.position.copy(off)
+          hands.current.quaternion.copy(camera.quaternion)
+          const lift = Math.sin(c.phase) * 0.09
+          if (handL.current) handL.current.position.set(-0.27, -0.36 + lift, -0.55)
+          if (handR.current) handR.current.position.set(0.27, -0.36 - lift, -0.55)
+        }
+      }
       if (held.current) {
         held.current.visible = s.carrying !== null
         off.set(0.3, -0.24, -0.6).applyQuaternion(camera.quaternion).add(camera.position)
@@ -237,6 +254,10 @@ export function Lander() {
       <mesh ref={photoRing} geometry={geos.photoRing} material={mats.ring} position={[PHOTO_SPOT.x, groundAt(PHOTO_SPOT.x, PHOTO_SPOT.z) + 0.06, PHOTO_SPOT.z]} visible={false} />
       <mesh ref={bag} geometry={geos.bag} material={mat} position={[sm.x, groundAt(sm.x, sm.z), sm.z]} visible={false} />
       <mesh ref={seismo} geometry={geos.seismo} material={mat} position={[se.x, groundAt(se.x, se.z), se.z]} visible={false} />
+      <group ref={hands} visible={false}>
+        <mesh ref={handL} geometry={geos.arm} material={mat} scale={[-1, 1, 1]} frustumCulled={false} />
+        <mesh ref={handR} geometry={geos.arm} material={mat} frustumCulled={false} />
+      </group>
       <group ref={held} visible={false}>
         {/* Small, low and to the right, as if held in a gloved hand: about 15 percent of the screen height. */}
         <mesh ref={heldFlag} geometry={geos.flagKit} material={mat} rotation={[0.9, 0, 0.3]} scale={0.1} />
