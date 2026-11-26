@@ -2,7 +2,7 @@ export type EffectName =
   | 'switch' | 'breakerPush' | 'hatchSlam' | 'key' | 'alarm' | 'staging' | 'launchRoar' | 'rumble'
   | 'reentry' | 'chute' | 'splash' | 'horn' | 'locker' | 'zipper' | 'grab' | 'static'
   | 'creak' | 'groan' | 'knock' | 'scrape' | 'click' | 'sting' | 'breathe' | 'cheer'
-  | 'tap' | 'hiss' | 'gasp' | 'cage'
+  | 'tap' | 'hiss' | 'gasp' | 'cage' | 'shutter' | 'clang' | 'readout'
 
 export interface EffectDef {
   files: readonly string[]
@@ -41,6 +41,9 @@ export const EFFECTS: Record<EffectName, EffectDef> = {
   hiss: { files: [], gain: 0.35 },
   gasp: { files: [], gain: 0.8 },
   cage: { files: [], gain: 0.8 },
+  shutter: { files: [], gain: 0.8 },
+  clang: { files: [], gain: 0.4 },
+  readout: { files: [], gain: 0.25 },
 }
 
 /**

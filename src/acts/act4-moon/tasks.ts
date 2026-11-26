@@ -26,16 +26,28 @@ export interface TaskState {
   done: Record<TaskId, boolean>
   /** The last task finished, set when all three are done. */
   last: TaskId | null
+  /** The flag photo: taken once the player stands at the photo spot after planting. */
+  photoDone: boolean
 }
 
 export const createTasks = (): TaskState => ({
   carrying: null,
   done: { flag: false, sample: false, seismo: false },
   last: null,
+  photoDone: false,
 })
 
 export const remaining = (s: TaskState): TaskId[] => TASK_IDS.filter((t) => !s.done[t])
-export const allDone = (s: TaskState): boolean => remaining(s).length === 0
+export const tasksDone = (s: TaskState): boolean => remaining(s).length === 0
+/** Everything done: the three tasks and the flag photo. */
+export const allDone = (s: TaskState): boolean => tasksDone(s) && s.photoDone
+export const photoPending = (s: TaskState): boolean => s.done.flag && !s.photoDone
+export const PHOTO_ID = 'act4:photo'
+
+/** Take the flag photo. Returns null when the flag is not up or the photo is already taken. */
+export function takePhoto(s: TaskState): TaskState | null {
+  return photoPending(s) ? { ...s, photoDone: true } : null
+}
 
 export const canTake = (s: TaskState, item: Item): boolean => s.carrying === null && !s.done[TASK_FOR[item]]
 export const canDo = (s: TaskState, task: TaskId): boolean => s.carrying === ITEM_FOR[task] && !s.done[task]
@@ -45,12 +57,12 @@ export function take(s: TaskState, item: Item): TaskState | null {
   return canTake(s, item) ? { ...s, carrying: item } : null
 }
 
-/** Finish a task with the carried item. `emerge` is true when this was the third. */
-export function doTask(s: TaskState, task: TaskId): { state: TaskState; emerge: boolean } | null {
+/** Finish a task with the carried item. `finished` is true when this was the third. */
+export function doTask(s: TaskState, task: TaskId): { state: TaskState; finished: boolean } | null {
   if (!canDo(s, task)) return null
   const done = { ...s.done, [task]: true }
   const finished = TASK_IDS.every((t) => done[t])
-  return { state: { carrying: null, done, last: finished ? task : s.last }, emerge: finished }
+  return { state: { ...s, carrying: null, done, last: finished ? task : s.last }, finished }
 }
 
 const LABEL: Record<TaskId, string> = {
@@ -68,11 +80,13 @@ const CARRY_TEXT: Record<Item, string> = {
 export function objectiveText(s: TaskState): string | null {
   if (s.carrying) return CARRY_TEXT[s.carrying]
   const left = remaining(s)
-  return left.length ? ACT4_TEXT.prefix + left.map((t) => LABEL[t]).join('. ') : null
+  const photo = photoPending(s)
+  if (!left.length) return photo ? ACT4_TEXT.photo : null
+  return ACT4_TEXT.prefix + [...left.map((t) => LABEL[t]), ...(photo ? [ACT4_TEXT.photoShort] : [])].join('. ')
 }
 
 /** Interactable ids that are enabled now, for the markers. */
 export function enabledTargets(s: TaskState): string[] {
   if (s.carrying) return [SITE_ID[TASK_FOR[s.carrying]]]
-  return remaining(s).map((t) => KIT_ID[ITEM_FOR[t]])
+  return [...remaining(s).map((t) => KIT_ID[ITEM_FOR[t]]), ...(photoPending(s) ? [PHOTO_ID] : [])]
 }

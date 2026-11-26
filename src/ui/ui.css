@@ -768,3 +768,68 @@
 .gauge-hold > div.on {
   background: #2f9e44;
 }
+
+.fx-photo-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: #fff;
+  pointer-events: none;
+  animation: photo-flash 0.7s ease-out forwards;
+}
+@keyframes photo-flash {
+  0% { opacity: 1; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.fx-print {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 50;
+  margin: 0;
+  max-width: 82vw;
+  max-height: 88vh;
+  transform: translate(-50%, -50%) rotate(-1.2deg);
+  background: #efe9d8;
+  padding: 2.2vh 2.2vh 1.6vh;
+  box-shadow: 0 1.5vh 5vh rgba(0, 0, 0, 0.7);
+  animation: photo-in 0.7s steps(5) both;
+}
+.fx-print img {
+  display: block;
+  max-height: 68vh;
+  max-width: 76vw;
+  width: auto;
+  height: auto;
+  border: 1px solid #3a342a;
+}
+.fx-print figcaption {
+  margin-top: 1.2vh;
+  max-width: 62vh;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.4;
+  color: #3a342a;
+}
+@keyframes photo-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.archive-photo {
+  margin: 2vh 0;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.archive-photo img {
+  width: 120px;
+  height: auto;
+  border: 1px solid #3a342a;
+}
+.archive-photo figcaption {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.4;
+}

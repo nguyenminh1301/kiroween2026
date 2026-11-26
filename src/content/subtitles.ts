@@ -146,24 +146,15 @@ export const LINES: Record<string, Line> = {
   'act4.takeseismo': { speaker: 'CDR', text: 'Set the seismometer down on that flat spot.' },
   'act4.flag': { speaker: 'CDR', text: 'Flag is up. Houston, you should have it on camera.' },
   'act4.sample': { speaker: 'CDR', text: 'Got it. First handful of the Moon anybody ever held.' },
+  'act4.photo': { speaker: 'CDR', text: 'Stand by the flag, Buzz. Let me get your picture.' },
   'act4.seismo': {
     speaker: 'CAPCOM',
-    text: 'Tranquility, we see the seismometer. Wait. It is picking up something big.',
+    text: 'Tranquility, we see the seismometer. It is already picking up your footsteps.',
   },
-  'act4.emerge': {
-    speaker: 'CDR',
-    mood: 'shout',
-    text: 'Buzz! The crater behind you! Run for the ladder!',
-  },
-  'act4.liftoff': {
-    speaker: 'CDR',
-    mood: 'shout',
-    text: 'It is on the descent stage! Fire the engine! Burn it!',
-  },
-  'act4.burned': {
-    speaker: 'CDR',
-    text: 'It went up with the descent stage. It is not coming with us.',
-  },
+  'act4.back': { speaker: 'CDR', text: 'That is everything. Head back to the ladder.' },
+  'act4.far': { speaker: 'CDR', text: 'Not so far, Buzz. Stay where I can see you.' },
+  'act4.liftoff': { speaker: 'CDR', text: 'Engine arm, ascent. Proceed.' },
+  'act4.flagdown': { speaker: 'CDR', text: 'There goes the flag. The blast knocked it flat.' },
   'act4.columbia': {
     speaker: 'CMP',
     text: 'Eagle, Columbia. I have you in the sextant. Come on up, I kept your seats warm.',

@@ -1,5 +1,4 @@
 import { PlayerCamera } from '../../engine/PlayerCamera'
-import { CreatureView } from './creatureView'
 import { Lander } from './lander'
 import { Moon } from './moon'
 
@@ -12,7 +11,6 @@ export function Scene() {
       <directionalLight color="#fff1dc" intensity={2.3} position={[40, 24, 60]} />
       <Moon />
       <Lander />
-      <CreatureView />
     </>
   )
 }

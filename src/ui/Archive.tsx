@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { ANOMALIES } from '../content/anomalies'
+import { PHOTO } from '../content/hud'
 import { DREAM_CHOICES, FORM_LINE, MENUS } from '../content/menus'
 import { goScreen } from '../app/session'
 import { useGame } from './hooks'
@@ -38,6 +39,15 @@ export function Archive() {
             </div>
           )
         })}
+        <figure className="archive-photo" data-testid="archive-photo">
+          <img src={PHOTO.src} alt={PHOTO.alt} />
+          <figcaption>
+            {PHOTO.caption}{' '}
+            <a href={PHOTO.source} target="_blank" rel="noreferrer">
+              {m.source}
+            </a>
+          </figcaption>
+        </figure>
         <button type="button" ref={back} className="btn" onClick={() => goScreen('title')}>
           {m.back}
         </button>

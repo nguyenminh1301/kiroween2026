@@ -52,6 +52,13 @@ export interface NoiseMeter {
 /** Where the white tick is on the bar: the point where the creature hears you. */
 export const METER_TICK = 0.8
 
+/** The framed print shown for the flag photo. */
+export interface PhotoView {
+  src: string
+  caption: string
+  alt: string
+}
+
 export interface FxState {
   meter: NoiseMeter | null
   /** Screen edge darkness, 0 to 1. */
@@ -71,6 +78,8 @@ export interface FxState {
   gauge: GaugeView | null
   setGauge: (g: GaugeView | null) => void
   setBlackout: (v: number) => void
+  photo: PhotoView | null
+  setPhoto: (p: PhotoView | null) => void
   setFlashes: (f: Flash[]) => void
   setCaption: (s: string | null) => void
   setCard: (lines: string[] | null) => void
@@ -80,13 +89,14 @@ export interface FxState {
   clearFx: () => void
 }
 
-const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null }
+const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, photo: null as PhotoView | null }
 
 export const fxStore = createStore<FxState>()((set) => ({
   ...EMPTY,
   setMeter: (meter) => set({ meter }),
   setEdge: (v) => set({ edge: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
   setFlash: (flash) => set({ flash }),
+  setPhoto: (photo) => set({ photo }),
   setBlackout: (v) => set({ blackout: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
   setFlashes: (flashes) => set({ flashes: [...flashes] }),
   setCaption: (caption) => set({ caption }),

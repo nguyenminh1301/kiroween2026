@@ -71,3 +71,9 @@ The act 4 liftoff screen and the Archive quote the routine name `BURN_BABY_BURN-
 | What | Source | License |
 |------|--------|---------|
 | Luminary099, `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE.agc` | https://github.com/chrislgarry/Apollo-11 (transcribed by Virtual AGC and the MIT Museum) | Public domain |
+
+## Images
+
+| File | Source | License |
+|------|--------|---------|
+| `public/img/as11-40-5875.jpg` | NASA, Apollo 11, July 20, 1969, photo AS11-40-5875 (Buzz Aldrin beside the flag). https://www.hq.nasa.gov/alsj/a11/images11.html | Public domain (NASA) |

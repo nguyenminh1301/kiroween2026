@@ -1,9 +1,9 @@
-// Act 4 start-up: descent, EVA tasks, the creature in the crater, the ladder, liftoff and hand-off.
+// Act 4 start-up: descent, EVA tasks, the flag photo, the ladder, liftoff and hand-off.
 // Everything goes through cleanup helpers, so unloading removes it. No Three.js or React imports.
 import { audio, radio, startAudioSession } from '../../audio'
 import { CHECKLISTS } from '../../content/checklists'
-import { HUD } from '../../content/hud'
-import { completeAct, restartAct } from '../../engine/actFlow'
+import { HUD, PHOTO } from '../../content/hud'
+import { completeAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { fxStore } from '../../engine/fx'
 import { MOON_JUMP_SPEED, MOON_GRAVITY, MOON_WALK_SPEED } from '../../engine/movement'
@@ -18,7 +18,6 @@ import { registerInteractable } from '../../interaction/interactables'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
 import { showHint } from '../../ui/hints'
 import type { Vec3 } from '../../types'
-import { createEmerged, stepEmerged, type Emerged } from './creature'
 import {
   DESCENT_DURATION,
   DESCENT_SHAKE,
@@ -36,17 +35,15 @@ import {
   FLAG_KIT,
   LADDER_FOOT,
   LADDER_SPOT,
-  PIT_FOR_TASK,
   PORCH,
   RADIUS,
-  ROOF,
+  PHOTO_SPOT,
   SCOOP_SPOT,
   SEAT_POS,
   SEISMO_KIT,
   collisionBoxes,
   runStart,
   sitePos,
-  yawToward,
   type Checkpoint,
 } from './layout'
 import {
@@ -54,7 +51,6 @@ import {
   LIFTOFF_SHAKE,
   LIFTOFF_SHOTS,
   ascentRise,
-  creatureAt,
   fireLevel,
   flagTip,
   liftoffEvents,
@@ -65,8 +61,12 @@ import {
   KIT_ID,
   SITE_ID,
   TASK_IDS,
+  PHOTO_ID,
+  allDone,
   canDo,
   canTake,
+  photoPending,
+  takePhoto,
   createTasks,
   doTask,
   enabledTargets,
@@ -80,10 +80,10 @@ import { SITES, groundAt } from './terrain'
 
 const LOGIC_PRIORITY = 300
 const CLIMB_SECONDS = 1.3
-const CAUGHT_SECONDS = 1.5
-const EMERGE_FALLBACK = 14
+const PHOTO_SECONDS = 5
+const PHOTO_GUARD = 0.5
 
-type Phase = 'descent' | 'eva' | 'emerge' | 'caught' | 'climb' | 'liftoff'
+type Phase = 'descent' | 'eva' | 'return' | 'climb' | 'liftoff'
 
 const LINE_FOR_TAKE: Record<Item, string> = { flag: 'act4.plant', scoop: 'act4.takescoop', seismo: 'act4.takeseismo' }
 const LINE_FOR_DO: Record<TaskId, string> = { flag: 'act4.flag', sample: 'act4.sample', seismo: 'act4.seismo' }
@@ -134,9 +134,8 @@ export function startAct4(requested: string): void {
   let phase: Phase = 'descent'
   let tasks: TaskState = createTasks()
   let ready = false
-  let creature: Emerged | null = null
   let climbT = 0
-  let emerged = false
+  let photo: { close: () => void } | null = null
   let clock = 0
   setAct4Source(() => ({
     phase,
@@ -144,7 +143,7 @@ export function startAct4(requested: string): void {
     landerY: act4State.landerY,
     carrying: tasks.carrying,
     done: TASK_IDS.filter((t) => tasks.done[t]),
-    creature: creature ? { x: creature.x, z: creature.z, phase: creature.phase } : null,
+    photo: photo !== null,
   }))
 
   const say = (id: string, o: { urgent?: boolean; look?: Vec3; secs?: number; then?: () => void } = {}): void => {
@@ -170,6 +169,7 @@ export function startAct4(requested: string): void {
     gameStore.getState().setObjective(
       text && phase === 'eva' ? { ...CHECKLISTS.act4Tasks, text, markers: enabledTargets(tasks) } : null,
     )
+    if (!text && phase === 'eva' && allDone(tasks)) toLadder()
   }
 
   // ---- Descent ----
@@ -246,12 +246,57 @@ export function startAct4(requested: string): void {
     tasks = r.state
     audio.play('grab')
     syncTasks()
-    if (r.emerge) {
-      gameStore.getState().setObjective(null)
-      const go = (): void => emerge(task)
-      say(LINE_FOR_DO[task], { then: go })
-      addTimeout(go, EMERGE_FALLBACK)
-    } else say(LINE_FOR_DO[task])
+    say(LINE_FOR_DO[task], { then: task === 'flag' ? () => say('act4.photo') : undefined })
+  }
+
+  const usePhoto = (): void => {
+    const next = takePhoto(tasks)
+    if (!next) return
+    tasks = next
+    audio.play('shutter')
+    showPhoto()
+  }
+
+  /** The white flash, then the print for 5 s, or until E or a click. Then the tasks go on. */
+  function showPhoto(): void {
+    const fx = fxStore.getState()
+    fx.setPhoto({ src: PHOTO.src, caption: PHOTO.caption, alt: PHOTO.alt })
+    let open = true
+    const close = (): void => {
+      if (!open) return
+      open = false
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('mousedown', onClick)
+      fxStore.getState().setPhoto(null)
+      photo = null
+      syncTasks()
+    }
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.code === 'KeyE' && !e.repeat) close()
+    }
+    const onClick = (): void => close()
+    photo = { close }
+    cleanupRegistry.register(() => {
+      open = false
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('mousedown', onClick)
+    })
+    addTimeout(() => {
+      if (!open) return
+      window.addEventListener('keydown', onKey)
+      window.addEventListener('mousedown', onClick)
+    }, PHOTO_GUARD)
+    addTimeout(close, PHOTO_SECONDS)
+    syncTasks()
+  }
+
+  /** All three tasks and the photo are done: Neil sends the player back to the ladder. */
+  function toLadder(): void {
+    if (phase !== 'eva') return
+    phase = 'return'
+    gameStore.getState().setCheckpoint('run')
+    gameStore.getState().setObjective({ ...CHECKLISTS.act4Return })
+    say('act4.back')
   }
 
   for (const item of ['flag', 'scoop', 'seismo'] as const) {
@@ -276,43 +321,25 @@ export function startAct4(requested: string): void {
     })
   }
   registerInteractable({
+    id: PHOTO_ID,
+    verb: 'POSE',
+    position: { x: PHOTO_SPOT.x, y: groundAt(PHOTO_SPOT.x, PHOTO_SPOT.z) + 0.25, z: PHOTO_SPOT.z },
+    radius: RADIUS.site,
+    enabled: () => ready && phase === 'eva' && photo === null && photoPending(tasks),
+    use: usePhoto,
+  })
+  registerInteractable({
     id: 'act4:ladder',
     verb: 'GRAB',
     position: { ...LADDER_SPOT },
     radius: RADIUS.ladder,
-    enabled: () => phase === 'emerge',
+    enabled: () => phase === 'return',
     use: () => climb(),
   })
 
-  // ---- Emerge and run ----
-  function emerge(last: TaskId): void {
-    if (emerged || !alive) return
-    emerged = true
-    phase = 'emerge'
-    gameStore.getState().setCheckpoint('run')
-    const pit = PIT_FOR_TASK[last]
-    creature = createEmerged(pit, { x: 0, z: 0 })
-    act4State.creature.visible = true
-    audio.play('sting')
-    const s = gameStore.getState()
-    s.setTension('CHASE')
-    vitals(0.85, 150)
-    s.setObjective({ ...CHECKLISTS.act4Run })
-    void showHint('jump')
-    say('act4.emerge', { look: { x: creature.rim.x, y: 1.2, z: creature.rim.z }, secs: 1.4 })
-  }
-
-  function caught(): void {
-    phase = 'caught'
-    audio.play('sting')
-    fxStore.getState().setFlash(HUD.caught)
-    updatePlayerBody({ vel: { x: 0, y: 0, z: 0 } })
-    addTimeout(() => restartAct(), CAUGHT_SECONDS)
-  }
-
   // ---- Ladder and liftoff ----
   function climb(): void {
-    if (phase !== 'emerge') return
+    if (phase !== 'return') return
     phase = 'climb'
     climbT = 0
     focus.clearFocus()
@@ -324,10 +351,6 @@ export function startAct4(requested: string): void {
 
   function liftoff(): void {
     phase = 'liftoff'
-    const c = creature
-    const from: Vec3 = c ? { x: c.x, y: groundAt(c.x, c.z), z: c.z } : { x: ROOF.x, y: 0, z: ROOF.z + 6 }
-    const heading = yawToward(from.x, from.z, ROOF.x, ROOF.z)
-    creature = null
     let pending = 2
     const fin = (): void => {
       if (--pending === 0) completeAct()
@@ -339,7 +362,6 @@ export function startAct4(requested: string): void {
       events: liftoffEvents(
         {
           say: (id, o) => say(id, { urgent: o?.urgent, then: id === 'act4.columbia' ? fin : undefined }),
-          sting: () => audio.play('sting'),
           caption: (t) => fxStore.getState().setCaption(t),
           anomaly: (id) => gameStore.getState().addAnomalySeen(id),
           end: fin,
@@ -351,14 +373,6 @@ export function startAct4(requested: string): void {
         act4State.ascentRise = ascentRise(t)
         act4State.fire = fireLevel(t)
         act4State.flagTip = flagTip(t)
-        const p = creatureAt(t, from)
-        const cr = act4State.creature
-        cr.visible = p.visible
-        cr.x = p.pos.x
-        cr.y = p.pos.y
-        cr.z = p.pos.z
-        cr.heading = heading
-        cr.anim = t < 1.3 ? 'walk' : 'crawl'
       },
     }).start()
   }
@@ -370,15 +384,7 @@ export function startAct4(requested: string): void {
     (dt) => {
       const body = getPlayerBody()
       if (!body) return
-      if (phase === 'emerge' && creature) {
-        const hit = stepEmerged(creature, dt, { x: body.pos.x, z: body.pos.z })
-        syncCreature(creature)
-        if (hit) caught()
-      } else if (phase === 'climb') {
-        if (creature) {
-          stepEmerged(creature, dt, { x: body.pos.x, z: body.pos.z })
-          syncCreature(creature)
-        }
+      if (phase === 'climb') {
         climbT += dt
         const u = Math.min(1, climbT / CLIMB_SECONDS)
         updatePlayerBody({
@@ -397,27 +403,17 @@ export function startAct4(requested: string): void {
     { pausable: true },
   )
 
-  function syncCreature(c: Emerged): void {
-    const cr = act4State.creature
-    cr.x = c.x
-    cr.z = c.z
-    cr.y = groundAt(c.x, c.z) - c.depth
-    cr.heading = c.heading
-    cr.anim = c.phase === 'rim' ? 'freeze' : 'walk'
-  }
-
   // ---- Go ----
   if (cp === 'start') descent()
   else if (cp === 'tasks') eva(false)
   else {
-    for (const t of TASK_IDS) {
-      const r = doTask(take(tasks, ITEM_FOR[t])!, t)!
-      tasks = r.state
-    }
+    for (const t of TASK_IDS) tasks = doTask(take(tasks, ITEM_FOR[t])!, t)!.state
+    tasks = takePhoto(tasks)!
     phase = 'eva'
-    syncTasks()
+    act4State.tasks = tasks
     audio.setScene({ hum: 0, bed: 'none', breath: true })
-    emerge('seismo')
+    vitals(0.2, 96)
+    toLadder()
   }
   if (cp !== 'start') gameStore.getState().setCheckpoint(cp)
 }

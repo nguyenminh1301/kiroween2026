@@ -4,6 +4,9 @@ import {
   ITEM_FOR,
   TASK_IDS,
   allDone,
+  tasksDone,
+  photoPending,
+  takePhoto,
   canDo,
   canTake,
   createTasks,
@@ -42,17 +45,18 @@ describe('task rules', () => {
     expect(take(r.state, 'scoop')).toBeNull()
   })
 
-  it('emerges after the third task in any of the 6 orders, and only then', () => {
+  it('finishes after the third task in any of the 6 orders, and only then', () => {
     fc.assert(
       fc.property(fc.constantFrom(...orders), (order) => {
         let s = createTasks()
         order.forEach((task, i) => {
           s = take(s, ITEM_FOR[task])!
           const r = doTask(s, task)!
-          expect(r.emerge).toBe(i === 2)
+          expect(r.finished).toBe(i === 2)
           s = r.state
         })
-        expect(allDone(s)).toBe(true)
+        expect(tasksDone(s)).toBe(true)
+        expect(allDone(s)).toBe(false)
         expect(s.last).toBe(order[2])
       }),
     )
@@ -91,8 +95,10 @@ describe('objective text', () => {
       'Surface tasks, any order: Plant the flag. Scoop a soil sample. Set up the seismometer',
     )
     const one = doTask(take(s, 'flag')!, 'flag')!.state
-    expect(objectiveText(one)).toBe('Surface tasks, any order: Scoop a soil sample. Set up the seismometer')
-    expect(enabledTargets(one)).toEqual(['act4:scoop', 'act4:seismokit'])
+    expect(objectiveText(one)).toBe(
+      'Surface tasks, any order: Scoop a soil sample. Set up the seismometer. Stand by the flag for the photo',
+    )
+    expect(enabledTargets(one)).toEqual(['act4:scoop', 'act4:seismokit', 'act4:photo'])
   })
 
   it('shows the carried item text and its marker', () => {
@@ -103,9 +109,22 @@ describe('objective text', () => {
     expect(enabledTargets(s)).toEqual(['act4:seismo'])
   })
 
-  it('is null when all are done', () => {
+  it('asks for the photo after the flag, and is null when the photo is taken', () => {
     let s = createTasks()
+    expect(takePhoto(s)).toBeNull()
     for (const t of TASK_IDS) s = doTask(take(s, ITEM_FOR[t])!, t)!.state
+    expect(photoPending(s)).toBe(true)
+    expect(objectiveText(s)).toBe('Stand at the mark by the flag for the photo')
+    expect(enabledTargets(s)).toEqual(['act4:photo'])
+    s = takePhoto(s)!
+    expect(allDone(s)).toBe(true)
+    expect(takePhoto(s)).toBeNull()
     expect(objectiveText(s)).toBeNull()
+  })
+
+  it('lists the photo among the tasks while others are left', () => {
+    const s = doTask(take(createTasks(), 'flag')!, 'flag')!.state
+    expect(objectiveText(s)).toContain('Stand by the flag for the photo')
+    expect(enabledTargets(s)).toContain('act4:photo')
   })
 })

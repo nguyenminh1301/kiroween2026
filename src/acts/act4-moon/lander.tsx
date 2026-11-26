@@ -20,7 +20,7 @@ import { flickerScale } from '../../engine/settings'
 import { gameStore } from '../../engine/store'
 import { registerSystem } from '../../engine/frameDriver'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { FLAG_KIT, SCOOP_SPOT, SEISMO_KIT, STAGE_BOTTOM, STAGE_TOP } from './layout'
+import { FLAG_KIT, PHOTO_SPOT, SCOOP_SPOT, SEISMO_KIT, STAGE_BOTTOM, STAGE_TOP } from './layout'
 import {
   buildAscent,
   buildBag,
@@ -71,6 +71,11 @@ export function Lander() {
         g.translate(0, 0.5, 0)
         return g
       })(),
+      photoRing: (() => {
+        const g = new RingGeometry(0.5, 0.7, 20)
+        g.rotateX(-Math.PI / 2)
+        return g
+      })(),
       dust: new RingGeometry(0.7, 1, 40),
       dustWall: (() => {
         const g = new CylinderGeometry(1, 1, 1, 40, 1, true)
@@ -92,6 +97,7 @@ export function Lander() {
       plumeHalo: glow('#7fa4ff', 0.28),
       fire: glow('#ffb347', 0.75),
       fireCore: glow('#ffffff', 0.9),
+      ring: new MeshBasicMaterial({ color: '#E2782F', side: DoubleSide }),
       dust: new MeshBasicMaterial({ color: '#e4dcc6', transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }),
       dustWall: new MeshBasicMaterial({ color: '#d6cdb6', transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }),
       dustPoints: new PointsMaterial({ color: '#efe8d4', size: 3, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, fog: false }),
@@ -107,6 +113,7 @@ export function Lander() {
   const dustWall = useRef<Mesh>(null)
   const dustPts = useRef<Points>(null)
   const flag = useRef<Group>(null)
+  const photoRing = useRef<Mesh>(null)
   const bag = useRef<Mesh>(null)
   const seismo = useRef<Mesh>(null)
   const kitFlag = useRef<Mesh>(null)
@@ -170,6 +177,7 @@ export function Lander() {
         flag.current.visible = done.flag
         flag.current.rotation.x = s.flagTip * 1.45
       }
+      if (photoRing.current) photoRing.current.visible = done.flag && !s.tasks.photoDone
       if (bag.current) bag.current.visible = done.sample
       if (seismo.current) seismo.current.visible = done.seismo
       if (kitFlag.current) kitFlag.current.visible = !done.flag && s.carrying !== 'flag'
@@ -226,6 +234,7 @@ export function Lander() {
       <group ref={flag} position={[f.x, groundAt(f.x, f.z), f.z]} visible={false}>
         <mesh geometry={geos.flag} material={mat} />
       </group>
+      <mesh ref={photoRing} geometry={geos.photoRing} material={mats.ring} position={[PHOTO_SPOT.x, groundAt(PHOTO_SPOT.x, PHOTO_SPOT.z) + 0.06, PHOTO_SPOT.z]} visible={false} />
       <mesh ref={bag} geometry={geos.bag} material={mat} position={[sm.x, groundAt(sm.x, sm.z), sm.z]} visible={false} />
       <mesh ref={seismo} geometry={geos.seismo} material={mat} position={[se.x, groundAt(se.x, se.z), se.z]} visible={false} />
       <group ref={held} visible={false}>

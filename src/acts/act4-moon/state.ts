@@ -2,8 +2,6 @@
 import type { Item, TaskState } from './tasks'
 import { createTasks } from './tasks'
 
-export type CreatureAnim = 'walk' | 'freeze' | 'crawl'
-
 export const act4State = {
   /** Lander height above the ground, metres. */
   landerY: 0,
@@ -18,7 +16,6 @@ export const act4State = {
   flagTip: 0,
   tasks: createTasks() as TaskState,
   carrying: null as Item | null,
-  creature: { visible: false, x: 0, y: 0, z: 0, heading: 0, anim: 'freeze' as CreatureAnim },
 }
 
 export function resetAct4State(): void {
@@ -31,5 +28,4 @@ export function resetAct4State(): void {
   act4State.flagTip = 0
   act4State.tasks = createTasks()
   act4State.carrying = null
-  act4State.creature = { visible: false, x: 0, y: 0, z: 0, heading: 0, anim: 'freeze' }
 }

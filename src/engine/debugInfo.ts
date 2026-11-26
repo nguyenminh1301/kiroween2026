@@ -43,7 +43,8 @@ export interface Act4Info {
   landerY: number
   carrying: string | null
   done: string[]
-  creature: { x: number; z: number; phase: string } | null
+  /** True while the flag photo is on screen. */
+  photo: boolean
 }
 
 let act4Source: (() => Act4Info) | null = null

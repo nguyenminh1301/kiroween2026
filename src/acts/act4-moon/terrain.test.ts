@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PIT_FOR_TASK, collisionBoxes, runStart, yawToward } from './layout'
+import { collisionBoxes, runStart, yawToward } from './layout'
 import { PITS, SITES, groundAt, rocks } from './terrain'
 
 describe('terrain', () => {
@@ -66,19 +66,10 @@ describe('layout', () => {
     expect(collisionBoxes()).toHaveLength(5)
   })
 
-  it('places the run checkpoint at the seismometer, facing the lander', () => {
+  it('places the run checkpoint on the dust by the ladder, facing it', () => {
     const r = runStart()
-    expect(r.pos.x).toBe(-8)
-    const fx = -Math.sin(r.yaw)
-    const fz = -Math.cos(r.yaw)
-    expect(fx * 8 + fz * 5).toBeGreaterThan(9)
+    expect(r.pos.z).toBeGreaterThan(4.3)
+    expect(-Math.cos(r.yaw)).toBeLessThan(0)
     expect(yawToward(0, 0, 0, -1)).toBeCloseTo(0)
-  })
-
-  it('puts the pit behind the site, farther from the lander', () => {
-    for (const [task, pit] of Object.entries(PIT_FOR_TASK)) {
-      const s = SITES[task as keyof typeof SITES]
-      expect(Math.hypot(pit.x, pit.z)).toBeGreaterThan(Math.hypot(s.x, s.z))
-    }
   })
 })

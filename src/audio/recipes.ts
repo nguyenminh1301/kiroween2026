@@ -54,6 +54,9 @@ export const RECIPES: Record<EffectName, Recipe> = {
   tap: [osc(0, 0.12, 1250, 900, 0.5, 'triangle'), osc(0, 0.2, 420, 380, 0.4), noise(0, 0.03, 'highpass', 3500, 0.5)],
   hiss: [noise(0, 2.2, 'highpass', 4500, 0.5, undefined, undefined, 0.3)],
   gasp: [noise(0, 0.5, 'bandpass', 1400, 0.8, 2600, 1, 0.05), noise(0.55, 0.35, 'lowpass', 900, 0.4)],
+  shutter: [noise(0, 0.012, 'highpass', 3500, 0.9), osc(0, 0.02, 1400, 900, 0.3, 'square'), noise(0.045, 0.015, 'highpass', 2500, 0.8), osc(0.045, 0.03, 700, 500, 0.3, 'square')],
+  clang: [osc(0, 0.25, 520, 480, 0.35, 'triangle'), osc(0, 0.18, 1330, 1250, 0.2, 'sine'), noise(0, 0.02, 'highpass', 2500, 0.3)],
+  readout: [osc(0, 0.015, 2400, undefined, 0.18, 'square')],
   cage: [osc(0, 0.35, 180, 90, 0.6, 'square'), noise(0, 0.5, 'bandpass', 2200, 0.7, 900, 3, 0.05), osc(0.3, 0.6, 70, 50, 0.5)],
 }
 

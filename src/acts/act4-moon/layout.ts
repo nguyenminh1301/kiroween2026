@@ -2,9 +2,10 @@
 // Pure: no Three.js or React imports.
 import type { Box } from '../../engine/collision'
 import type { Vec3 } from '../../types'
-import { PITS, SITES, groundAt } from './terrain'
+import { SITES, groundAt } from './terrain'
 import type { TaskId } from './tasks'
 
+/** `run` means: back at the ladder after the tasks. */
 export const CHECKPOINTS = ['start', 'tasks', 'run'] as const
 export type Checkpoint = (typeof CHECKPOINTS)[number]
 
@@ -22,6 +23,8 @@ export const LADDER_SPOT: Vec3 = { x: 0, y: 1.1, z: 3.9 }
 export const FLAG_KIT: Vec3 = { x: 0.65, y: 0.9, z: 3.6 }
 export const SCOOP_SPOT: Vec3 = { x: -0.75, y: 1.7, z: 2.2 }
 export const SEISMO_KIT: Vec3 = { x: -1.35, y: 1.7, z: 1.95 }
+/** The marked spot next to the planted flag where Neil takes the photo. */
+export const PHOTO_SPOT = { x: 0.2, z: 9.4 } as const
 export const ROOF: Vec3 = { x: 1.35, y: 3.05, z: 1.35 }
 /** The seated body during descent and liftoff, inside the module. */
 export const SEAT_POS: Vec3 = { x: 0, y: 3.3, z: 0 }
@@ -34,20 +37,14 @@ export const LAST_TASK: TaskId = 'seismo'
 /** Yaw that faces from (fx, fz) toward (tx, tz). Yaw 0 faces -z, positive turns left. */
 export const yawToward = (fx: number, fz: number, tx: number, tz: number): number => Math.atan2(-(tx - fx), -(tz - fz))
 
-/** The pit behind each task: the creature comes up here when that task is the last. */
-export const PIT_FOR_TASK: Record<TaskId, (typeof PITS)[number]> = {
-  flag: PITS[0],
-  sample: PITS[1],
-  seismo: PITS[2],
-}
-
 export function sitePos(task: TaskId): Vec3 {
   const s = SITES[task]
   return { x: s.x, y: groundAt(s.x, s.z), z: s.z }
 }
 
-export function runStart(last: TaskId = LAST_TASK): { pos: Vec3; yaw: number } {
-  const p = sitePos(last)
+/** Where the `run` checkpoint puts the player: on the dust by the ladder, facing it. */
+export function runStart(): { pos: Vec3; yaw: number } {
+  const p = { x: 0, y: groundAt(0, 5.2), z: 5.2 }
   return { pos: p, yaw: yawToward(p.x, p.z, 0, 0) }
 }
 

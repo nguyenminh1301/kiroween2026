@@ -56,7 +56,7 @@ export interface LosDebug {
   ui: { go(screen: Screen): void }
   /** Act 3 only: phase, alert, noise, hearing threshold and the creature. Null in other acts. */
   readonly director: DirectorSnapshot | null
-  /** Act 4 only: phase, timeline time, carried item, tasks done and the creature. Null in other acts. */
+  /** Act 4 only: phase, timeline time, carried item, tasks done and the photo. Null in other acts. */
   readonly act3: Act3Info | null
   readonly act4: Act4Info | null
   /** Number of registered frame systems. */

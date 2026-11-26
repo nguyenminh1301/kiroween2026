@@ -170,6 +170,7 @@ export function FxLayer() {
   const caption = useFx((s) => s.caption)
   const card = useFx((s) => s.card)
   const dsky = useFx((s) => s.dsky)
+  const photo = useFx((s) => s.photo)
   return (
     <>
       {edge > 0 ? <div className="fx-edge" style={{ opacity: edge }} data-testid="edge" /> : null}
@@ -193,6 +194,15 @@ export function FxLayer() {
           )
         : null}
       <GaugeDial />
+      {photo ? (
+        <>
+          <div className="fx-photo-flash" />
+          <figure className="fx-print" data-testid="photo">
+            <img src={photo.src} alt={photo.alt} />
+            <figcaption>{photo.caption}</figcaption>
+          </figure>
+        </>
+      ) : null}
       {caption ? <div className="fx-caption">{caption}</div> : null}
       {dsky ? (
         <div className="fx-dsky" data-testid="dsky">

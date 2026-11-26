@@ -1,4 +1,4 @@
-// Liftoff timeline data: ascent stage rise, creature leap and sink, fire, flag tip, shots and events.
+// Liftoff timeline data: ascent stage rise, fire, flag tip, shots and events.
 // Pure: events call injected hooks. No Three.js or React imports.
 import type { ShakeKey, Shot, TimelineEvent } from '../../timeline/timeline'
 import type { Vec3 } from '../../types'
@@ -9,11 +9,6 @@ export const LIFTOFF_DURATION = 14
 export const FIRE_AT = 1.4
 export const FIRE_FADE = 7
 export const CAPTION_SECONDS = 4
-export const LEAP_FROM = 0.2
-export const LEAP_SECONDS = 1.1
-export const LEAP_ARC = 1.5
-export const SINK_DEPTH = 1.6
-export const SINK_SECONDS = 3
 export const FLAG_TIP_DELAY = 0.4
 
 /** How far the ascent stage has climbed `t` seconds in. */
@@ -26,18 +21,6 @@ export const captionOn = (t: number): boolean => t >= FIRE_AT && t < FIRE_AT + C
 
 /** Flag tip, 0 upright to 1 fallen. */
 export const flagTip = (t: number): number => Math.min(1, Math.max(0, (t - FIRE_AT - FLAG_TIP_DELAY) / 0.8))
-
-/** The creature's pose in the liftoff: a leap arc, then sinking into the stage. `visible` ends when it is gone. */
-export function creatureAt(t: number, from: Vec3): { pos: Vec3; visible: boolean; sink: number } {
-  const u = Math.min(1, Math.max(0, (t - LEAP_FROM) / LEAP_SECONDS))
-  const sink = Math.min(SINK_DEPTH, Math.max(0, ((t - FIRE_AT) / SINK_SECONDS) * SINK_DEPTH))
-  const pos: Vec3 = {
-    x: from.x + (ROOF.x - from.x) * u,
-    y: from.y + (ROOF.y - from.y) * u + LEAP_ARC * 4 * u * (1 - u) - sink,
-    z: from.z + (ROOF.z - from.z) * u,
-  }
-  return { pos, visible: sink < SINK_DEPTH, sink }
-}
 
 export const LIFTOFF_SHAKE: ShakeKey[] = [
   { t: 0, amp: 0 },
@@ -94,7 +77,6 @@ export const LIFTOFF_SHOTS: LiftShot[] = [
 
 export interface LiftoffHooks {
   say(id: string, opts?: { urgent?: boolean }): void
-  sting(): void
   caption(text: string | null): void
   anomaly(id: string): void
   end(): void
@@ -107,13 +89,12 @@ export function liftoffEvents(h: LiftoffHooks, captionText: string): TimelineEve
     {
       at: FIRE_AT,
       run: () => {
-        h.sting()
         h.caption(captionText)
         h.anomaly('burn-baby-burn')
       },
     },
     { at: FIRE_AT + CAPTION_SECONDS, run: () => h.caption(null) },
-    { at: 7, run: () => h.say('act4.burned') },
+    { at: FIRE_AT + FLAG_TIP_DELAY + 0.6, run: () => h.say('act4.flagdown') },
     { at: 10.5, run: () => h.say('act4.columbia') },
     { at: LIFTOFF_DURATION, run: () => h.end() },
   ]
