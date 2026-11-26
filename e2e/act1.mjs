@@ -30,7 +30,6 @@ try {
     check(s.calls > 0 && s.calls < 150, `${label}: draw calls ${s.calls}, expected under 150`)
     check(s.tris < 150000, `${label}: triangles ${s.tris}, expected under 150000`)
   }
-  const unfocused = () => page.waitForFunction(() => !window.__los.focus(), null, { timeout: 30000 })
   const objective = (text) =>
     page.waitForFunction((t) => window.__los.store.getState().objective?.text?.includes(t), text, { timeout: 90000, polling: 100 })
   const aim = async (id) => {
@@ -78,20 +77,28 @@ try {
   await shot('act1-staging')
   await budget('staging shot')
 
-  // The O2 line turns the view to the gauge, which counts as a sighting.
+  // The O2 line does not turn the view. The player looks at the gauge, which counts as a sighting.
   await page.waitForFunction(() => /oxygen/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 40000, polling: 100 })
+  check(!(await page.evaluate(() => window.__los.focus())), 'the O2 line does not turn the view')
+  await page.evaluate(() => {
+    const b = window.__los.player.body
+    const dx = -0.35 - b.pos.x
+    const dy = 1.5 - (b.pos.y + 1.65)
+    const dz = -1.05 - b.pos.z
+    window.__los.player.set({ yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(dy, Math.hypot(dx, dz)) })
+  })
   await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('o2-for-four'), null, { timeout: 30000 })
   check(true, 'o2-for-four noticed')
   await shot('act1-o2')
 
   // Switch, then the DSKY three times.
   await objective('red switch')
-  await unfocused()
+  check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   check(await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act1:switch').enabled), 'switch enabled')
   await shot('act1-switch')
   await useAt('act1:switch', 'FLIP')
   await objective('computer in front of you')
-  await unfocused()
+  check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   for (let i = 0; i < 3; i++) {
     await useAt('act1:dsky', 'KEY IN')
     await page.waitForTimeout(250)
@@ -118,7 +125,7 @@ try {
   await budget('TLI shot')
   await atTime(7.5)
   await page.waitForFunction(() => /Earth fits/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 30000, polling: 100 })
-  await unfocused()
+  check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   await shot('act1-earth')
 
   // The act hands off to act 2.

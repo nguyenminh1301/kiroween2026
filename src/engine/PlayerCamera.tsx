@@ -5,6 +5,7 @@ import { eyePosition } from './playerBody'
 import { getPlayerBody } from './playerRuntime'
 import { registerSystem } from './frameDriver'
 import { getActiveTimeline } from './unloadReset'
+import { getCameraShaker } from './cameraShake'
 
 /** After the player (100), focus (200) and timeline (500) systems. */
 export const CAMERA_PRIORITY = 600
@@ -41,7 +42,17 @@ export function PlayerCamera() {
         cam.position.set(eye.x, eye.y, eye.z)
         cam.rotation.set(body.pitch, body.yaw, 0, 'YXZ')
       }
-      const amp = timeline && !timeline.finished ? timeline.shake() : 0
+      const shaker = getCameraShaker()
+      const sample = shaker ? shaker() : null
+      if (sample) {
+        cam.position.x += sample.ox
+        cam.position.y += sample.oy
+        cam.position.z += sample.oz
+        cam.rotateX(sample.rx)
+        cam.rotateY(sample.ry)
+        cam.rotateZ(sample.rz)
+      }
+      const amp = !shaker && timeline && !timeline.finished ? timeline.shake() : 0
       if (amp > 0) {
         cam.position.x += (Math.random() - 0.5) * 2 * amp
         cam.position.y += (Math.random() - 0.5) * 2 * amp

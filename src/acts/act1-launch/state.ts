@@ -9,6 +9,8 @@ export const act1State = {
   /** TLI timeline seconds, or 0 before it starts. */
   tliT: 0,
   ignited: false,
+  /** Which timeline drives the shake. */
+  phase: 'idle' as 'idle' | 'launch' | 'tli',
 }
 
 export function resetAct1State(): void {
@@ -17,4 +19,5 @@ export function resetAct1State(): void {
   act1State.launchT = 0
   act1State.tliT = 0
   act1State.ignited = false
+  act1State.phase = 'idle'
 }

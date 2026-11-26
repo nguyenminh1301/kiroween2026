@@ -16,14 +16,14 @@ import {
   BODY_POS,
   DSKY_POS,
   DSKY_RADIUS,
-  HATCH_WINDOW,
   O2_POS,
   O2_RADIUS,
-  RIGHT_WINDOW,
   START_PITCH,
   SWITCH_POS,
   SWITCH_RADIUS,
 } from '../../procgen/cabin/layout'
+import { setCameraShaker } from '../../engine/cameraShake'
+import { launchEnvelope, shakeSample, tliEnvelope } from './shake'
 import { createStages } from './stages'
 import { cabinState } from '../../procgen/cabin/cabinState'
 import { act1State, resetAct1State } from './state'
@@ -31,12 +31,10 @@ import {
   alarmOn,
   engineLevel,
   LAUNCH_DURATION,
-  LAUNCH_SHAKE,
   LAUNCH_SHOTS,
   launchEvents,
   launchViewAt,
   TLI_DURATION,
-  TLI_SHAKE,
   TLI_SHOTS,
   tliEngineLevel,
   tliEvents,
@@ -63,6 +61,13 @@ export function startAct1(): void {
   gameStore.getState().setHeartRate(84)
 
   const stages = createStages()
+  setCameraShaker(() => {
+    const { phase, launchT, tliT } = act1State
+    if (phase === 'idle') return null
+    const t = phase === 'launch' ? launchT : tliT
+    const env = phase === 'launch' ? launchEnvelope(t) : tliEnvelope(t)
+    return shakeSample(env, t, gameStore.getState().settings.reducedMotion)
+  })
 
   const say = (id: string, opts: { urgent?: boolean; onStart?: () => void } = {}, done: () => void = () => {}): void => {
     void radio.say(id, { urgent: opts.urgent, onStart: opts.onStart }).then(() => {
@@ -78,18 +83,18 @@ export function startAct1(): void {
 
   // TLI, then the Earth in the windows, then hand-off.
   function startTli(): void {
+    act1State.phase = 'tli'
     say('act1.tli', {}, () => {
       new TimelinePlayer({
         duration: TLI_DURATION,
         shots: TLI_SHOTS,
-        shake: TLI_SHAKE,
         events: tliEvents({
           playSound: (n) => audio.play(n),
           showEarth: () => {
             cabinState.earth = true
           },
           earthLines: () =>
-            say('act1.earth', { onStart: () => focus.focusOn(RIGHT_WINDOW, 1.5) }, () =>
+            say('act1.earth', {}, () =>
               say('act1.moon', {}, () =>
                 say('act1.rest', {}, () => {
                   stages.tliDone()
@@ -112,7 +117,6 @@ export function startAct1(): void {
     act1State.view = 'cabin'
     say('act1.switch', {
       onStart: () => {
-        focus.focusOn(SWITCH_POS, 1.5)
         setObjective('act1Switch')
         void showHint('use')
       },
@@ -122,7 +126,6 @@ export function startAct1(): void {
   new TimelinePlayer({
     duration: LAUNCH_DURATION,
     shots: LAUNCH_SHOTS,
-    shake: LAUNCH_SHAKE,
     events: [
       ...launchEvents({
         say: (id, opts) => say(id, opts),
@@ -134,12 +137,11 @@ export function startAct1(): void {
         setSky: (c) => {
           cabinState.sky = c
         },
-        focusOverhead: () => focus.focusOn(HATCH_WINDOW, 1.8),
-        focusO2: () => focus.focusOn(O2_POS, 1.2),
       }),
       { at: LAUNCH_DURATION, run: onLaunchEnd },
     ],
     onTick(t) {
+      act1State.phase = 'launch'
       act1State.launchT = t
       act1State.view = launchViewAt(t)
       cabinState.engine = engineLevel(t)
@@ -159,7 +161,7 @@ export function startAct1(): void {
       cabinState.switchFlipped = true
       syncDsky()
       setObjective('act1Key')
-      say('act1.key', { onStart: () => focus.focusOn(DSKY_POS, 1.5) })
+      say('act1.key')
     },
   })
   registerInteractable({

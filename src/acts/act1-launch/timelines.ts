@@ -1,6 +1,6 @@
 // Launch and TLI timeline data: shots, shake, events and the engine curve.
 // Pure: events call injected hooks, so a test can record them. No Three.js or React imports.
-import type { Shot, ShakeKey, TimelineEvent } from '../../timeline/timeline'
+import type { Shot, TimelineEvent } from '../../timeline/timeline'
 import type { Vec3 } from '../../types'
 
 export type View = 'cabin' | 'pad' | 'space' | 'tli'
@@ -78,21 +78,7 @@ export const TLI_SHOTS: NamedShot[] = [
   },
 ]
 
-export const LAUNCH_SHAKE: ShakeKey[] = [
-  { t: 0, amp: 0 },
-  { t: 3, amp: 0 },
-  { t: 4, amp: 0.05 },
-  { t: 9, amp: 0.035 },
-  { t: 10, amp: 0.09 },
-  { t: 11, amp: 0.02 },
-  { t: 15, amp: 0 },
-]
-
-export const TLI_SHAKE: ShakeKey[] = [
-  { t: 0, amp: 0.03 },
-  { t: 6, amp: 0.03 },
-  { t: 7, amp: 0 },
-]
+// The view shake lives in shake.ts.
 
 /** The shot active at `t`, or null when the cabin shows. */
 export function shotAt(shots: NamedShot[], t: number): NamedShot | null {
@@ -134,8 +120,6 @@ export interface LaunchHooks {
   ignite(): void
   liftoff(): void
   setSky(color: string): void
-  focusOverhead(): void
-  focusO2(): void
 }
 
 /** The launch events, in the order the timeline runs them. */
@@ -159,11 +143,11 @@ export function launchEvents(h: LaunchHooks): TimelineEvent[] {
       at: STAGING_AT,
       run: () => {
         h.playSound('staging')
-        h.say('act1.staging', { onStart: () => h.focusOverhead() })
+        h.say('act1.staging', { })
       },
     },
     { at: 13, run: () => h.setSky(SKY.space) },
-    { at: 14.5, run: () => h.say('act1.o2', { onStart: () => h.focusO2() }) },
+    { at: 14.5, run: () => h.say('act1.o2') },
   ]
 }
 

@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { shakeAmplitude, sortedEvents } from '../../timeline/timeline'
+import { sortedEvents } from '../../timeline/timeline'
 import {
   alarmOn,
   engineLevel,
-  LAUNCH_SHAKE,
   LAUNCH_SHOTS,
   launchEvents,
   rocketHeight,
   shotAt,
-  TLI_SHAKE,
   TLI_SHOTS,
   tliEvents,
 } from './timelines'
@@ -26,8 +24,6 @@ function record() {
     ignite: () => push('ignite'),
     liftoff: () => push('liftoff'),
     setSky: (c: string) => push(`sky ${c}`),
-    focusOverhead: () => push('focus overhead'),
-    focusO2: () => push('focus o2'),
     showEarth: () => push('earth'),
     earthLines: () => push('earthLines'),
   }
@@ -53,10 +49,8 @@ describe('launch timeline', () => {
       [9.8, 'alarm'],
       [10, 'staging'],
       [10, 'act1.staging'],
-      [10, 'focus overhead'],
       [13, 'sky #000000'],
       [14.5, 'act1.o2'],
-      [14.5, 'focus o2'],
     ])
   })
 
@@ -67,8 +61,6 @@ describe('launch timeline', () => {
   })
 
   it('shakes, climbs and sounds the alarm on schedule', () => {
-    const amp = (t: number) => shakeAmplitude(LAUNCH_SHAKE, t, false)
-    expect([2, 4, 9, 10, 11, 15].map(amp)).toEqual([0, 0.05, 0.035, 0.09, 0.02, 0])
     expect(engineLevel(3.4)).toBe(0)
     expect(engineLevel(9.5)).toBe(1)
     expect(engineLevel(10.5)).toBeCloseTo(0.3)
@@ -93,6 +85,5 @@ describe('TLI timeline', () => {
     ])
     expect(TLI_SHOTS).toHaveLength(1)
     expect([0.3, 0.4, 5.5, 5.6].map((t) => shotAt(TLI_SHOTS, t)?.name ?? null)).toEqual([null, 'tli', 'tli', null])
-    expect([0, 6, 7].map((t) => shakeAmplitude(TLI_SHAKE, t, false))).toEqual([0.03, 0.03, 0])
   })
 })
