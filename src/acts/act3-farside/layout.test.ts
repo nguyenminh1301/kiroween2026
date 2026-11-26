@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveCapsule } from '../../engine/collision'
-import { CAGE, cageDoorBox, checkpointAt, collisionBoxes, creatureBlockers, creatureClear, detectBump, GRID, HATCH, LOCKERS, NAV_NODES, PATROL_ROUTE, SPOTS, CREATURE_RADIUS } from './layout'
+import { CAGE, CAGED, cageDoorBox, checkpointAt, collisionBoxes, creatureBlockers, creatureClear, detectBump, GRID, HATCH, LOCKERS, NAV_NODES, PATROL_ROUTE, SPOTS, CREATURE_RADIUS } from './layout'
 
 /** Can a walker get from the cell at (x0, z0) to the cell at (x1, z1) when cells in `cut` are removed? */
 function reachable(from: [number, number], to: [number, number], cut: (c: number, r: number) => boolean): boolean {
@@ -127,5 +127,15 @@ describe('act 3 map', () => {
     const boxes = collisionBoxes()
     const walk = resolveCapsule({ x: -8.85, y: 0.2, z: -7.5 }, { x: 0, y: 0, z: -2 }, boxes)
     expect(walk.pos.z).toBeGreaterThan(-8.1)
+  })
+
+  it('hangs Neil and Mike inside the cage room, apart, with room to turn', () => {
+    for (const who of ['cdr', 'cmp'] as const) {
+      const p = CAGED[who]
+      expect(p.z).toBeLessThan(CAGE.z - 1)
+      expect(p.z).toBeGreaterThan(CAGE.backZ + 1)
+      expect(GRID.clearAt(p.x, p.z, 0.4)).toBe(true)
+    }
+    expect(CAGED.cmp.x - CAGED.cdr.x).toBeGreaterThan(0.9)
   })
 })

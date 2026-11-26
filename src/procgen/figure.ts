@@ -25,6 +25,8 @@ export interface FigureOptions {
   /** Registers a head anchor under this name. */
   name?: string
   helmet?: boolean
+  /** Visor raised: no gold shell, only the dark inside of the helmet. A face is never modelled. */
+  visorUp?: boolean
   suit?: 'pressure' | 'coverall'
 }
 
@@ -179,10 +181,14 @@ export function buildFigure(opts: FigureOptions = {}): Figure {
     headParts.push(
       ball(0.115, '#2c2a33', 0, 0.14, 0),
       cyl(0.125, 0.14, 0.04, '#cfc7b4', 0, 0.0, 0),
-      // Visor down: a curved shell on the front of the bubble, dark gold with a light edge.
-      colored(new SphereGeometry(0.168, 10, 6, Math.PI / 2 - 1.0, 2.0, 0.8, 1.05), '#8a6a22', 0, 0.14, 0),
-      colored(new SphereGeometry(0.17, 6, 3, Math.PI / 2 + 0.25, 0.55, 0.55, 0.3), '#e6cf86', 0, 0.14, 0),
     )
+    if (!opts.visorUp) {
+      // Visor down: a curved shell on the front of the bubble, dark gold with a light edge.
+      headParts.push(
+        colored(new SphereGeometry(0.168, 10, 6, Math.PI / 2 - 1.0, 2.0, 0.8, 1.05), '#8a6a22', 0, 0.14, 0),
+        colored(new SphereGeometry(0.17, 6, 3, Math.PI / 2 + 0.25, 0.55, 0.55, 0.3), '#e6cf86', 0, 0.14, 0),
+      )
+    }
     bubbleParts.push(colored(new SphereGeometry(0.172, 9, 7), '#ffffff', 0, 0.14, 0))
   } else {
     headParts.push(

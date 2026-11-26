@@ -1,30 +1,68 @@
 // The cage at the far end, the two crewmen strapped inside it, and the crewman on Buzz's shoulders.
 import { useEffect, useMemo, useRef } from 'react'
-import { DoubleSide, Group, Mesh, SphereGeometry, type BufferGeometry } from 'three'
+import { DoubleSide, Group, InstancedMesh, Matrix4, Mesh, SphereGeometry, type BufferGeometry } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
 import { eyePosition } from '../../engine/playerBody'
 import { getPlayerBody } from '../../engine/playerRuntime'
 import { buildFigure } from '../../procgen/figure'
 import { cbox, mergeColored } from '../../procgen/coloredGeo'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { CAGE, CAGED } from './layout'
+import { CAGE, CAGED, HEIGHT } from './layout'
 import { act3State, type Crew } from './state'
-import { buildCage, buildCageDoor } from './tunnel'
+import { buildBlood, buildCage, buildCageDoor } from './tunnel'
 
 const PRIORITY = 706
 const DOOR_OPEN = -1.7
 const DOOR_SPEED = 2.4
 
+/** A few slow drips from the heads of the hanging crew to the floor below. */
+const DRIPS = [
+  { x: CAGED.cdr.x - 0.05, z: CAGED.cdr.z + 0.05, y0: 0.42, period: 4.6, phase: 0 },
+  { x: CAGED.cdr.x + 0.12, z: CAGED.cdr.z - 0.08, y0: 0.3, period: 6.1, phase: 2.2 },
+  { x: CAGED.cmp.x + 0.04, z: CAGED.cmp.z + 0.04, y0: 0.42, period: 5.3, phase: 1.1 },
+  { x: CAGED.cmp.x - 0.1, z: CAGED.cmp.z - 0.06, y0: 0.28, period: 7.2, phase: 3.9 },
+]
+/** The hooks sit just under the ceiling; the feet hang from them. */
+const HANG_Y = HEIGHT - 0.12
+
 /** Bars and door. The door swings open about its hinge when the cage opens. */
 export function Cage() {
-  const geo = useMemo(() => ({ fixed: buildCage(), door: buildCageDoor() }), [])
+  const geo = useMemo(() => ({ fixed: buildCage(), door: buildCageDoor(), blood: buildBlood() }), [])
   const mat = useMemo(() => {
     const m = createMaterial({ vertexColors: true })
     m.side = DoubleSide
     return m
   }, [])
+  const bloodMat = useMemo(() => {
+    const m = createMaterial({ kind: 'unlit', vertexColors: true, snap: false })
+    m.side = DoubleSide
+    return m
+  }, [])
+  const dripMat = useMemo(() => createMaterial({ kind: 'unlit', color: '#4a0808', snap: false }), [])
+  const drips = useRef<InstancedMesh>(null)
   const door = useRef<Group>(null)
   const root = useRef<Group>(null)
+  useEffect(() => {
+    const mesh = drips.current
+    const m = new Matrix4()
+    const off = new Matrix4()
+    return registerSystem('act3-drips', PRIORITY + 3, (_dt, t) => {
+      if (!mesh) return
+      DRIPS.forEach((d, i) => {
+        // A drop gathers at the head, lets go, and falls to the floor, once every few seconds.
+        const u = ((t + d.phase) % d.period) / d.period
+        const gather = u < 0.55
+        const fall = gather ? 0 : (u - 0.55) / 0.45
+        const y = gather ? d.y0 : d.y0 * (1 - fall * fall)
+        const s = gather ? 0.4 + (u / 0.55) * 0.6 : 1
+        const gone = !gather && fall >= 1
+        m.makeTranslation(d.x, y, d.z)
+        m.multiply(off.makeScale(gone ? 0 : s, gone ? 0 : s * (gather ? 1 : 2.2), gone ? 0 : s))
+        mesh.setMatrixAt(i, m)
+      })
+      mesh.instanceMatrix.needsUpdate = true
+    })
+  }, [])
   useEffect(
     () =>
       registerSystem('act3-cage', PRIORITY, (dt) => {
@@ -41,13 +79,20 @@ export function Cage() {
     () => () => {
       geo.fixed.dispose()
       geo.door.dispose()
+      geo.blood.dispose()
       disposeMaterial(mat)
+      disposeMaterial(bloodMat)
+      disposeMaterial(dripMat)
     },
-    [geo, mat],
+    [geo, mat, bloodMat, dripMat],
   )
   return (
     <group ref={root}>
       <mesh geometry={geo.fixed} material={mat} />
+      <mesh geometry={geo.blood} material={bloodMat} />
+      <instancedMesh ref={drips} args={[undefined, undefined, DRIPS.length]} material={dripMat} frustumCulled={false}>
+        <boxGeometry args={[0.025, 0.04, 0.025]} />
+      </instancedMesh>
       <group ref={door} position={[-CAGE.doorHalf, 0, CAGE.z]}>
         <mesh geometry={geo.door} material={mat} />
       </group>
@@ -55,13 +100,12 @@ export function Cage() {
   )
 }
 
-/** Neil and Mike in the cage: strapped to the wall, or the second one seated alone. */
+/** Neil and Mike hang upside down by the ankles from the cage room ceiling, turning slowly. Visors up, no faces. */
 export function CagedCrew() {
   const figures = useMemo(() => {
     const make = (who: Crew) => {
-      const f = buildFigure({ name: who === 'cdr' ? 'cdr' : 'cmp', helmet: true })
-      f.root.position.set(CAGED[who].x, 0, CAGED[who].z)
-      f.root.rotation.y = 0
+      const f = buildFigure({ name: who === 'cdr' ? 'cdr' : 'cmp', helmet: true, visorUp: true })
+      f.root.position.set(CAGED[who].x, HANG_Y, CAGED[who].z)
       return f
     }
     return { cdr: make('cdr'), cmp: make('cmp') }
@@ -75,8 +119,10 @@ export function CagedCrew() {
           const gone = act3State.carried === who || act3State.laid[who]
           f.root.visible = dream && !gone
           if (!f.root.visible) return
-          f.root.position.set(CAGED[who].x, 0, CAGED[who].z)
-          f.setPose('standing', t * 0.25 + i)
+          f.setPose('hanging', t * 0.8 + i * 2.1)
+          f.root.position.set(CAGED[who].x, HANG_Y, CAGED[who].z)
+          // A slow turn about the vertical axis, opposite ways for the two of them.
+          f.root.rotation.y = (i === 0 ? 1 : -1) * (t * 0.22 + i)
         })
       }),
     [figures],

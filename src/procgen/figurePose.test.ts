@@ -14,3 +14,17 @@ describe('working pose', () => {
     expect(poseFor('working', 1.8).bones.shoulderR[0]).toBeLessThan(poseFor('working', 5).bones.shoulderR[0])
   })
 })
+
+describe('hanging pose', () => {
+  it('flips the body upside down, lets the arms dangle toward the floor and keeps every angle finite', () => {
+    for (let t = 0; t < 20; t += 0.7) {
+      const p = poseFor('hanging', t)
+      expect(p.rootRotX).toBeCloseTo(Math.PI)
+      // An arm rotated by about pi around x points the other way: down in the flipped frame.
+      expect(Math.abs(p.bones.shoulderL[0] - Math.PI)).toBeLessThan(0.4)
+      expect(Math.abs(p.bones.shoulderR[0] - Math.PI)).toBeLessThan(0.4)
+      expect(Math.abs(p.rootRotZ)).toBeLessThan(0.1)
+      for (const r of Object.values(p.bones)) for (const v of r) expect(Number.isFinite(v)).toBe(true)
+    }
+  })
+})

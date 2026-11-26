@@ -1,5 +1,5 @@
 // Pure pose math for the figure. No Three.js imports. A figure faces +z, so its right side is -x.
-export type PoseKind = 'standing' | 'wave' | 'seated' | 'working' | 'resting' | 'sleeping'
+export type PoseKind = 'standing' | 'wave' | 'seated' | 'working' | 'resting' | 'sleeping' | 'hanging'
 
 export type BoneName =
   | 'spine'
@@ -90,6 +90,21 @@ export function poseFor(kind: PoseKind, t: number, amount = 1): PoseResult {
       p.bones.shoulderR = [-0.35 + Math.sin(t * 0.8 + 1.5) * 0.12, 0, -0.35 - Math.sin(t * 0.6 + 1) * 0.1]
       p.bones.elbowL = [-0.55 + Math.sin(t * 0.9) * 0.1, 0, 0]
       p.bones.elbowR = [-0.45 + Math.sin(t * 0.9 + 2) * 0.1, 0, 0]
+      break
+    }
+    case 'hanging': {
+      // Upside down by the ankles: the root is flipped about x, so an arm rotated by pi about x hangs toward the
+      // floor. The arms dangle outward and swing a little, the head lolls, the body swings like a pendulum.
+      p.rootRotX = Math.PI
+      p.rootRotZ = Math.sin(t * 0.9) * 0.05
+      p.bones.spine = [0.08 + Math.sin(t * 0.7) * 0.02, 0, 0]
+      p.bones.neck = [0.35 + Math.sin(t * 0.6) * 0.06, Math.sin(t * 0.4) * 0.1, 0]
+      p.bones.shoulderL = [Math.PI - 0.12 + Math.sin(t * 0.8) * 0.1, 0, 0.5 + Math.sin(t * 0.6) * 0.08]
+      p.bones.shoulderR = [Math.PI - 0.2 + Math.sin(t * 0.8 + 1.4) * 0.1, 0, -0.5 - Math.sin(t * 0.6 + 1) * 0.08]
+      p.bones.elbowL = [0.25 + Math.sin(t * 0.9) * 0.08, 0, 0]
+      p.bones.elbowR = [0.35 + Math.sin(t * 0.9 + 2) * 0.08, 0, 0]
+      p.bones.hipL = [0, 0, -0.04]
+      p.bones.hipR = [0, 0, 0.04]
       break
     }
     case 'resting': {
