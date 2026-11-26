@@ -9,7 +9,7 @@ const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
-const ALL = ['extra-bootprints', 'o2-for-four', 'tunnel-longer', 'fourth-sleeper', 'impostor-capcom', 'burn-baby-burn']
+const ALL = ['o2-for-four', 'tunnel-longer', 'fourth-sleeper', 'impostor-capcom', 'burn-baby-burn']
 const errors = []
 const check = (ok, msg) => {
   if (!ok) errors.push(`check failed: ${msg}`)
@@ -130,8 +130,7 @@ try {
   await page.evaluate(() => window.__los.player.set({ yaw: -0.73, pitch: -0.2 }))
   await wait(() => window.__los.store.getState().target?.verb === 'TALK', null, 30000)
   await page.keyboard.press('KeyE')
-  await subtitle('boot prints', 40000)
-  check(await seen('extra-bootprints'), 'extra-bootprints noticed')
+  await subtitle('middle couch', 40000)
   await unfocused()
   await page.evaluate(() => window.__los.player.set({ yaw: 0, pitch: -0.1 }))
   await wait(() => window.__los.store.getState().target?.verb === 'GRAB', null, 30000)

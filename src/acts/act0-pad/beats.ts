@@ -1,6 +1,7 @@
 // The act 0 beat machine. Pure: lines, objectives, camera turns and sounds are injected,
 // so a test can drive it on a fake clock. No Three.js or React imports.
 import { cheerPeriod } from './crowdLogic'
+import { handleAngle, hatchAngle, hatchEvents, hatchFade } from './hatchScene'
 
 export type ObjectiveKey = 'act0Wave' | 'act0Board'
 
@@ -21,7 +22,11 @@ export interface BeatDeps {
   showHint(id: string): void
   /** Play the cheer and raise the crowd excitement to at least `level`. */
   cheer(level: number): void
-  playSwitch(): void
+  playSound(name: 'switch' | 'creak' | 'hiss'): void
+  /** Handle angle, hatch angle and black level, every frame of the hatch scene. */
+  setHatch(handle: number, open: number, fade: number): void
+  /** The player boarded: hold the body still. */
+  lock(): void
   complete(): void
 }
 
@@ -52,6 +57,13 @@ export function createBeats(deps: BeatDeps): Beats {
   let cheerLeft = cheerPeriod(false)
   let beat = 0
   let gunterTalks = 0
+  let hatchT = 0
+  const hatchQueue = hatchEvents({
+    playSound: (n) => deps.playSound(n),
+    say: (id) => say(id, { urgent: true }),
+    complete: () => deps.complete(),
+  })
+  let nextHatch = 0
   const talkUntil = new Map<string, number>()
   const go = (n: number): void => {
     beat = n
@@ -61,7 +73,7 @@ export function createBeats(deps: BeatDeps): Beats {
   const say = (id: string, opts: SayOptions, done: () => void = () => {}): void => {
     const b = beat
     deps.say(id, { ...opts, beat: b }, () => {
-      if (b === beat && (!boarded || id === 'act0.board')) done()
+      if (b === beat && !boarded) done()
     })
   }
 
@@ -77,7 +89,12 @@ export function createBeats(deps: BeatDeps): Beats {
 
   return {
     tick(dt) {
-      if (boarded) return
+      if (boarded) {
+        hatchT += dt
+        deps.setHatch(handleAngle(hatchT), hatchAngle(hatchT), hatchFade(hatchT))
+        while (nextHatch < hatchQueue.length && hatchQueue[nextHatch].at <= hatchT) hatchQueue[nextHatch++].run()
+        return
+      }
       clock += dt
       if (!started && clock >= START_DELAY) begin()
       if (inRoom) return
@@ -112,9 +129,8 @@ export function createBeats(deps: BeatDeps): Beats {
     board() {
       if (boarded) return
       boarded = true
-      deps.playSwitch()
+      deps.lock()
       deps.setObjective(null)
-      say('act0.board', { urgent: true }, () => deps.complete())
     },
     state: () => ({ waved, inRoom, boarded, started }),
   }

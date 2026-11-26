@@ -9,14 +9,14 @@ import { addPlayerSystem } from '../../engine/playerSystem'
 import { addSystem } from '../../engine/registerHelpers'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { gameStore } from '../../engine/store'
+import { fxStore } from '../../engine/fx'
 import { focus } from '../../interaction/Focus'
-import { registerInteractable, registerSighting } from '../../interaction/interactables'
+import { registerInteractable } from '../../interaction/interactables'
 import { showHint } from '../../ui/hints'
 import type { Vec3 } from '../../types'
 import { createBeats, type BeatDeps, type CrewId } from './beats'
 import { crowdAim, decayExcitement } from './crowdLogic'
 import {
-  BOOTPRINT_ANOMALY,
   COLLISION_BOXES,
   HATCH_POS,
   HATCH_RADIUS,
@@ -81,7 +81,18 @@ export function startAct0(): void {
       audio.play('cheer')
       act0State.excitement = Math.max(act0State.excitement, level)
     },
-    playSwitch: () => audio.play('switch'),
+    playSound: (n) => audio.play(n),
+    setHatch(handle, open, fade) {
+      act0State.handle = handle
+      act0State.hatchOpen = open
+      fxStore.getState().setBlackout(fade)
+    },
+    lock() {
+      const b = getPlayerBody()
+      if (!b) return
+      b.vel = { x: 0, y: 0, z: 0 }
+      b.mode = 'seated'
+    },
     complete: completeAct,
   }
   const beats = createBeats(deps)
@@ -120,7 +131,6 @@ export function startAct0(): void {
   talkTo('tech1', PAD0_POS)
   talkTo('tech2', PAD2_POS)
   talkTo('gunter', PAD1_POS)
-  registerSighting({ ...BOOTPRINT_ANOMALY })
 
   addSystem(
     'act0-logic',

@@ -13,7 +13,11 @@ function setup() {
     setObjective: (k) => log.push(`obj:${k}`),
     showHint: (id) => log.push(`hint:${id}`),
     cheer: (l) => log.push(`cheer:${l}`),
-    playSwitch: () => log.push('switch'),
+    playSound: (n) => log.push(`sound:${n}`),
+    setHatch: (_h, _o, f) => {
+      if (f >= 1 && !log.includes('black')) log.push('black')
+    },
+    lock: () => log.push('lock'),
     complete: () => log.push('complete'),
   }
   const beats = createBeats(deps)
@@ -84,14 +88,6 @@ describe('act 0 beats', () => {
     expect(log).toEqual(['say:act0.tech1', 'say:act0.tech2'])
   })
 
-  it('can board without talking to anyone', () => {
-    const { beats, log, end } = setup()
-    beats.board()
-    end('act0.board')
-    expect(log.at(-1)).toBe('complete')
-    expect(log.some((l) => l.startsWith('say:act0.tech') || l.startsWith('say:act0.gunter'))).toBe(false)
-  })
-
   it('cheers every 9 s, 7 s after the wave, and stops in the room', () => {
     const { beats, log, run } = setup()
     run(9.1)
@@ -104,14 +100,31 @@ describe('act 0 beats', () => {
     expect(log.filter((l) => l === 'cheer:0.7').length).toBe(2)
   })
 
-  it('boards: switch, clear the objective, say board, then complete after the line ends', () => {
-    const { beats, log, end } = setup()
+  it('can board without talking to anyone', () => {
+    const { beats, log, run } = setup()
     beats.board()
-    expect(log).toEqual(['switch', 'obj:null', 'say:act0.board'])
-    expect(log).not.toContain('complete')
-    end('act0.board')
+    run(6)
+    expect(log.some((l) => l.startsWith('say:act0.tech') || l.startsWith('say:act0.gunter'))).toBe(false)
     expect(log.at(-1)).toBe('complete')
+  })
+
+  it('boards: lock, clear the objective, handle, hiss, creak, line, black, then complete once', () => {
+    const { beats, log, run } = setup()
     beats.board()
+    expect(log).toEqual(['lock', 'obj:null'])
+    run(6)
+    expect(log).toEqual([
+      'lock',
+      'obj:null',
+      'sound:switch',
+      'sound:hiss',
+      'sound:creak',
+      'say:act0.board',
+      'black',
+      'complete',
+    ])
+    beats.board()
+    run(1)
     expect(log.filter((l) => l === 'complete').length).toBe(1)
   })
 })

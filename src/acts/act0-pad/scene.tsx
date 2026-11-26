@@ -1,14 +1,15 @@
-import { useThree } from '@react-three/fiber'
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { BufferGeometry, CircleGeometry, Matrix4, PlaneGeometry, Quaternion, Vector3, type InstancedMesh, type Material } from 'three'
+import { useFrame, useThree } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
+import { BufferGeometry, PlaneGeometry, type Group, type Material, type Mesh } from 'three'
 import { PlayerCamera } from '../../engine/PlayerCamera'
 import { applyFog, clearFog } from '../../render/fog'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { mergeStatic, tiledBoxAt, tiledCylinder } from '../../procgen/tiledBox'
 import { buildEscapeTower } from '../../procgen/escapeTower'
-import { buildSideHatch } from '../../procgen/sideHatch'
+import { buildHatchHandle, buildSideHatch } from '../../procgen/sideHatch'
 import { buildSkyDome, buildSunDisc } from '../../procgen/skyDome'
-import { bootprints, HATCH_POS, SUN_DIRECTION, VISUAL_BOXES, type MatName } from './room'
+import { HATCH_POS, SUN_DIRECTION, VISUAL_BOXES, type MatName } from './room'
+import { act0State } from './state'
 import { Crowd } from './crowd'
 import { PadCrew } from './crew'
 
@@ -75,12 +76,15 @@ export function Scene() {
       sea: createMaterial({ color: '#58737d' }),
       concrete: createMaterial({ color: '#9b9484' }),
       vc: createMaterial({ vertexColors: true }),
-      print: createMaterial({ kind: 'unlit', color: '#0c0a08', snap: false }),
+      dark: createMaterial({ kind: 'unlit', color: '#120e0a', snap: false }),
     }),
     [],
   )
   const statics = useMemo(buildStatics, [])
   const hatchGeo = useMemo(buildSideHatch, [])
+  const handleGeo = useMemo(buildHatchHandle, [])
+  const hatchRef = useRef<Group>(null)
+  const handleRef = useRef<Mesh>(null)
   const rocket = useMemo(buildRocket, [])
   const sky = useMemo(() => buildSkyDome({ top: '#3f5f82', horizon: '#f2c38d', bottom: '#3a3326' }), [])
   const sun = useMemo(() => buildSunDisc({ direction: SUN_DIRECTION, size: 3.5 }), [])
@@ -95,26 +99,10 @@ export function Scene() {
     g.rotateX(-Math.PI / 2)
     return g
   }, [])
-  const printGeo = useMemo(() => {
-    const g = new CircleGeometry(1, 8)
-    g.rotateX(-Math.PI / 2)
-    return g
-  }, [])
-  const printRef = useRef<InstancedMesh>(null)
-
-  useLayoutEffect(() => {
-    const mesh = printRef.current
-    if (!mesh) return
-    const m = new Matrix4()
-    const q = new Quaternion()
-    const up = new Vector3(0, 1, 0)
-    bootprints().forEach((p, i) => {
-      q.setFromAxisAngle(up, p.yaw)
-      m.compose(new Vector3(p.x, 0.02, p.z), q, new Vector3(0.09, 1, 0.17))
-      mesh.setMatrixAt(i, m)
-    })
-    mesh.instanceMatrix.needsUpdate = true
-  }, [])
+  useFrame(() => {
+    if (hatchRef.current) hatchRef.current.rotation.y = -act0State.hatchOpen
+    if (handleRef.current) handleRef.current.rotation.z = -act0State.handle
+  })
 
   useEffect(() => {
     applyFog(scene, gl, FOG)
@@ -128,9 +116,9 @@ export function Scene() {
       sun.dispose()
       groundGeo.dispose()
       seaGeo.dispose()
-      printGeo.dispose()
+      handleGeo.dispose()
     }
-  }, [scene, gl, mats, statics, rocket, hatchGeo, sky, sun, groundGeo, seaGeo, printGeo])
+  }, [scene, gl, mats, statics, rocket, hatchGeo, handleGeo, sky, sun, groundGeo, seaGeo])
 
   return (
     <>
@@ -157,13 +145,13 @@ export function Scene() {
         <cylinderGeometry args={[40, 40, 0.2, 16]} />
       </mesh>
 
-      <mesh geometry={hatchGeo} material={mats.vc} position={[HATCH_POS.x, HATCH_POS.y, STACK_Z + CM_R - 0.02]} />
-
-      <instancedMesh
-        ref={printRef}
-        args={[printGeo, mats.print, bootprints().length]}
-        frustumCulled={false}
-      />
+      <mesh material={mats.dark} position={[HATCH_POS.x, HATCH_POS.y, STACK_Z + CM_R - 0.03]}>
+        <planeGeometry args={[0.7, 0.8]} />
+      </mesh>
+      <group ref={hatchRef} position={[HATCH_POS.x - 0.5, HATCH_POS.y, STACK_Z + CM_R - 0.02]}>
+        <mesh geometry={hatchGeo} material={mats.vc} position={[0.5, 0, 0]} />
+        <mesh ref={handleRef} geometry={handleGeo} material={mats.vc} position={[0.5, -0.12, 0.125]} />
+      </group>
 
       <Crowd />
       <PadCrew />

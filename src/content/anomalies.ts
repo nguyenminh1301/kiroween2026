@@ -5,14 +5,8 @@ export interface AnomalyText {
   source: string
 }
 
-/** The six anomalies, in Archive order. The sandbox id test-box is not listed. */
+/** The anomalies, in Archive order. The sandbox id test-box is not listed. */
 export const ANOMALIES: AnomalyText[] = [
-  {
-    id: 'extra-bootprints',
-    seen: 'Boot prints on the access arm led into the White Room. None came out.',
-    real: 'The crew walked the swing arm from the tower to the White Room, where the pad crew helped them into the spacecraft.',
-    source: 'https://www.nasa.gov/history/afj/ap11fj/01launch.html',
-  },
   {
     id: 'o2-for-four',
     seen: 'Cabin oxygen flow read high enough for four people.',

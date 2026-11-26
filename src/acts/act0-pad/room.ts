@@ -26,13 +26,6 @@ export const HATCH_RADIUS = 0.6
 export const SUN_DIRECTION: Vec3 = { x: -0.6, y: 0.2, z: -1 }
 export const ROOM_ENTER_Z = -6.2
 
-export const BOOTPRINT_ANOMALY = {
-  id: 'extra-bootprints',
-  position: { x: 0.4, y: 0.05, z: -1 },
-  radius: 1.5,
-  maxDistance: 14,
-}
-
 export type MatName = 'grating' | 'steel' | 'rail' | 'room' | 'lamp'
 
 export interface VisualBox {
@@ -107,15 +100,6 @@ export interface Bootprint {
   z: number
   /** Heel to toe turn about y. */
   yaw: number
-}
-
-/** Twelve prints, alternating left and right, from z = 3.5 into the White Room. None lead out. */
-export function bootprints(): Bootprint[] {
-  const out: Bootprint[] = []
-  for (let i = 0; i < 12; i++) {
-    out.push({ x: 0.4 + (i % 2 === 0 ? -0.15 : 0.15), z: 3.5 - i * 0.95, yaw: i % 2 === 0 ? 0.06 : -0.06 })
-  }
-  return out
 }
 
 /** True when `z` is inside the White Room. */

@@ -44,6 +44,7 @@ const slab = (w: number, h: number, r: number, depth: number, z: number, color: 
   return paint(g, color)
 }
 
+/** The door without its handle, which `buildHatchHandle` makes so it can turn. */
 export function buildSideHatch(): BufferGeometry {
   const parts: BufferGeometry[] = [
     slab(0.98, 1.04, 0.2, 0.05, 0, '#8f8979'),
@@ -57,15 +58,6 @@ export function buildSideHatch(): BufferGeometry {
   const ring = new TorusGeometry(0.105, 0.017, 4, 10)
   ring.translate(-0.12, 0.2, 0.12)
   parts.push(paint(ring, '#5f5a4e'))
-  // Handle: a hub and a bar across the lower middle.
-  const hub = new CylinderGeometry(0.045, 0.045, 0.05, 8)
-  hub.rotateX(Math.PI / 2)
-  hub.translate(0, -0.12, 0.135)
-  parts.push(paint(hub, '#4a463c'))
-  const bar = new CylinderGeometry(0.018, 0.018, 0.34, 6)
-  bar.rotateZ(Math.PI / 2)
-  bar.translate(0.02, -0.12, 0.165)
-  parts.push(paint(bar, '#35322b'))
   // Bolts around the door edge and hinge pegs down the left side.
   const bolt = (x: number, y: number, r = 0.016) => {
     const g = new CylinderGeometry(r, r, 0.03, 5)
@@ -88,6 +80,22 @@ export function buildSideHatch(): BufferGeometry {
     peg.translate(-0.5, y, 0.03)
     parts.push(paint(peg, '#6d675a'))
   }
+  const flat = parts.map((p) => (p.index ? p.toNonIndexed() : p))
+  const merged = mergeGeometries(flat, false)
+  parts.forEach((p) => p.dispose())
+  flat.forEach((p) => p.dispose())
+  return merged
+}
+
+/** The handle alone, centred on its hub at the origin, facing +z. */
+export function buildHatchHandle(): BufferGeometry {
+  const hub = new CylinderGeometry(0.045, 0.045, 0.05, 8)
+  hub.rotateX(Math.PI / 2)
+  hub.translate(0, 0, 0.01)
+  const bar = new CylinderGeometry(0.018, 0.018, 0.34, 6)
+  bar.rotateZ(Math.PI / 2)
+  bar.translate(0.02, 0, 0.04)
+  const parts = [paint(hub, '#4a463c'), paint(bar, '#35322b')]
   const flat = parts.map((p) => (p.index ? p.toNonIndexed() : p))
   const merged = mergeGeometries(flat, false)
   parts.forEach((p) => p.dispose())
