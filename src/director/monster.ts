@@ -1,40 +1,53 @@
-// The creature's brain: patrol, alert, hunt, search, return, and the scripted encounter. Pure.
+// The creature's brain: patrol, peek, alert, hunt the last place a noise was heard, search, go back to patrol.
+// It walks a path of waypoints and never enters a hiding spot: the caller maps a noise heard from a hiding
+// spot to the spot's outside point. Pure.
 import { canHear, canSee } from './hearing'
-import { headingTo, nearestS, PATROL_SPEED, pointAt, route, type Pt } from './patrol'
+import { dist, headingTo, nearbyNodes, nearestPatrol, PATROL_SPEED, route, type Nav, type Pt } from './patrol'
 
-export type MonsterMode = 'patrol' | 'alert' | 'hunt' | 'search' | 'return' | 'encounter' | 'scripted' | 'crawl'
+export type MonsterMode = 'patrol' | 'peek' | 'alert' | 'hunt' | 'search' | 'scripted' | 'crawl'
 export type MonsterAnim = 'walk' | 'freeze' | 'crawl'
-export type MonsterEvent = 'sound' | 'alert' | 'lost' | 'caught' | 'encounterEnd'
+/** `click`, `scrape` and `breath` are quiet. `step` and `scream` happen only in a chase. */
+export type MonsterEvent = 'click' | 'scrape' | 'breath' | 'step' | 'scream' | 'alert' | 'lost' | 'caught'
 
 export const HUNT_SPEED = 1.45
-export const ENCOUNTER_SPEED = 1.4
-export const ALERT_SECONDS = 1.8
-export const SEARCH_SECONDS = 2.5
+export const ALERT_SECONDS = 0.8
+/** Standing still where it heard the noise, then walking to a couple of nearby points. */
+export const STAND_SECONDS = 2
+export const SEARCH_SECONDS = 6
+export const SEARCH_RADIUS = 5
 export const CATCH_RANGE = 0.8
-export const ENCOUNTER_STOP_Z = -7.2
-export const ENCOUNTER_PAUSE = 2.5
-/** The creature stops this far from the player, inside the flashlight cone. */
-export const ENCOUNTER_STOP_DIST = 3.5
-/** Patrol distance of the first doorway outside point, where the patrol resumes after the encounter. */
-export const RESUME_S = 15
+export const AMBIENT_MIN = 8
+export const AMBIENT_MAX = 15
+export const STEP_EVERY = 0.5
+export const PEEK_CHANCE = 0.35
+export const PEEK_PAUSE = 2
 
 export interface Monster {
   pos: Pt
   heading: number
   mode: MonsterMode
   anim: MonsterAnim
-  /** Distance along the patrol loop. */
-  s: number
+  /** Index of the patrol waypoint it walks to next. */
+  patrolIdx: number
   timer: number
-  lastKnown: Pt | null
-  soundIn: number
+  /** Seconds left of the search. */
+  search: number
+  /** The last place it heard a noise. */
+  target: Pt | null
   path: Pt[]
-  phase: 'door' | 'out' | 'pause' | 'back'
+  /** Seconds to the next quiet sound. */
+  ambientIn: number
+  stepIn: number
+  /** Standing at the end of a peek or at the search spot. */
+  standing: boolean
 }
 
 export interface MonsterCtx {
   dt: number
+  /** The player's real position. */
   player: Pt
+  /** Where a noise from the player counts as: the spot's outside point when hidden. */
+  heard: Pt
   hidden: boolean
   holding: boolean
   noise: number
@@ -42,25 +55,29 @@ export interface MonsterCtx {
   rng: () => number
 }
 
-const nextSound = (rng: () => number): number => 2.5 + rng() * 3
+const nextAmbient = (rng: () => number): number => AMBIENT_MIN + rng() * (AMBIENT_MAX - AMBIENT_MIN)
 
-export function createMonster(s = 0, rng: () => number = Math.random): Monster {
-  const p = pointAt(s)
+export function createMonster(nav: Nav, patrolIdx = 0, rng: () => number = Math.random): Monster {
+  const i = ((patrolIdx % nav.patrol.length) + nav.patrol.length) % nav.patrol.length
+  const p = nav.patrol[i]
+  const next = nav.patrol[(i + 1) % nav.patrol.length]
   return {
     pos: { x: p.x, z: p.z },
-    heading: p.heading,
+    heading: headingTo(p, next),
     mode: 'patrol',
     anim: 'walk',
-    s,
+    patrolIdx: (i + 1) % nav.patrol.length,
     timer: 0,
-    lastKnown: null,
-    soundIn: nextSound(rng),
+    search: 0,
+    target: null,
     path: [],
-    phase: 'door',
+    ambientIn: nextAmbient(rng),
+    stepIn: 0,
+    standing: false,
   }
 }
 
-/** Walk along `m.path` at `speed`. Returns true when the path is finished. */
+/** Walk along `m.path` at `speed`, facing the way it walks. Returns true when the path is finished. */
 function follow(m: Monster, speed: number, dt: number): boolean {
   let left = speed * dt
   while (m.path.length > 0 && left > 0) {
@@ -81,18 +98,7 @@ function follow(m: Monster, speed: number, dt: number): boolean {
   return m.path.length === 0
 }
 
-/** Start the scripted walk out of the first doorway. */
-export function startEncounter(m: Monster): void {
-  m.mode = 'encounter'
-  m.anim = 'walk'
-  m.phase = 'door'
-  m.pos = { x: 3, z: -16.25 }
-  m.path = [{ x: 0, z: -16.25 }]
-  m.timer = 0
-  m.lastKnown = null
-}
-
-/** Put the creature under direct control (reveal and chase). */
+/** Put the creature under direct control. */
 export function setScripted(m: Monster, mode: 'scripted' | 'crawl', pos: Pt, heading: number): void {
   m.mode = mode
   m.anim = mode === 'crawl' ? 'crawl' : 'freeze'
@@ -100,139 +106,152 @@ export function setScripted(m: Monster, mode: 'scripted' | 'crawl', pos: Pt, hea
   m.heading = heading
 }
 
-/** Put the creature back on the patrol loop at `s`. */
-export function resumePatrol(m: Monster, s: number): void {
-  const p = pointAt(s)
+/** Put the creature back on its patrol at waypoint `idx`. */
+export function resumePatrol(m: Monster, nav: Nav, idx: number): void {
   m.mode = 'patrol'
   m.anim = 'walk'
-  m.s = s
-  m.pos = { x: p.x, z: p.z }
-  m.heading = p.heading
+  m.patrolIdx = ((idx % nav.patrol.length) + nav.patrol.length) % nav.patrol.length
   m.path = []
-  m.lastKnown = null
+  m.target = null
+  m.standing = false
 }
 
-function detects(m: Monster, c: MonsterCtx): boolean {
-  const d = Math.hypot(c.player.x - m.pos.x, c.player.z - m.pos.z)
-  const here = { x: m.pos.x, y: 0, z: m.pos.z }
-  const there = { x: c.player.x, y: 0, z: c.player.z }
-  return canHear(c.noise, d, c.hidden, c.holding) || canSee(here, m.heading, there, c.hidden)
-}
-
-function hunt(m: Monster, target: Pt): void {
+function startHunt(m: Monster, nav: Nav, where: Pt): void {
   m.mode = 'hunt'
   m.anim = 'walk'
-  m.lastKnown = { x: target.x, z: target.z }
-  m.path = route(m.pos, m.lastKnown)
+  m.standing = false
+  m.target = { x: where.x, z: where.z }
+  m.path = route(nav, m.pos, m.target)
+  m.stepIn = 0
 }
 
 /** Advance the creature one frame. Returns the events of this frame. */
-export function stepMonster(m: Monster, c: MonsterCtx): MonsterEvent[] {
+export function stepMonster(m: Monster, c: MonsterCtx, nav: Nav): MonsterEvent[] {
   const events: MonsterEvent[] = []
   const dt = c.dt
   if (m.mode === 'scripted' || m.mode === 'crawl') return events
 
-  const dist = Math.hypot(c.player.x - m.pos.x, c.player.z - m.pos.z)
-  if (!c.hidden && dist < CATCH_RANGE) {
+  const d = dist(c.player, m.pos)
+  if (!c.hidden && d < CATCH_RANGE) {
     events.push('caught')
     return events
   }
 
-  m.soundIn -= dt
-  if (m.soundIn <= 0 && m.anim !== 'freeze') {
-    m.soundIn = nextSound(c.rng)
-    events.push('sound')
+  // A quiet click, scrape or breath now and then. Not in a chase: the chase has its own sounds.
+  m.ambientIn -= dt
+  if (m.ambientIn <= 0) {
+    m.ambientIn = nextAmbient(c.rng)
+    if (m.mode !== 'hunt' && m.mode !== 'alert') events.push((['click', 'scrape', 'breath'] as const)[Math.floor(c.rng() * 3) % 3])
   }
 
+  // What it notices: a noise (placed at `heard`), or the player very close in the open (placed where they are).
+  const here = { x: m.pos.x, y: 0, z: m.pos.z }
+  const there = { x: c.player.x, y: 0, z: c.player.z }
+  const sees = canSee(here, m.heading, there, c.hidden)
+  const hears = canHear(c.noise, d, c.hidden, c.holding)
+  const noticed: Pt | null = sees ? { x: c.player.x, z: c.player.z } : hears ? c.heard : null
+
   switch (m.mode) {
-    case 'encounter': {
-      if (m.phase === 'door') {
-        if (follow(m, ENCOUNTER_SPEED, dt)) m.phase = 'out'
-      } else if (m.phase === 'out') {
-        // Past the doorway, walk up the corridor until 3.5 m from the player.
-        const near = Math.hypot(c.player.x - m.pos.x, c.player.z - m.pos.z) <= ENCOUNTER_STOP_DIST
-        let arrived = false
-        if (!near) {
-          // The point on the corridor line that is 3.5 m from the player.
-          const dz = Math.sqrt(Math.max(0, ENCOUNTER_STOP_DIST ** 2 - c.player.x ** 2))
-          const stopZ = c.player.z > m.pos.z ? Math.min(c.player.z - dz, ENCOUNTER_STOP_Z) : c.player.z + dz
-          m.path = [{ x: 0, z: stopZ }]
-          arrived = follow(m, ENCOUNTER_SPEED, dt)
+    case 'patrol': {
+      if (noticed) return notice(m, noticed, events)
+      if (m.path.length === 0) m.path = route(nav, m.pos, nav.patrol[m.patrolIdx])
+      if (follow(m, PATROL_SPEED, dt)) {
+        m.patrolIdx = (m.patrolIdx + 1) % nav.patrol.length
+        if (nav.peeks.length > 0 && c.rng() < PEEK_CHANCE) {
+          const spot = nav.peeks[Math.floor(c.rng() * nav.peeks.length) % nav.peeks.length]
+          m.mode = 'peek'
+          m.standing = false
+          m.path = route(nav, m.pos, spot)
         }
-        if (near || arrived) {
-          m.path = []
-          m.phase = 'pause'
-          m.anim = 'freeze'
-          m.timer = ENCOUNTER_PAUSE
-        }
-      } else if (m.phase === 'pause') {
-        m.heading = headingTo(m.pos, c.player)
-        m.timer -= dt
-        if (m.timer <= 0) {
-          m.phase = 'back'
-          m.anim = 'walk'
-          m.path = [{ x: 0, z: -16.25 }, { x: 3, z: -16.25 }]
-        }
-      } else if (follow(m, ENCOUNTER_SPEED, dt)) {
-        resumePatrol(m, RESUME_S)
-        events.push('encounterEnd')
       }
       return events
     }
-    case 'patrol': {
-      m.s += PATROL_SPEED * dt
-      const p = pointAt(m.s)
-      m.pos = { x: p.x, z: p.z }
-      m.heading = p.heading
-      break
-    }
-    case 'return': {
-      if (follow(m, PATROL_SPEED, dt)) resumePatrol(m, nearestS(m.pos))
-      break
+    case 'peek': {
+      if (noticed) return notice(m, noticed, events)
+      if (!m.standing) {
+        if (follow(m, PATROL_SPEED, dt)) {
+          m.standing = true
+          m.anim = 'freeze'
+          m.timer = PEEK_PAUSE
+          events.push('breath')
+        }
+      } else {
+        m.timer -= dt
+        if (m.timer <= 0) {
+          m.mode = 'patrol'
+          m.anim = 'walk'
+          m.standing = false
+          m.path = []
+        }
+      }
+      return events
     }
     case 'alert': {
       m.timer -= dt
-      m.heading = headingTo(m.pos, c.player)
-      if (detects(m, c)) m.lastKnown = { ...c.player }
-      if (m.timer <= 0) hunt(m, m.lastKnown ?? c.player)
+      if (noticed) m.target = { ...noticed }
+      if (m.target) m.heading = headingTo(m.pos, m.target)
+      if (m.timer <= 0 && m.target) {
+        startHunt(m, nav, m.target)
+        events.push('scream')
+      }
       return events
     }
     case 'hunt': {
-      if (detects(m, c)) {
-        m.lastKnown = { ...c.player }
-        m.path = route(m.pos, m.lastKnown)
+      // A fresh noise moves the target to where it was heard. The player is never tracked.
+      if (noticed && m.target && dist(noticed, m.target) > 0.5) startHunt(m, nav, noticed)
+      m.stepIn -= dt
+      if (m.stepIn <= 0) {
+        m.stepIn = STEP_EVERY
+        events.push('step')
       }
       if (follow(m, HUNT_SPEED, dt)) {
         m.mode = 'search'
         m.anim = 'freeze'
-        m.timer = SEARCH_SECONDS
+        m.standing = true
+        m.timer = STAND_SECONDS
+        m.search = SEARCH_SECONDS
+        events.push('breath')
       }
       return events
     }
     case 'search': {
-      m.timer -= dt
-      if (detects(m, c)) {
-        hunt(m, c.player)
+      if (noticed) {
+        startHunt(m, nav, noticed)
+        events.push('alert')
         return events
       }
-      if (m.timer <= 0) {
+      m.search -= dt
+      if (m.standing) {
+        m.timer -= dt
+        if (m.timer <= 0) {
+          m.standing = false
+          m.anim = 'walk'
+          m.path = []
+          for (const n of nearbyNodes(nav, m.pos, SEARCH_RADIUS, 2, c.rng)) m.path.push(...route(nav, m.path[m.path.length - 1] ?? m.pos, n))
+        }
+      } else if (follow(m, PATROL_SPEED, dt)) {
+        m.standing = true
+        m.anim = 'freeze'
+        m.timer = 1
+      }
+      if (m.search <= 0) {
         events.push('lost')
-        m.mode = 'return'
-        m.anim = 'walk'
-        const home = pointAt(nearestS(m.pos))
-        m.path = route(m.pos, { x: home.x, z: home.z })
+        resumePatrol(m, nav, nearestPatrol(nav, m.pos))
       }
       return events
     }
   }
+  return events
+}
 
-  if (detects(m, c)) {
-    m.mode = 'alert'
-    m.anim = 'freeze'
-    m.timer = ALERT_SECONDS
-    m.heading = headingTo(m.pos, c.player)
-    m.lastKnown = { ...c.player }
-    events.push('alert')
-  }
+function notice(m: Monster, where: Pt, events: MonsterEvent[]): MonsterEvent[] {
+  m.mode = 'alert'
+  m.anim = 'freeze'
+  m.standing = false
+  m.timer = ALERT_SECONDS
+  m.target = { x: where.x, z: where.z }
+  m.path = []
+  m.heading = headingTo(m.pos, where)
+  events.push('alert')
   return events
 }

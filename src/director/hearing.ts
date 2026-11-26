@@ -2,12 +2,14 @@
 import type { Vec3 } from '../types'
 
 export const HEAR_RANGE = 6.5
+/** Noise needed to be heard at point blank. Raised from 0.2: walking is only heard from about a metre. */
+export const HEAR_BASE = 0.25
 export const SIGHT_CLOSE = 1.1
 export const SIGHT_FRONT = 3.5
 export const SIGHT_COS = 0.55
 
 /** Noise level needed to be heard at `distance` metres. */
-export const hearingThreshold = (distance: number): number => 0.2 + 0.04 * distance
+export const hearingThreshold = (distance: number): number => HEAR_BASE + 0.04 * distance
 
 export function canHear(noise: number, distance: number, hidden: boolean, holding: boolean): boolean {
   if (!(distance <= HEAR_RANGE)) return false

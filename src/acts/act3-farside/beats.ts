@@ -3,7 +3,7 @@
 // Pure: no Three.js or React imports. Every effect goes through `BeatDeps`, time through `tick(dt)`,
 // so a test can run the whole act on a fake clock and paused time never counts.
 import type { TensionEvent } from '../../director/tension'
-import { CAGE_ARRIVE_Z, checkpointAt, checkpointIndex, type Checkpoint } from './layout'
+import { CAGE_ARRIVE_Z, checkpointAt, checkpointIndex, IMPOSTOR_Z, type Checkpoint } from './layout'
 
 export type Crew = 'cdr' | 'cmp'
 export type Choice = 'dream' | 'fine'
@@ -29,7 +29,6 @@ export interface BeatDeps {
   anomaly(id: string): void
   sfx(name: Sfx): void
   blackout(v: number): void
-  startEncounter(): void
   /** Stand up out of the bag. */
   getUp(): void
   openCage(): void
@@ -103,9 +102,8 @@ interface Timer {
 export interface Beats {
   start(cp: Checkpoint, startZ: number): void
   tick(dt: number, ctx: TickCtx): void
-  /** The player stepped into (true) or out of (false) a locker. */
-  hidden(inLocker: boolean): void
-  encounterEnd(): void
+  /** The player stepped into (true) or out of (false) a hiding spot. */
+  hidden(inSpot: boolean): void
   alert(): void
   lost(): void
   caught(): void
@@ -131,7 +129,6 @@ export interface Beats {
   hunting(): boolean
   /** The player must not move. */
   frozen(): boolean
-  encounterActive(): boolean
   choice(): Choice | null
 }
 
@@ -141,7 +138,6 @@ export function createBeats(deps: BeatDeps): Beats {
   let time = 0
   let prevZ = 0
   let timers: Timer[] = []
-  let encounter: 'none' | 'active' | 'done' = 'none'
   let heldSaid = false
   let impostor = false
   let hunted = false
@@ -159,14 +155,6 @@ export function createBeats(deps: BeatDeps): Beats {
     timers.push({ left: secs, fn })
   }
   const exploreObjective = (): void => deps.setObjective(carrying ? 'act3Carry' : 'act3Find')
-
-  function startEncounter(): void {
-    if (encounter !== 'none') return
-    encounter = 'active'
-    deps.startEncounter()
-    deps.sfx('scrape')
-    deps.setObjective('act3Hide')
-  }
 
   function reachCage(): void {
     phase = 'cage'
@@ -212,7 +200,6 @@ export function createBeats(deps: BeatDeps): Beats {
       time = 0
       prevZ = z
       timers = []
-      encounter = 'none'
       heldSaid = false
       impostor = c !== 'start' && c !== 'wp0'
       hunted = false
@@ -239,19 +226,15 @@ export function createBeats(deps: BeatDeps): Beats {
       } else if (c === 'wp0') {
         phase = 'explore'
         deps.setObjective('act3Find')
-        after(1, startEncounter)
       } else if (c === 'wp1') {
-        encounter = 'done'
         phase = 'cage'
         deps.setObjective('act3Find')
         after(1, () => deps.say('act3.cage', { from: 'cdr' }))
       } else if (c === 'wp2') {
-        encounter = 'done'
         phase = 'silent'
         deps.setSilent(true)
         deps.setObjective('act3Back')
       } else {
-        encounter = 'done'
         phase = 'final'
         deps.setSilent(true)
         deps.setObjective('act3Back')
@@ -297,8 +280,7 @@ export function createBeats(deps: BeatDeps): Beats {
             cp = set
             deps.checkpoint(set)
           }
-          if (crossed(-5)) startEncounter()
-          if (!impostor && crossed(-14)) {
+          if (!impostor && crossed(IMPOSTOR_Z)) {
             impostor = true
             deps.anomaly('impostor-capcom')
             deps.say('act3.impostor', { speaker: 'UNKNOWN', detuneHz: 7, from: 'player' })
@@ -333,25 +315,18 @@ export function createBeats(deps: BeatDeps): Beats {
       prevZ = z
     },
 
-    hidden(inLocker) {
-      if (inLocker && encounter === 'active' && !heldSaid) {
+    hidden(inSpot) {
+      if (inSpot && hunted && !heldSaid) {
         heldSaid = true
-        deps.say('act3.hold', { from: 'player' })
+        deps.say('act3.hold', { from: 'cdr' })
         deps.hint('breath')
       }
     },
 
-    encounterEnd() {
-      if (encounter !== 'active') return
-      encounter = 'done'
-      if (HUNTED_PHASES.has(phase)) exploreObjective()
-    },
-
     alert() {
-      if (!HUNTED_PHASES.has(phase)) return
+      if (!HUNTED_PHASES.has(phase) || hunted) return
       hunted = true
-      deps.sfx('sting')
-      deps.say('act3.heard', { urgent: true, from: 'player' })
+      deps.say('act3.heard', { urgent: true, from: 'cdr' })
       deps.setObjective('act3Hunted')
       deps.tension('heard')
     },
@@ -437,7 +412,6 @@ export function createBeats(deps: BeatDeps): Beats {
     lungeTime: () => lungeT,
     hunting: () => HUNTED_PHASES.has(phase),
     frozen: () => ['wake', 'lunge', 'black', 'wakeUp', 'choice', 'reply', 'out', 'caught', 'done'].includes(phase),
-    encounterActive: () => encounter === 'active',
     choice: () => choice,
   }
 }

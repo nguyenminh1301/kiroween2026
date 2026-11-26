@@ -1,6 +1,10 @@
 // Player noise, 0 to 1. Pure: no Three.js or React imports.
 
 export const NOISE_DECAY = 0.3
+/** Extra decay per second while standing still. */
+export const STILL_DECAY = 0.7
+/** The small noise of leaving a hiding spot. */
+export const LEAVE_NOISE = 0.28
 export const PUSH_NOISE = 0.2
 export const BUMP_NOISE = 0.3
 export const BREATH_FLOOR = 0.12
@@ -30,7 +34,8 @@ const clamp01 = (v: number): number => (Number.isFinite(v) ? Math.min(1, Math.ma
 export function stepNoise(noise: number, i: NoiseInput): number {
   const dt = Number.isFinite(i.dt) ? Math.max(0, i.dt) : 0
   const speed = Number.isFinite(i.speed) ? Math.max(0, i.speed) : 0
-  let n = clamp01(noise) - NOISE_DECAY * dt
+  const decay = speed < STILL_SPEED ? NOISE_DECAY + STILL_DECAY : NOISE_DECAY
+  let n = clamp01(noise) - decay * dt
   if (i.pushed) n += PUSH_NOISE
   if (i.bumped) n += BUMP_NOISE
   n = clamp01(n)

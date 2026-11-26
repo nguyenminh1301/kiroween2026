@@ -39,6 +39,15 @@ describe('pose logic', () => {
     expect(headToward(0, 0, 0, 5, 0)).toBeGreaterThan(0.9)
     expect(Math.abs(headToward(0, 0, 0, 0, -5))).toBeLessThanOrEqual(1.1)
   })
+  it('walks forward: leans ahead, bends knees back and elbows forward, arms swing against the legs', () => {
+    for (let k = 0; k < 16; k++) {
+      const g = anglesFor('walk', (k / 16) * Math.PI * 2)
+      expect(g.spine).toBeGreaterThan(0)
+      for (const leg of g.leg) expect(leg[1]).toBeGreaterThan(0)
+      for (const arm of g.arm) expect(arm[1]).toBeLessThan(0)
+      expect(Math.sign(g.arm[0][0]) * Math.sign(g.leg[0][0])).toBeLessThanOrEqual(0)
+    }
+  })
   it('bends knees and elbows for every animation', () => {
     for (const k of ['walk', 'freeze', 'crawl'] as const) {
       const g = anglesFor(k, 0.7)

@@ -7,8 +7,9 @@ import { HUD } from '../../content/hud'
 import { createBreath, stepBreath } from '../../director/breath'
 import { hearingThreshold } from '../../director/hearing'
 import { meterFill, meterLabel, meterRed, noiseRatio } from '../../director/meter'
-import { createMonster, startEncounter, stepMonster, type Monster } from '../../director/monster'
-import { stepNoise } from '../../director/noise'
+import { createMonster, stepMonster, type Monster } from '../../director/monster'
+import { createNav } from '../../director/patrol'
+import { LEAVE_NOISE, stepNoise } from '../../director/noise'
 import { setDirectorSource } from '../../director/snapshot'
 import { applyTension, createTension, stepHeartRate, stepTension, type Tension } from '../../director/tension'
 import { completeAct, restartAct } from '../../engine/actFlow'
@@ -38,11 +39,17 @@ import {
   cagedVoice,
   CHECKPOINT_DEFS,
   collisionBoxes,
+  creatureClear,
   CREW_RADIUS,
   detectBump,
+  heardAt,
   LOCKER_EXIT_DELAY,
   LOCKER_YAW,
+  NAV_NODES,
+  PATROL_ROUTE,
+  PEEKS,
   SPOTS,
+  type SpotDef,
   SLEEP_EYE,
   SLEEP_YAW,
   speedOf,
@@ -52,6 +59,8 @@ import { act3State, resetAct3State } from './state'
 
 const LOGIC_PRIORITY = 300
 const CARRY_SPEED = 0.95
+/** After leaving a hiding spot, noises still count as coming from the spot for this long. */
+const LEAVE_HEARD_SECONDS = 1.5
 const EYE_HEIGHT = 1.65
 const other = (c: Crew): Crew => (c === 'cdr' ? 'cmp' : 'cdr')
 
@@ -115,9 +124,10 @@ export function startAct3(requested: string): void {
   store.setFear(tension.fear)
   store.setHeartRate(heartRate)
 
-  const monster: Monster = createMonster(0)
+  const nav = createNav(Object.values(NAV_NODES), creatureClear, PATROL_ROUTE, PEEKS)
+  const monster: Monster = createMonster(nav, def.patrolIndex)
   act3State.monster = monster
-  act3State.creatureVisible = cp === 'wp1'
+  act3State.creatureVisible = !later
   if (later && persistedFirst) {
     act3State.laid[persistedFirst] = true
     act3State.second = other(persistedFirst)
@@ -127,6 +137,7 @@ export function startAct3(requested: string): void {
 
   let spotIndex = -1
   let spotTime = 0
+  let leftSpot: { spot: SpotDef; left: number } | null = null
   const inSpot = (): boolean => spotIndex >= 0
 
   const voiceAt = (from: 'cdr' | 'cmp' | 'player' | undefined) =>
@@ -154,15 +165,8 @@ export function startAct3(requested: string): void {
     },
     checkpoint: (name) => gameStore.getState().setCheckpoint(name),
     anomaly: (id) => gameStore.getState().addAnomalySeen(id),
-    sfx: (name) => {
-      if (name === 'scrape') audio.play('scrape', { position: { x: monster.pos.x, y: 1, z: monster.pos.z } })
-      else audio.play(name)
-    },
+    sfx: (name) => audio.play(name),
     blackout: (v) => fxStore.getState().setBlackout(v),
-    startEncounter: () => {
-      startEncounter(monster)
-      act3State.creatureVisible = true
-    },
     getUp: () => {
       updatePlayerBody({ pos: { ...BAG_STAND }, vel: { x: 0, y: 0, z: 0 }, yaw: 0, pitch: 0, mode: 'walk' })
     },
@@ -256,6 +260,9 @@ export function startAct3(requested: string): void {
     audio.play(l.kind === 'bag' ? 'zipper' : 'locker', { position: { ...l.usePos } })
     act3State.hideKind = null
     fxStore.getState().setSlit(false)
+    // A small noise, and for a moment any noise counts as coming from the spot's outside point.
+    noise = Math.max(noise, LEAVE_NOISE)
+    leftSpot = { spot: l, left: LEAVE_HEARD_SECONDS }
     step.seatedYawLimit = undefined
     step.seatedPitchLimit = undefined
     updatePlayerBody({ pos: { ...l.exit }, vel: { x: 0, y: 0, z: 0 }, mode: 'walk' })
@@ -304,7 +311,7 @@ export function startAct3(requested: string): void {
   let breath = createBreath()
   let noise = 0.12
   let prevVel = { x: 0, y: 0, z: 0 }
-  let breatheIn = 1
+  let chasing = false
   let threshold = hearingThreshold(10)
 
   setDirectorSource(() => ({
@@ -320,7 +327,6 @@ export function startAct3(requested: string): void {
     (dt) => {
       const body = getPlayerBody()
       if (!body) return
-      const phase = beats.phase()
       const hunted = beats.hunting()
 
       // Leaving a hiding spot.
@@ -352,40 +358,38 @@ export function startAct3(requested: string): void {
       const gait = act3State.carried ? 'carry' : 'walk'
       noise = stepNoise(noise, { dt, speed, pushed: false, bumped, holding, gait })
 
-      // The creature.
-      const mx = monster.pos.x
-      const mz = monster.pos.z
+      // The creature. A noise from a hiding spot counts as coming from the spot's outside point.
+      const here = { x: body.pos.x, z: body.pos.z }
+      const spot = inSpot() ? SPOTS[spotIndex] : leftSpot && leftSpot.left > 0 ? leftSpot.spot : null
+      if (leftSpot) leftSpot.left -= dt
+      const at = (y: number) => ({ x: monster.pos.x, y, z: monster.pos.z })
+      let nowChasing = false
       if (hunted) {
-        const events = stepMonster(monster, {
-          dt,
-          player: { x: body.pos.x, z: body.pos.z },
-          hidden: inSpot(),
-          holding,
-          noise,
-          rng: Math.random,
-        })
+        const events = stepMonster(
+          monster,
+          { dt, player: here, heard: heardAt(here, spot), hidden: inSpot(), holding, noise, rng: Math.random },
+          nav,
+        )
         for (const e of events) {
-          if (e === 'sound') {
-            audio.play(Math.random() < 0.5 ? 'scrape' : 'click', { position: { x: mx, y: 0.5, z: mz } })
-          } else if (e === 'alert') beats.alert()
+          if (e === 'click' || e === 'scrape') audio.play(e, { position: at(0.5), gain: 0.5 })
+          else if (e === 'breath') audio.play('breathe', { position: at(1.5), gain: 0.6 })
+          else if (e === 'scream') audio.play('sting', { position: at(1.5) })
+          else if (e === 'alert') beats.alert()
           else if (e === 'lost') beats.lost()
           else if (e === 'caught') beats.caught()
-          else if (e === 'encounterEnd') beats.encounterEnd()
         }
-        act3State.sound = noise > threshold ? { x: body.pos.x, z: body.pos.z } : null
+        nowChasing = monster.mode === 'hunt' || monster.mode === 'alert'
+        act3State.sound = noise > threshold ? { ...heardAt(here, spot) } : null
       } else act3State.sound = null
+      act3State.chase = nowChasing
+      // Loud steps only while it chases.
+      if (nowChasing !== chasing) {
+        chasing = nowChasing
+        if (!act3State.silent) audio.setScene({ hum: 1, bed: 'engine', steps: chasing ? 0.9 : 0, breath: breathAllowed('act3-farside', 'dream') })
+      }
 
       const distance = Math.hypot(body.pos.x - monster.pos.x, body.pos.z - monster.pos.z)
       threshold = hearingThreshold(distance)
-
-      // Breathing follows the creature.
-      if (act3State.creatureVisible && hunted && phase !== 'caught') {
-        breatheIn -= dt
-        if (breatheIn <= 0) {
-          breatheIn = 2.2
-          audio.play('breathe', { position: { x: monster.pos.x, y: 1.5, z: monster.pos.z } })
-        }
-      }
 
       // Meter, fear and heart rate.
       const fx = fxStore.getState()

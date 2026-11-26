@@ -24,10 +24,9 @@ export interface Angles {
   leg: [J3, J3]
 }
 
-/** Joint angles for an animation at a snapped phase. Elbows and knees bend a little the wrong way. */
+/** Joint angles for an animation at a snapped phase. */
 export function anglesFor(anim: 'walk' | 'freeze' | 'crawl', phase: number): Angles {
   const s = Math.sin(phase)
-  const c = Math.cos(phase)
   if (anim === 'crawl') {
     return {
       spine: -1.25,
@@ -43,16 +42,18 @@ export function anglesFor(anim: 'walk' | 'freeze' | 'crawl', phase: number): Ang
     }
   }
   if (anim === 'walk') {
+    // Forward walk: the torso leans forward, elbows and knees bend forward and back, and each arm swings
+    // against the leg on its side. The creature's front is +z, so a positive hip angle swings the leg back.
     return {
-      spine: -0.2,
-      neckX: 0.15,
+      spine: 0.14,
+      neckX: -0.1,
       arm: [
-        [c * 0.3, 0.7, -0.4],
-        [-c * 0.3, 0.7, -0.4],
+        [-s * 0.35, -0.7, 0.3],
+        [s * 0.35, -0.7, 0.3],
       ],
       leg: [
-        [s * 0.45, -0.35 - Math.max(0, -s) * 0.6, 0.3],
-        [-s * 0.45, -0.35 - Math.max(0, s) * 0.6, 0.3],
+        [s * 0.45, 0.3 + Math.max(0, -s) * 0.6, -0.2],
+        [-s * 0.45, 0.3 + Math.max(0, s) * 0.6, -0.2],
       ],
     }
   }

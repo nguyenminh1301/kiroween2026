@@ -51,7 +51,7 @@ export function Creature() {
       }
       if (!m) return
       const moving = m.anim !== 'freeze'
-      phase += dt * (m.anim === 'crawl' ? 7 : m.mode === 'hunt' || m.mode === 'encounter' ? 4.2 : 2.6) * (moving ? 1 : 0)
+      phase += dt * (m.anim === 'crawl' ? 7 : m.mode === 'hunt' ? 4.2 : 2.6) * (moving ? 1 : 0)
       bones.root.position.set(m.pos.x, act3State.creatureY, m.pos.z)
       bones.root.rotation.y = m.heading + Math.PI
       poseAstronaut(bones, m.anim, t, phase, { x: m.pos.x, z: m.pos.z, heading: m.heading + Math.PI, sound: act3State.sound })

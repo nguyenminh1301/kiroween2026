@@ -18,7 +18,6 @@ function harness(first: Crew | null = null) {
     anomaly: (a) => log.push(`anomaly:${a}`),
     sfx: (s) => log.push(`sfx:${s}`),
     blackout: (v) => blackouts.push(v),
-    startEncounter: () => log.push('startEncounter'),
     getUp: () => log.push('getUp'),
     openCage: () => log.push('openCage'),
     carry: (w) => log.push(`carry:${w}`),
@@ -65,14 +64,13 @@ describe('act 3 dream beats', () => {
     expect(h.beats.frozen()).toBe(false)
   })
 
-  it('sets wp0, starts the encounter and plays the impostor once', () => {
+  it('sets wp0 at the junction and plays the impostor once', () => {
     const h = harness()
     h.beats.start('start', 6.6)
     h.run(4)
     h.at(-4)
     h.at(-6)
     expect(h.log).toContain('cp:wp0')
-    expect(h.log).toContain('startEncounter')
     h.at(-13)
     h.at(-15)
     h.at(-13)
@@ -83,9 +81,9 @@ describe('act 3 dream beats', () => {
 
   it('sets wp1 at the cage, opens it, and carries the chosen crewman', () => {
     const h = harness()
-    h.beats.start('wp0', -4.2)
-    h.at(-36)
-    h.at(-38)
+    h.beats.start('wp0', -4.4)
+    h.at(-27)
+    h.at(-29)
     expect(h.log).toContain('cp:wp1')
     expect(h.log).toContain('say:act3.cage')
     expect(h.beats.phase()).toBe('cage')
@@ -102,7 +100,7 @@ describe('act 3 dream beats', () => {
 
   it('whispers while carrying, subtitles only', () => {
     const h = harness()
-    h.beats.start('wp1', -37.6)
+    h.beats.start('wp1', -28.2)
     h.beats.useCage()
     h.beats.pickUp('cdr')
     h.run(8)
@@ -111,7 +109,7 @@ describe('act 3 dream beats', () => {
 
   it('lays him down at the bag: wp2, silent, go back', () => {
     const h = harness()
-    h.beats.start('wp1', -37.6)
+    h.beats.start('wp1', -28.2)
     h.beats.useCage()
     h.beats.pickUp('cdr')
     h.beats.layDown('cmp')
@@ -126,6 +124,22 @@ describe('act 3 dream beats', () => {
     expect(h.beats.hunting()).toBe(false)
   })
 
+  it('says the hold line from the cage the first time he hides while hunted, and the heard line once', () => {
+    const h = harness()
+    h.beats.start('wp0', -4.4)
+    h.beats.hidden(true)
+    expect(h.log).not.toContain('say:act3.hold')
+    h.beats.hidden(false)
+    h.beats.alert()
+    h.beats.alert()
+    expect(h.log.filter((l) => l === 'say:act3.heard')).toHaveLength(1)
+    h.beats.hidden(true)
+    h.beats.hidden(true)
+    expect(h.log.filter((l) => l === 'say:act3.hold')).toHaveLength(1)
+    h.beats.lost()
+    expect(h.log).toContain('say:act3.lost')
+  })
+
   it('makes no creature events matter in the silent phase', () => {
     const h = harness('cdr')
     h.beats.start('wp2', 5.9)
@@ -138,8 +152,8 @@ describe('act 3 dream beats', () => {
   it('sets wp3 at the cage on the way back and lunges when E on the second', () => {
     const h = harness('cdr')
     h.beats.start('wp2', 5.9)
-    h.at(-30)
-    h.at(-38)
+    h.at(-20)
+    h.at(-29)
     expect(h.log).toContain('cp:wp3')
     expect(h.beats.phase()).toBe('final')
     h.beats.useSecond()
@@ -158,7 +172,7 @@ describe('act 3 dream beats', () => {
 
   it('wakes after one second of black, then the lines, then the choice and the reply', () => {
     const h = harness('cdr')
-    h.beats.start('wp3', -37.6)
+    h.beats.start('wp3', -28.2)
     h.beats.useSecond()
     h.run(1.2)
     h.run(0.9)
@@ -187,7 +201,7 @@ describe('act 3 dream beats', () => {
 
   it('restarts after a catch while hunting', () => {
     const h = harness()
-    h.beats.start('wp1', -37.6)
+    h.beats.start('wp1', -28.2)
     h.beats.useCage()
     h.beats.pickUp('cdr')
     h.beats.caught()

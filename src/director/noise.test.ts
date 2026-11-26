@@ -23,8 +23,9 @@ describe('noise step', () => {
     )
   })
 
-  it('decays 0.3 per second and adds push and bump', () => {
-    expect(stepNoise(0.8, { dt: 1, speed: 0, pushed: false, bumped: false, holding: false })).toBeCloseTo(0.5)
+  it('decays 0.3 per second while moving, adds push and bump, and falls faster when still', () => {
+    expect(stepNoise(0.8, { dt: 1, speed: 1, pushed: false, bumped: false, holding: false })).toBeCloseTo(0.5)
+    expect(stepNoise(0.8, { dt: 0.3, speed: 0, pushed: false, bumped: false, holding: false })).toBeCloseTo(0.5)
     expect(stepNoise(0.2, { dt: 0, speed: 0, pushed: true, bumped: false, holding: false })).toBeCloseTo(0.4)
     expect(stepNoise(0.2, { dt: 0, speed: 0, pushed: false, bumped: true, holding: false })).toBeCloseTo(0.5)
     expect(stepNoise(0, { dt: 0.016, speed: 0, pushed: false, bumped: false, holding: false })).toBe(0.12)
