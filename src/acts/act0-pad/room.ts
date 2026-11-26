@@ -65,15 +65,15 @@ function walkway(): VisualBox[] {
 function whiteRoom(): VisualBox[] {
   const wallZ = ROOM_Z_END
   return [
-    v(box(-ROOM_HALF, -0.12, wallZ, ROOM_HALF, 0, WALK_Z_END), 'room'),
+    v(box(-ROOM_HALF, -0.12, wallZ - 0.6, ROOM_HALF, 0, WALK_Z_END), 'room'),
     // Front wall with a 1.4 m door opening, and a lintel over it.
     v(box(-ROOM_HALF, 0, WALK_Z_END - 0.2, -DOOR_HALF, ROOM_HEIGHT, WALK_Z_END), 'room'),
     v(box(DOOR_HALF, 0, WALK_Z_END - 0.2, ROOM_HALF, ROOM_HEIGHT, WALK_Z_END), 'room'),
     v(box(-DOOR_HALF, 2.0, WALK_Z_END - 0.2, DOOR_HALF, ROOM_HEIGHT, WALK_Z_END), 'room'),
-    v(box(-ROOM_HALF - 0.2, 0, wallZ - 0.2, -ROOM_HALF, ROOM_HEIGHT + 0.2, WALK_Z_END), 'room'),
-    v(box(ROOM_HALF, 0, wallZ - 0.2, ROOM_HALF + 0.2, ROOM_HEIGHT + 0.2, WALK_Z_END), 'room'),
-    v(box(-ROOM_HALF, 0, wallZ - 0.2, ROOM_HALF, ROOM_HEIGHT + 0.2, wallZ), 'room'),
-    v(box(-ROOM_HALF - 0.2, ROOM_HEIGHT, wallZ - 0.2, ROOM_HALF + 0.2, ROOM_HEIGHT + 0.2, WALK_Z_END), 'room'),
+    // The side walls and ceiling run on past z = -9 to meet the curved spacecraft wall, which is the back wall.
+    v(box(-ROOM_HALF - 0.2, 0, wallZ - 0.7, -ROOM_HALF, ROOM_HEIGHT + 0.2, WALK_Z_END), 'room'),
+    v(box(ROOM_HALF, 0, wallZ - 0.7, ROOM_HALF + 0.2, ROOM_HEIGHT + 0.2, WALK_Z_END), 'room'),
+    v(box(-ROOM_HALF - 0.2, ROOM_HEIGHT, wallZ - 0.7, ROOM_HALF + 0.2, ROOM_HEIGHT + 0.2, WALK_Z_END), 'room'),
     // Warm ceiling light.
     v(box(-0.35, ROOM_HEIGHT - 0.06, -7.75, 0.35, ROOM_HEIGHT, -7.35), 'lamp'),
   ]

@@ -5,6 +5,7 @@ import { PlayerCamera } from '../../engine/PlayerCamera'
 import { applyFog, clearFog } from '../../render/fog'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { mergeStatic, tiledBoxAt, tiledCylinder } from '../../procgen/tiledBox'
+import { buildSideHatch } from '../../procgen/sideHatch'
 import { buildSkyDome, buildSunDisc } from '../../procgen/skyDome'
 import { bootprints, HATCH_POS, SUN_DIRECTION, VISUAL_BOXES, type MatName } from './room'
 import { Crowd } from './crowd'
@@ -24,22 +25,31 @@ function buildStatics() {
   return [...byMat.entries()].map(([mat, parts]) => ({ mat, geometry: mergeStatic(parts) }))
 }
 
-/** The Saturn V beyond the White Room: spacecraft, escape tower, adapter and stages going down to the pad. */
+/** Where the spacecraft barrel sits. Its front surface is the back wall of the White Room, at z = -9. */
+const CM_R = 1.95
+const STACK_Z = -9 - CM_R
+
+/**
+ * The Saturn V behind and below the White Room. The spacecraft barrel forms the room's back wall; the cone,
+ * the escape tower, the service module, the adapter and the 10 m wide stages follow down to the ground.
+ * The stages are shorter than the real ones so the wide body is in view from the arm.
+ */
 function buildRocket() {
   const X = 0
-  const Z = -12.6
+  const Z = STACK_Z
   const white = [
-    tiledCylinder(0.45, 1.95, 3.2, X, 0.6, Z, 3),
-    tiledCylinder(1.95, 1.95, 7.5, X, -4.75, Z, 6),
-    tiledCylinder(1.95, 3.3, 8.5, X, -12.75, Z, 6),
-    tiledCylinder(0.45, 0.45, 3.4, X, 8.2, Z, 3),
-    tiledCylinder(5, 5, 24, X, -50, Z, 6, 16),
+    tiledCylinder(CM_R, CM_R, 2.6, X, 0.4, Z, 3, 16),
+    tiledCylinder(0.55, CM_R, 4.3, X, 3.85, Z, 3, 16),
+    tiledCylinder(CM_R, CM_R, 4.5, X, -3.15, Z, 6, 16),
+    tiledCylinder(CM_R, 3.3, 4, X, -7.4, Z, 6, 16),
+    tiledCylinder(0.45, 0.45, 3.5, X, 11.25, Z, 3, 10),
   ]
-  const steel = [tiledCylinder(0.1, 0.1, 6.8, X, 5.6, Z, 3, 6), tiledCylinder(0.02, 0.45, 2, X, 11, Z, 3, 8)]
+  const steel = [tiledCylinder(0.12, 0.12, 3.5, X, 7.75, Z, 3, 6), tiledCylinder(0.03, 0.45, 2, X, 13.25, Z, 3, 10)]
   const roll = [
-    tiledCylinder(3.3, 3.3, 18, X, -26, Z, 18, 12),
-    tiledCylinder(5, 5, 38, X, -81, Z, 38, 16),
-    tiledCylinder(5, 3.3, 3, X, -36.5, Z, 3, 12),
+    tiledCylinder(3.3, 3.3, 10, X, -14.4, Z, 10, 16),
+    tiledCylinder(3.3, 5, 3, X, -20.9, Z, 3, 16),
+    tiledCylinder(5, 5, 20, X, -32.4, Z, 20, 20),
+    tiledCylinder(5, 5, 33, X, -58.9, Z, 33, 20),
   ]
   return { white: mergeStatic(white), steel: mergeStatic(steel), roll: mergeStatic(roll) }
 }
@@ -61,14 +71,13 @@ export function Scene() {
       ground: createMaterial({ textureName: 'fieldPatch', textureSeed: 6 }),
       sea: createMaterial({ color: '#58737d' }),
       concrete: createMaterial({ color: '#9b9484' }),
-      hatchRim: createMaterial({ color: '#8d8777' }),
-      hatchDisc: createMaterial({ color: '#c9c2b0' }),
-      hatchDark: createMaterial({ color: '#4c473d' }),
+      vc: createMaterial({ vertexColors: true }),
       print: createMaterial({ kind: 'unlit', color: '#0c0a08', snap: false }),
     }),
     [],
   )
   const statics = useMemo(buildStatics, [])
+  const hatchGeo = useMemo(buildSideHatch, [])
   const rocket = useMemo(buildRocket, [])
   const sky = useMemo(() => buildSkyDome({ top: '#3f5f82', horizon: '#f2c38d', bottom: '#3a3326' }), [])
   const sun = useMemo(() => buildSunDisc({ direction: SUN_DIRECTION, size: 3.5 }), [])
@@ -111,13 +120,14 @@ export function Scene() {
       Object.values(mats).forEach((m: Material) => disposeMaterial(m))
       statics.forEach((s) => s.geometry.dispose())
       Object.values(rocket).forEach((g) => g.dispose())
+      hatchGeo.dispose()
       sky.dispose()
       sun.dispose()
       groundGeo.dispose()
       seaGeo.dispose()
       printGeo.dispose()
     }
-  }, [scene, gl, mats, statics, rocket, sky, sun, groundGeo, seaGeo, printGeo])
+  }, [scene, gl, mats, statics, rocket, hatchGeo, sky, sun, groundGeo, seaGeo, printGeo])
 
   return (
     <>
@@ -140,19 +150,11 @@ export function Scene() {
 
       <mesh geometry={groundGeo} material={mats.ground} position={[0, GROUND_Y, 0]} />
       <mesh geometry={seaGeo} material={mats.sea} position={[0, GROUND_Y + 0.2, -900]} />
-      <mesh position={[0, GROUND_Y + 0.1, -12.6]} material={mats.concrete}>
+      <mesh position={[0, GROUND_Y + 0.1, STACK_Z]} material={mats.concrete}>
         <cylinderGeometry args={[40, 40, 0.2, 16]} />
       </mesh>
 
-      <mesh position={[HATCH_POS.x, HATCH_POS.y, HATCH_POS.z + 0.02]} rotation={[Math.PI / 2, 0, 0]} material={mats.hatchRim}>
-        <cylinderGeometry args={[0.55, 0.55, 0.1, 12]} />
-      </mesh>
-      <mesh position={[HATCH_POS.x, HATCH_POS.y, HATCH_POS.z + 0.08]} rotation={[Math.PI / 2, 0, 0]} material={mats.hatchDisc}>
-        <cylinderGeometry args={[0.42, 0.42, 0.06, 12]} />
-      </mesh>
-      <mesh position={[HATCH_POS.x, HATCH_POS.y, HATCH_POS.z + 0.13]} material={mats.hatchDark}>
-        <boxGeometry args={[0.3, 0.06, 0.05]} />
-      </mesh>
+      <mesh geometry={hatchGeo} material={mats.vc} position={[HATCH_POS.x, HATCH_POS.y, STACK_Z + CM_R - 0.02]} />
 
       <instancedMesh
         ref={printRef}
