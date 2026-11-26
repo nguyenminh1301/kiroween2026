@@ -35,6 +35,9 @@ import {
   buildArm,
 } from './landerGeo'
 import { dustShape } from './descent'
+import { PROP_SPOTS, buildInterior } from './interiorGeo'
+import { faceAt } from './layout'
+import { buildProp, type PropKind } from '../../procgen/cabin/props'
 import { BLAST_DUST, BLAST_SCRAPS, blastDustAt, scrapAt } from './liftoff'
 import { act4State } from './state'
 import { SITES, groundAt } from './terrain'
@@ -42,6 +45,20 @@ import { SITES, groundAt } from './terrain'
 const LANDER_PRIORITY = 650
 
 const DUST_POINTS = 220
+
+const PROPS: { id: string; kind: PropKind; pos: [number, number, number]; yaw: number }[] = (
+  [
+    ['card', 'card'],
+    ['card2', 'card'],
+    ['pencil', 'pencil'],
+    ['pouch', 'pouch'],
+    ['camera', 'camera'],
+  ] as const
+).map(([id, kind]) => {
+  const s = PROP_SPOTS[id]
+  const p = faceAt(s.face, s.u, s.v, s.out)
+  return { id, kind, pos: [p.x, p.y, p.z], yaw: ((s.face + 0.5) * Math.PI) / 3 + Math.PI }
+})
 
 const glow = (color: string, opacity: number): MeshBasicMaterial =>
   new MeshBasicMaterial({ color, transparent: true, opacity, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, fog: false })
@@ -52,11 +69,23 @@ export function Lander() {
     m.side = DoubleSide
     return m
   }, [])
+  // The cabin is lit warm and bright, as in acts 1 and 2.
+  const matIn = useMemo(() => {
+    const m = createMaterial({ vertexColors: true })
+    m.side = DoubleSide
+    if ('emissive' in m) m.emissive.set('#5a4a2c')
+    return m
+  }, [])
   const geos = useMemo(
     () => ({
       body: buildDescentBody(),
       legs: buildLegs(),
       ascent: buildAscent(),
+      interior: buildInterior(),
+      card: buildProp('card'),
+      pencil: buildProp('pencil'),
+      pouch: buildProp('pouch'),
+      camera: buildProp('camera'),
       flag: buildFlag(),
       flagKit: buildFlagKit(),
       scoop: buildScoop(),
@@ -130,6 +159,8 @@ export function Lander() {
 
   const root = useRef<Group>(null)
   const ascent = useRef<Group>(null)
+  const hull = useRef<Mesh>(null)
+  const inside = useRef<Group>(null)
   const plume = useRef<Group>(null)
   const fire = useRef<Group>(null)
   const blastDisc = useRef<Mesh>(null)
@@ -160,6 +191,8 @@ export function Lander() {
       const s = act4State
       if (root.current) root.current.position.y = s.landerY
       if (ascent.current) ascent.current.position.y = s.ascentRise
+      if (hull.current) hull.current.visible = !s.cabinView
+      if (inside.current) inside.current.visible = s.cabinView
       const flick = 1 - 0.08 * flickerScale(gameStore.getState().settings.reducedMotion) * (1 - Math.sin(t * 40))
       if (plume.current) {
         plume.current.visible = s.plume
@@ -267,8 +300,9 @@ export function Lander() {
       Object.values(geos).forEach((g) => g.dispose())
       Object.values(mats).forEach((m) => m.dispose())
       disposeMaterial(mat)
+      disposeMaterial(matIn)
     },
-    [geos, mats, mat],
+    [geos, mats, mat, matIn],
   )
 
   const f = SITES.flag
@@ -280,7 +314,13 @@ export function Lander() {
         <mesh geometry={geos.body} material={mat} frustumCulled={false} />
         <mesh geometry={geos.legs} material={mat} frustumCulled={false} />
         <group ref={ascent}>
-          <mesh geometry={geos.ascent} material={mat} frustumCulled={false} />
+          <mesh ref={hull} geometry={geos.ascent} material={mat} frustumCulled={false} />
+          <group ref={inside} visible={false}>
+            <mesh geometry={geos.interior} material={matIn} frustumCulled={false} />
+            {PROPS.map((p) => (
+              <mesh key={p.id} geometry={geos[p.kind]} material={matIn} position={p.pos} rotation={[0, p.yaw, 0]} frustumCulled={false} />
+            ))}
+          </group>
           <group ref={fire} visible={false} position={[0, ASCENT_BELL_Y, 0]}>
             <mesh geometry={geos.fire} material={mats.fire} />
             <mesh geometry={geos.fire} material={mats.fireCore} scale={[0.4, 1, 0.4]} />

@@ -26,6 +26,7 @@ import {
   START_HEIGHT,
   descentEvents,
   descentFill,
+  cabinShotAt,
   dustAt,
   landerHeight,
   plumeOn,
@@ -206,6 +207,7 @@ export function startAct4(requested: string): void {
         act4State.plume = plumeOn(h)
         act4State.dust = dustAt(t)
         act4State.fill = descentFill(t)
+        act4State.cabinView = cabinShotAt(DESCENT_SHOTS, t)
       },
     }).start()
   }
@@ -229,6 +231,7 @@ export function startAct4(requested: string): void {
     clangs = 0
     fxStore.getState().setDsky(null)
     act4State.landerY = 0
+    act4State.cabinView = false
     act4State.plume = false
     act4State.dust = 0
     act4State.fill = 0
@@ -414,6 +417,7 @@ export function startAct4(requested: string): void {
       onTick(t) {
         clock = t
         act4State.ascentRise = ascentRise(t)
+        act4State.cabinView = cabinShotAt(LIFTOFF_SHOTS, t)
         act4State.fire = fireLevel(t)
         act4State.flagTip = flagTip(t)
         act4State.blast = t >= FIRE_AT ? t - FIRE_AT : -1

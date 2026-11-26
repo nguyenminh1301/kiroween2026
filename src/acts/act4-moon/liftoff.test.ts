@@ -14,6 +14,7 @@ import {
   flagTip,
   liftoffEvents,
 } from './liftoff'
+import { cabinShotAt } from './descent'
 
 describe('liftoff', () => {
   it('rises (t - 1.4)^1.8 * 0.9 after the fire starts', () => {
@@ -57,6 +58,9 @@ describe('liftoff', () => {
 
   it('has the shots and the shake from the plan', () => {
     expect(selectShot(LIFTOFF_SHOTS, 3)?.fov).toBe(80)
+    expect(cabinShotAt(LIFTOFF_SHOTS, 0.5)).toBe(true)
+    expect(cabinShotAt(LIFTOFF_SHOTS, 6)).toBe(true)
+    expect(cabinShotAt(LIFTOFF_SHOTS, 3)).toBe(false)
     for (let t = 0; t < LIFTOFF_DURATION; t += 0.5) expect(selectShot(LIFTOFF_SHOTS, t)).not.toBeNull()
     expect(shakeAmplitude(LIFTOFF_SHAKE, 1.6, false)).toBe(0.12)
     expect(shakeAmplitude(LIFTOFF_SHAKE, 5, false)).toBe(0.05)

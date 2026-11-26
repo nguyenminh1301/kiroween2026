@@ -18,7 +18,6 @@ export const CHAPTER_INTROS: Partial<Record<ActId, string[]>> = {
   'act4-moon': [
     'July 20, 1969.',
     'Eagle undocks with two men aboard and goes down to the Sea of Tranquility. Mike stays in orbit.',
-    'Whatever followed them is in the lander too.',
   ],
   'act5-home': [
     'July 24, 1969.',

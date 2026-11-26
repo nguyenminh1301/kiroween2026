@@ -85,3 +85,41 @@ export function collisionBoxes(): Box[] {
   }
   return boxes
 }
+
+/** Standing in the ascent stage: the floor is the porch floor, the eye is at the helmet of a standing Buzz. */
+export const LM_FLOOR = PORCH_FLOOR
+export const LM_EYE_HEIGHT = 1.5
+export const LM_EYE: Vec3 = { x: 0.2, y: LM_FLOOR + LM_EYE_HEIGHT, z: 0.1 }
+/** Ascent stage hull radii (bottom, top) and the top height. Interior walls sit 0.04 m inside. */
+export const HULL_R = 1.45
+export const HULL_TOP = 4.75
+export const WALL_INSET = 0.04
+
+/** A point on the inner face `k` (0 to 5) of the ascent stage at (u, v), pushed `out` metres along the face normal. */
+export function faceAt(k: number, u: number, v: number, out = 0): Vec3 {
+  const ring = (i: number, r: number): [number, number] => {
+    const a = (i * Math.PI) / 3
+    return [Math.sin(a) * r, Math.cos(a) * r]
+  }
+  const rLo = HULL_R - WALL_INSET
+  const rHi = HULL_R * 0.82 - WALL_INSET
+  const [ax, az] = ring(k, rLo)
+  const [bx, bz] = ring(k + 1, rLo)
+  const [cx, cz] = ring(k, rHi)
+  const [dx, dz] = ring(k + 1, rHi)
+  const lx = ax + (bx - ax) * u
+  const lz = az + (bz - az) * u
+  const tx = cx + (dx - cx) * u
+  const tz = cz + (dz - cz) * u
+  const ang = ((k + 0.5) * Math.PI) / 3
+  return {
+    x: lx + (tx - lx) * v + Math.sin(ang) * out,
+    y: LM_FLOOR + (HULL_TOP - LM_FLOOR) * v,
+    z: lz + (tz - lz) * v + Math.cos(ang) * out,
+  }
+}
+
+/** The two front windows are the faces 5 and 0. The panels are on the rear faces 2 and 3. */
+export const WINDOW_FACES = [5, 0] as const
+export const WINDOW_BOX = { u0: 0.22, u1: 0.78, v0: 0.4, v1: 0.82 } as const
+export const PANEL_FACES = [2, 3] as const

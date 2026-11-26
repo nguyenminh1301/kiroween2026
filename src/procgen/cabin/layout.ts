@@ -8,6 +8,10 @@ export const EYE: Vec3 = { x: 0, y: SEAT_Y + 0.7, z: 0.45 }
 /** Feet position for the seated body: the eye sits 1.65 m above it. */
 export const BODY_POS: Vec3 = { x: EYE.x, y: EYE.y - 1.65, z: EYE.z }
 export const START_PITCH = 0.18
+/** A seated pilot in a helmet: the eye sits 0.9 m above the cushion, at the height of the helmet. */
+export const HELMET_EYE_ABOVE_SEAT = 0.9
+export const HELMET_EYE: Vec3 = { x: EYE.x, y: SEAT_Y + HELMET_EYE_ABOVE_SEAT, z: EYE.z }
+export const HELMET_BODY_POS: Vec3 = { x: HELMET_EYE.x, y: HELMET_EYE.y - 1.65, z: HELMET_EYE.z }
 
 export const DSKY_POS: Vec3 = { x: 0.28, y: 1.42, z: -1.02 }
 export const SWITCH_POS: Vec3 = { x: 0.62, y: 1.2, z: -0.98 }

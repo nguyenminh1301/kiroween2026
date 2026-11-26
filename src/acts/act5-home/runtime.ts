@@ -10,7 +10,7 @@ import { addPlayerSystem } from '../../engine/playerSystem'
 import { gameStore } from '../../engine/store'
 import { focus } from '../../interaction/Focus'
 import { cabinState } from '../../procgen/cabin/cabinState'
-import { BODY_POS, START_PITCH } from '../../procgen/cabin/layout'
+import { HELMET_BODY_POS, START_PITCH } from '../../procgen/cabin/layout'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
 import { act5State, resetAct5State } from './state'
 import { DURATION, events, fadeLevel, heat, heliLevel, oceanLevel, SHAKE, SHOTS, SKY, viewAt, windowViewAt } from './timeline'
@@ -19,7 +19,7 @@ export function startAct5(): void {
   resetAct5State()
   cabinState.sky = SKY.space
   cabinState.earth = true
-  setPlayerBody(createBody({ pos: { ...BODY_POS }, yaw: 0, pitch: START_PITCH, mode: 'seated' }))
+  setPlayerBody(createBody({ pos: { ...HELMET_BODY_POS }, yaw: 0, pitch: START_PITCH, mode: 'seated' }))
   const store = gameStore.getState()
   store.setMoveMode('seated')
   focus.setBodyAccess({ get: getPlayerBody, set: setPlayerBody })

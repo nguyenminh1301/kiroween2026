@@ -3,6 +3,7 @@
 import type { DskyReadout } from '../../engine/fx'
 import type { ShakeKey, Shot, TimelineEvent } from '../../timeline/timeline'
 import type { Vec3 } from '../../types'
+import { LM_EYE, faceAt } from './layout'
 import { groundAt } from './terrain'
 
 export const DESCENT_DURATION = 24
@@ -58,19 +59,35 @@ export interface DescentShot extends Shot {
   name: string
 }
 
+/** The eye of the standing pilot, `h` metres above the ground. */
+export const cabinEye = (h: number): Vec3 => v(LM_EYE.x, h + LM_EYE.y, LM_EYE.z)
+const off = (p: Vec3, h: number): Vec3 => v(p.x, p.y + h, p.z)
+
+/** True while a cabin shot is on: the ascent hull is hidden and the interior shows. */
+export const cabinShotAt = (shots: ReadonlyArray<{ name: string; from: number; to: number }>, t: number): boolean =>
+  shots.some((s) => s.name.startsWith('cabin') && t >= s.from && t < s.to)
+
 /** Four outside shots. The camera never goes below the ground. */
 export const DESCENT_SHOTS: DescentShot[] = [
   {
     name: 'high',
     from: 0,
-    to: 7,
+    to: 3.5,
     fov: 60,
     far: 2000,
     cam: (_u, t) => ({ position: v(16, landerHeight(t) + 7, 18), lookAt: v(0, landerHeight(t), 0) }),
   },
   {
+    name: 'cabin-panel',
+    from: 3.5,
+    to: 8,
+    fov: 70,
+    far: 2000,
+    cam: (_u, t) => ({ position: cabinEye(landerHeight(t)), lookAt: off(faceAt(3, 0.5, 0.55), landerHeight(t)) }),
+  },
+  {
     name: 'below',
-    from: 7,
+    from: 8,
     to: 13,
     fov: 80,
     far: 2000,
@@ -82,14 +99,22 @@ export const DESCENT_SHOTS: DescentShot[] = [
   {
     name: 'far',
     from: 13,
-    to: 19,
+    to: 17,
     fov: 50,
     far: 2000,
     cam: (_u, t) => ({ position: v(-34, groundAt(-34, 30) + 1.8, 30), lookAt: v(0, landerHeight(t) + 1.5, 0) }),
   },
   {
+    name: 'cabin-window',
+    from: 17,
+    to: 20.5,
+    fov: 75,
+    far: 2000,
+    cam: (_u, t) => ({ position: cabinEye(landerHeight(t)), lookAt: off(faceAt(0, 0.5, 0.4, 0.5), landerHeight(t)) }),
+  },
+  {
     name: 'close',
-    from: 19,
+    from: 20.5,
     to: 24,
     fov: 60,
     far: 2000,

@@ -2,7 +2,8 @@
 // Pure: events call injected hooks. No Three.js or React imports.
 import type { ShakeKey, Shot, TimelineEvent } from '../../timeline/timeline'
 import type { Vec3 } from '../../types'
-import { ROOF } from './layout'
+import { cabinEye } from './descent'
+import { ROOF, faceAt } from './layout'
 import { groundAt } from './terrain'
 
 export const LIFTOFF_DURATION = 14
@@ -98,24 +99,40 @@ export interface LiftShot extends Shot {
 
 export const LIFTOFF_SHOTS: LiftShot[] = [
   {
-    name: 'wide',
+    name: 'cabin-panel',
     from: 0,
-    to: 1.5,
+    to: 1.4,
+    fov: 70,
+    far: 3000,
+    cam: () => ({ position: cabinEye(0), lookAt: faceAt(2, 0.5, 0.55) }),
+  },
+  {
+    name: 'wide',
+    from: 1.4,
+    to: 2.4,
     fov: 60,
     far: 3000,
     cam: () => ({ position: v(13, groundAt(13, 16) + 3.5, 16), lookAt: v(0, 2.6, 0) }),
   },
   {
     name: 'engine',
-    from: 1.5,
+    from: 2.4,
     to: 5,
     fov: 80,
     far: 3000,
     cam: (_u, t) => ({ position: v(4.6, 2.0, 5.4), lookAt: v(ROOF.x * 0.2, 3.1 + ascentRise(t) * 0.5, ROOF.z * 0.2) }),
   },
   {
-    name: 'ground',
+    name: 'cabin-window',
     from: 5,
+    to: 7.5,
+    fov: 75,
+    far: 3000,
+    cam: (_u, t) => ({ position: cabinEye(ascentRise(t)), lookAt: faceAt(0, 0.5, 0.4, 0.5) }),
+  },
+  {
+    name: 'ground',
+    from: 7.5,
     to: 9,
     fov: 65,
     far: 3000,

@@ -1,6 +1,6 @@
 # Tasks
 
-- [ ] 1. The player's eye in the cabins (req 1)
+- [x] 1. The player's eye in the cabins (req 1)
 - [ ] 2. Neil on the surface, Mike in orbit (req 2)
 - [ ] 3. Liftoff plume, thrusters and a clean cut (req 3)
 - [ ] 4. Act 5 shake and sounds (req 4)

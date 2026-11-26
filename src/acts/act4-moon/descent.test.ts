@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DESCENT_DURATION, DESCENT_SHOTS, descentEvents, descentFill, dustAt, dustShape, dustLevel, landerHeight, plumeOn } from './descent'
+import { DESCENT_DURATION, DESCENT_SHOTS, cabinShotAt, descentEvents, descentFill, dustAt, dustShape, dustLevel, landerHeight, plumeOn } from './descent'
 import { selectShot, sortedEvents, dueEvents } from '../../timeline/timeline'
 
 describe('descent', () => {
@@ -36,10 +36,23 @@ describe('descent', () => {
     expect(descentFill(24)).toBe(0)
   })
 
-  it('covers 0 to 24 s with outside shots', () => {
+  it('covers 0 to 24 s with outside shots and two cabin shots', () => {
     for (let t = 0; t < DESCENT_DURATION; t += 0.5) expect(selectShot(DESCENT_SHOTS, t)).not.toBeNull()
     expect(selectShot(DESCENT_SHOTS, 8)?.fov).toBe(80)
-    expect(selectShot(DESCENT_SHOTS, 20)?.fov).toBe(60)
+    expect(selectShot(DESCENT_SHOTS, 22)?.fov).toBe(60)
+    expect(cabinShotAt(DESCENT_SHOTS, 5)).toBe(true)
+    expect(cabinShotAt(DESCENT_SHOTS, 18)).toBe(true)
+    expect(cabinShotAt(DESCENT_SHOTS, 10)).toBe(false)
+  })
+
+  it('puts the cabin eye at the helmet of a standing pilot, not at the belly', () => {
+    const shot = DESCENT_SHOTS.find((s) => s.name === 'cabin-panel')!
+    const p = shot.cam(0.5, 5).position
+    const h = landerHeight(5)
+    // Floor is 3.0 m above the lander base; the eye is about 1.5 m over it.
+    expect(p.y - h - 3.0).toBeGreaterThan(1.3)
+    expect(p.y - h - 3.0).toBeLessThan(1.7)
+    expect(Math.hypot(p.x, p.z)).toBeLessThan(1.2)
   })
 
   it('runs the DSKY and radio events at their times', () => {
