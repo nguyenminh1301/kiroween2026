@@ -13,7 +13,7 @@ import { cabinState } from '../../procgen/cabin/cabinState'
 import { BODY_POS, START_PITCH } from '../../procgen/cabin/layout'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
 import { act5State, resetAct5State } from './state'
-import { DURATION, events, fadeLevel, heat, heliLevel, oceanLevel, SHAKE, SHOTS, SKY, viewAt } from './timeline'
+import { DURATION, events, fadeLevel, heat, heliLevel, oceanLevel, SHAKE, SHOTS, SKY, viewAt, windowViewAt } from './timeline'
 
 export function startAct5(): void {
   resetAct5State()
@@ -64,6 +64,7 @@ export function startAct5(): void {
     }),
     onTick(t) {
       const view = viewAt(t)
+      cabinState.view = windowViewAt(t)
       act5State.t = t
       act5State.view = view
       const h = heat(t)

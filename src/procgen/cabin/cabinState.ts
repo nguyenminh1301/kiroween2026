@@ -10,6 +10,8 @@ export const cabinState = {
   engine: 0,
   alarm: false,
   earth: false,
+  /** What the windows show. */
+  view: 'sky' as 'sky' | 'plasma' | 'sea',
   switchFlipped: false,
   dsky: initialDsky() as DskyState,
   dskyVersion: 0,
@@ -20,6 +22,7 @@ export function resetCabinState(): void {
   cabinState.engine = 0
   cabinState.alarm = false
   cabinState.earth = false
+  cabinState.view = 'sky'
   cabinState.switchFlipped = false
   cabinState.dsky = initialDsky()
   cabinState.dskyVersion++

@@ -57,6 +57,13 @@ export function capsuleY(t: number, wave = 0): number {
   return t < SPLASH_AT ? height(t) : 0.5 + wave
 }
 
+/** What the cabin windows show: plasma during the burn, sky under the parachutes, then the sea after splashdown. */
+export function windowViewAt(t: number): 'sky' | 'plasma' | 'sea' {
+  if (t >= SPLASH_AT) return 'sea'
+  if (t >= 12.3 && t < 19.5) return 'plasma'
+  return 'sky'
+}
+
 export const ENTRY_SHOTS_END = 26
 
 const RAW_SHOTS: NamedShot[] = [

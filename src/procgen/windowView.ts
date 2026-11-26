@@ -1,0 +1,121 @@
+// What a cabin window shows, painted into a small RGBA buffer that becomes the window's texture.
+// Because the view is the window's own quad, nothing in it (sky, stars, Earth, plasma, sea) can leave the frame.
+// Pure pixels: no Three.js, no canvas.
+import { drawEarthCloud } from './textures/earthCloud'
+import type { PixelData } from './textures/helpers'
+
+export type WindowMode = 'sky' | 'plasma' | 'sea'
+
+export interface WindowViewState {
+  mode: WindowMode
+  /** Sky color, 0 to 255 per channel. */
+  sky: readonly [number, number, number]
+  /** Seconds, drives the streaks and the waves. */
+  t: number
+  /** Show the Earth disc. */
+  earth: boolean
+}
+
+export interface WindowViewSpec {
+  w: number
+  h: number
+  round: boolean
+  /** Earth disc centre as fractions of the window, y down, and radius as a fraction of its width. */
+  earth: { cx: number; cy: number; r: number }
+  seed: number
+}
+
+let earthPixels: PixelData | null = null
+
+const hash = (a: number, b: number, seed: number): number => {
+  let h = (Math.imul(a | 0, 374761393) + Math.imul(b | 0, 668265263) + Math.imul(seed | 0, 2147483647)) | 0
+  h = Math.imul(h ^ (h >>> 13), 1274126177)
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296
+}
+
+const mix = (a: number, b: number, k: number): number => a + (b - a) * Math.min(1, Math.max(0, k))
+
+function put(buf: Uint8Array, x: number, yTop: number, w: number, h: number, r: number, g: number, b: number): void {
+  // DataTexture rows start at the bottom.
+  const i = ((h - 1 - yTop) * w + x) * 4
+  buf[i] = r
+  buf[i + 1] = g
+  buf[i + 2] = b
+  buf[i + 3] = 255
+}
+
+/** Paints one frame of a window view into `buf` (w * h * 4 bytes). */
+export function paintWindowView(buf: Uint8Array, spec: WindowViewSpec, st: WindowViewState): void {
+  const { w, h, seed } = spec
+  const [sr, sg, sb] = st.sky
+  const dark = Math.min(1, Math.max(0, (0.45 * 255 * 3 - (sr + sg + sb)) / (0.3 * 255 * 3)))
+  if (st.earth && !earthPixels) earthPixels = drawEarthCloud(3)
+  const flick = Math.floor(st.t * 14)
+  for (let y = 0; y < h; y++) {
+    const v = y / (h - 1)
+    for (let x = 0; x < w; x++) {
+      const u = x / (w - 1)
+      let r = sr
+      let g = sg
+      let b = sb
+      if (st.mode === 'plasma') {
+        // Hot core to deep orange at the edges, with streaks racing past.
+        const d = Math.hypot(u - 0.5, v - 0.5) * 1.5
+        r = mix(255, 214, d)
+        g = mix(226, 70, d)
+        b = mix(150, 22, d)
+        const speed = 1.5 + hash(x, 0, seed) * 3
+        const phase = (v * 2.2 + st.t * speed + hash(x, 1, seed)) % 1
+        if (phase < 0.16 && hash(x >> 1, 2, seed) > 0.4) {
+          r = 255
+          g = mix(g, 245, 0.7)
+          b = mix(b, 210, 0.8)
+        } else if (hash(x, y + flick, seed) > 0.93) {
+          g = Math.min(255, g + 40)
+          b = Math.min(255, b + 30)
+        }
+      } else if (st.mode === 'sea') {
+        const horizon = 0.5 + Math.sin(st.t * 0.5) * 0.02
+        if (v > horizon) {
+          const depth = (v - horizon) / (1 - horizon)
+          r = mix(70, 28, depth)
+          g = mix(120, 78, depth)
+          b = mix(150, 112, depth)
+          const wave = Math.sin(x * 0.7 + st.t * 2 + v * 14) + Math.sin(x * 0.31 - st.t * 1.3 + v * 7)
+          if (wave > 1.5) {
+            r = 215
+            g = 232
+            b = 240
+          }
+        } else {
+          r = mix(sr, 225, v / horizon * 0.25)
+          g = mix(sg, 232, v / horizon * 0.25)
+          b = mix(sb, 238, v / horizon * 0.25)
+        }
+      } else if (dark > 0 && hash(x, y, seed) > 0.985) {
+        const s = 150 + hash(y, x, seed + 1) * 105
+        r = mix(r, s, dark)
+        g = mix(g, s, dark)
+        b = mix(b, s, dark)
+      }
+      if (st.earth && st.mode === 'sky' && earthPixels) {
+        const e = spec.earth
+        // The disc radius is a fraction of the width; y is scaled by the aspect so it stays round.
+        const dx = (u - e.cx) / e.r
+        const dy = ((v - e.cy) * h) / (e.r * w)
+        const d2 = dx * dx + dy * dy
+        if (d2 <= 1) {
+          const tx = Math.floor((dx * 0.5 + 0.5) * (earthPixels.width - 1))
+          const ty = Math.floor((dy * 0.5 + 0.5) * (earthPixels.height - 1))
+          const i = (ty * earthPixels.width + tx) * 4
+          // Dim toward the limb and the night side.
+          const shade = 0.55 + 0.45 * Math.min(1, Math.max(0, 1 - d2 * 0.7 - (dx + 0.2) * 0.25))
+          r = earthPixels.data[i] * shade
+          g = earthPixels.data[i + 1] * shade
+          b = earthPixels.data[i + 2] * shade
+        }
+      }
+      put(buf, x, y, w, h, r, g, b)
+    }
+  }
+}

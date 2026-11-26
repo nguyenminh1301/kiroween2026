@@ -1,9 +1,21 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { CircleGeometry, Color, DoubleSide, Euler, Group, MeshBasicMaterial, PlaneGeometry, type Mesh } from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import {
+  CircleGeometry,
+  Color,
+  DataTexture,
+  DoubleSide,
+  Euler,
+  Group,
+  MeshBasicMaterial,
+  NearestFilter,
+  PlaneGeometry,
+  RGBAFormat,
+  SRGBColorSpace,
+  UnsignedByteType,
+} from 'three'
 import { registerSystem } from '../../engine/frameDriver'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { createRng } from '../../procgen/rng'
+import { paintWindowView } from '../windowView'
 import { buildFigure } from '../../procgen/figure'
 import { buildCouches, buildShell, WALL_SLOPE, wallRadius } from './cabinGeo'
 import { COUCH_X, SHELL_SIDES } from './layout'
@@ -30,57 +42,78 @@ function windowSpecs(): WindowSpec[] {
   ]
 }
 
-/** Tiny star quads spread over a window. */
-function starGeometry(w: number, h: number, seed: number) {
-  const rng = createRng(seed)
-  const parts = []
-  for (let i = 0; i < 22; i++) {
-    const g = new PlaneGeometry(0.014, 0.014)
-    g.translate((rng() - 0.5) * w * 0.9, (rng() - 0.5) * h * 0.9, 0.012)
-    parts.push(g)
-  }
-  const merged = mergeGeometries(parts, false)
-  parts.forEach((p) => p.dispose())
-  return merged
+const VIEW_W = 64
+
+/** Earth disc per window: centre as fractions of the window (y down), radius as a fraction of its width. */
+const EARTH_SPEC: Record<WindowSpec['key'], { cx: number; cy: number; r: number }> = {
+  hatch: { cx: 0.6, cy: 0.55, r: 0.24 },
+  right: { cx: 0.65, cy: 0.57, r: 0.35 },
+  left: { cx: 0.65, cy: 0.42, r: 0.2 },
 }
 
-/** Windows: sky-colored quads, stars once the sky is dark, and the Earth disc when the act shows it. */
+/**
+ * Windows. Each one shows its own small texture (sky, stars, Earth, plasma or sea) on the window quad,
+ * so nothing can reach past the frame.
+ */
 function Windows() {
   const specs = useMemo(windowSpecs, [])
-  const skyMat = useMemo(() => new MeshBasicMaterial({ color: new Color(cabinState.sky), side: DoubleSide }), [])
   const frameMat = useMemo(() => createMaterial({ color: '#2c2820' }), [])
-  const starMat = useMemo(() => new MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, fog: false }), [])
-  const earthMat = useMemo(
-    () => createMaterial({ kind: 'unlit', textureName: 'earthCloud', textureSeed: 3, snap: false, fog: false }),
-    [],
+  const views = useMemo(
+    () =>
+      specs.map((s, i) => {
+        const w = VIEW_W
+        const h = s.round ? VIEW_W : Math.round((VIEW_W * s.h) / s.w)
+        const buf = new Uint8Array(w * h * 4)
+        const tex = new DataTexture(buf, w, h, RGBAFormat, UnsignedByteType)
+        tex.magFilter = NearestFilter
+        tex.minFilter = NearestFilter
+        tex.generateMipmaps = false
+        tex.colorSpace = SRGBColorSpace
+        const mat = new MeshBasicMaterial({ map: tex, fog: false, side: DoubleSide })
+        return { buf, tex, mat, spec: { w, h, round: s.round, earth: EARTH_SPEC[s.key], seed: 40 + i } }
+      }),
+    [specs],
   )
   const quads = useMemo(() => specs.map((s) => (s.round ? new CircleGeometry(s.w / 2, 12) : new PlaneGeometry(s.w, s.h))), [specs])
   const frames = useMemo(() => specs.map((s) => (s.round ? new CircleGeometry(s.w / 2 + 0.08, 12) : new PlaneGeometry(s.w + 0.14, s.h + 0.14))), [specs])
-  const stars = useMemo(() => specs.map((s, i) => starGeometry(s.w, s.h, 40 + i)), [specs])
-  const earthRefs = useRef<(Mesh | null)[]>([])
   const eased = useRef(new Color(cabinState.sky))
   const target = useMemo(() => new Color(), [])
 
   useEffect(() => {
+    let acc = 1
+    let clock = 0
     return registerSystem('act1-windows', WINDOW_PRIORITY, (dt) => {
       target.set(cabinState.sky)
       eased.current.lerp(target, Math.min(1, dt * 1.5))
-      skyMat.color.copy(eased.current)
-      const lum = eased.current.r + eased.current.g + eased.current.b
-      starMat.opacity = Math.min(1, Math.max(0, (0.45 - lum) / 0.3))
-      for (const m of earthRefs.current) if (m) m.visible = cabinState.earth
+      clock += dt
+      acc += dt
+      // About 14 repaints a second is enough for stars, streaks and waves.
+      if (acc < 1 / 14) return
+      acc = 0
+      const c = eased.current
+      const st = {
+        mode: cabinState.view,
+        sky: [c.r * 255, c.g * 255, c.b * 255] as const,
+        t: clock,
+        earth: cabinState.earth,
+      }
+      for (const v of views) {
+        paintWindowView(v.buf, v.spec, st)
+        v.tex.needsUpdate = true
+      }
     })
-  }, [skyMat, starMat, target])
+  }, [views, target])
 
   useEffect(
     () => () => {
-      skyMat.dispose()
-      starMat.dispose()
+      views.forEach((v) => {
+        v.tex.dispose()
+        v.mat.dispose()
+      })
       disposeMaterial(frameMat)
-      disposeMaterial(earthMat)
-      ;[...quads, ...frames, ...stars].forEach((g) => g.dispose())
+      ;[...quads, ...frames].forEach((g) => g.dispose())
     },
-    [skyMat, starMat, frameMat, earthMat, quads, frames, stars],
+    [views, frameMat, quads, frames],
   )
 
   return (
@@ -88,18 +121,7 @@ function Windows() {
       {specs.map((s, i) => (
         <group key={s.key} position={s.position} rotation={s.rotation}>
           <mesh geometry={frames[i]} material={frameMat} position={[0, 0, -0.01]} />
-          <mesh geometry={quads[i]} material={skyMat} />
-          <mesh geometry={stars[i]} material={starMat} />
-          <mesh
-            ref={(m) => {
-              earthRefs.current[i] = m
-            }}
-            material={earthMat}
-            position={[s.key === 'hatch' ? 0.08 : 0.12, s.key === 'left' ? 0.05 : -0.04, 0.025]}
-            visible={false}
-          >
-            <circleGeometry args={[s.key === 'hatch' ? 0.2 : s.key === 'right' ? 0.28 : 0.16, 14]} />
-          </mesh>
+          <mesh geometry={quads[i]} material={views[i].mat} />
         </group>
       ))}
     </>
