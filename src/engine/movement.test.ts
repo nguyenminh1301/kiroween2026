@@ -329,3 +329,12 @@ describe('stepSeated', () => {
     expect(angDiff(out.yaw, Math.PI - 0.1 + 0.2)).toBeCloseTo(0, 9)
   })
 })
+
+describe('stepSeated custom limits', () => {
+  it('clamps yaw and pitch to the given limits', () => {
+    const lim = (30 * Math.PI) / 180
+    const b = stepSeated(createBody({ yaw: 0, mode: 'seated' }), 2, 2, { seatForwardYaw: 0, yawLimit: lim, pitchLimit: lim })
+    expect(b.yaw).toBeCloseTo(lim)
+    expect(b.pitch).toBeCloseTo(lim)
+  })
+})

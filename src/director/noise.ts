@@ -6,6 +6,9 @@ export const BUMP_NOISE = 0.3
 export const BREATH_FLOOR = 0.12
 export const HOLD_CAP = 0.1
 export const STILL_SPEED = 0.05
+/** Noise floor while moving on foot, and while carrying someone. */
+export const WALK_NOISE = 0.3
+export const CARRY_NOISE = 0.45
 
 export interface NoiseInput {
   dt: number
@@ -17,6 +20,8 @@ export interface NoiseInput {
   bumped: boolean
   /** The player is holding their breath. */
   holding: boolean
+  /** On foot: every step makes noise. Other acts leave this out. */
+  gait?: 'walk' | 'carry'
 }
 
 const clamp01 = (v: number): number => (Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0)
@@ -30,6 +35,7 @@ export function stepNoise(noise: number, i: NoiseInput): number {
   if (i.bumped) n += BUMP_NOISE
   n = clamp01(n)
   if (speed >= STILL_SPEED) n = Math.max(n, Math.min(0.6, speed * 0.1))
+  if (i.gait && speed >= STILL_SPEED) n = Math.max(n, i.gait === 'carry' ? CARRY_NOISE : WALK_NOISE)
   if (!i.holding) n = Math.max(n, BREATH_FLOOR)
   if (i.holding && speed < STILL_SPEED && !i.pushed) n = Math.min(n, HOLD_CAP)
   return clamp01(n)

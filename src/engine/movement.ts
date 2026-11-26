@@ -135,6 +135,9 @@ export function launch(body: PlayerBody, dir: Vec3, cfg: ZeroGConfig = {}): Play
 }
 
 export interface SeatedConfig {
+  /** Narrower look limits, in radians. Defaults are the seat limits. */
+  yawLimit?: number
+  pitchLimit?: number
   seatForwardYaw: number
 }
 
@@ -154,7 +157,7 @@ export function stepSeated(
   cfg: SeatedConfig,
 ): PlayerBody {
   const offset = wrapAngle(finiteOr(body.yaw, cfg.seatForwardYaw) + finiteOr(yawInputDelta, 0) - cfg.seatForwardYaw)
-  const yaw = cfg.seatForwardYaw + clamp(offset, -SEATED_YAW_LIMIT, SEATED_YAW_LIMIT)
-  const pitch = clamp(finiteOr(body.pitch, 0) + finiteOr(pitchInputDelta, 0), -SEATED_PITCH_LIMIT, SEATED_PITCH_LIMIT)
+  const yaw = cfg.seatForwardYaw + clamp(offset, -(cfg.yawLimit ?? SEATED_YAW_LIMIT), cfg.yawLimit ?? SEATED_YAW_LIMIT)
+  const pitch = clamp(finiteOr(body.pitch, 0) + finiteOr(pitchInputDelta, 0), -(cfg.pitchLimit ?? SEATED_PITCH_LIMIT), cfg.pitchLimit ?? SEATED_PITCH_LIMIT)
   return { ...body, pos: { ...body.pos }, vel: { x: 0, y: 0, z: 0 }, yaw, pitch }
 }

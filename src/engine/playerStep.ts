@@ -13,6 +13,9 @@ export interface PlayerStepConfig {
   jump?: WalkConfig['jump']
   /** Yaw of the seat's forward direction, used while seated. */
   seatForwardYaw: number
+  /** Narrower seated look limits in radians (a locker). */
+  seatedYawLimit?: number
+  seatedPitchLimit?: number
 }
 
 export interface MouseDelta {
@@ -34,7 +37,11 @@ export function stepPlayer(
   const dpitch = -mouse.y * k
 
   if (body.mode === 'seated') {
-    return stepSeated(body, dyaw, dpitch, { seatForwardYaw: cfg.seatForwardYaw })
+    return stepSeated(body, dyaw, dpitch, {
+      seatForwardYaw: cfg.seatForwardYaw,
+      yawLimit: cfg.seatedYawLimit,
+      pitchLimit: cfg.seatedPitchLimit,
+    })
   }
 
   const pitch = Math.min(WALK_PITCH_LIMIT, Math.max(-WALK_PITCH_LIMIT, body.pitch + dpitch))

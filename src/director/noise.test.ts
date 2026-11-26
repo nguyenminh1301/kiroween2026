@@ -30,3 +30,13 @@ describe('noise step', () => {
     expect(stepNoise(0, { dt: 0.016, speed: 0, pushed: false, bumped: false, holding: false })).toBe(0.12)
   })
 })
+
+describe('stepNoise gait', () => {
+  const base = { dt: 0.016, pushed: false, bumped: false, holding: false }
+  it('raises the floor on foot, higher when carrying, and nothing when still', () => {
+    expect(stepNoise(0, { ...base, speed: 1.4, gait: 'walk' })).toBeCloseTo(0.3)
+    expect(stepNoise(0, { ...base, speed: 1, gait: 'carry' })).toBeCloseTo(0.45)
+    expect(stepNoise(0, { ...base, speed: 0, gait: 'carry' })).toBeCloseTo(0.12)
+    expect(stepNoise(0, { ...base, speed: 1.4 })).toBeCloseTo(0.14)
+  })
+})
