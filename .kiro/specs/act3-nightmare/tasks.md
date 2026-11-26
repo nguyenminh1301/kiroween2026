@@ -1,6 +1,6 @@
 # Tasks: act3-nightmare
 
-- [ ] 1. Content, store and debug hooks: new lines, objectives, anomaly text, `dreamChoice`, choice menu text, `getAct3Info` (req 3.2, 5.2, 5.4, 6.1, 7.1)
+- [x] 1. Content, store and debug hooks: new lines, objectives, anomaly text, `dreamChoice`, choice menu text, `getAct3Info` (req 3.2, 5.2, 5.4, 6.1, 7.1)
 - [ ] 2. Engine bits with tests: noise gait, seated look limits (req 1.6, 4.2)
 - [ ] 3. Layout and beats on a fake clock, with tests (req 1.1 to 1.11, 5.1 to 5.3)
 - [ ] 4. Astronaut creature model, pose and lunge logic, with tests (req 2.1 to 2.4)

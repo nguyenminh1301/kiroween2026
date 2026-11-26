@@ -39,6 +39,10 @@ export interface GameState {
   objective: Objective | null
   target: Target | null
   anomaliesSeen: string[]
+  /** Act 3 ending: the answer Buzz gave, kept for the Archive. */
+  dreamChoice: 'dream' | 'fine' | null
+  /** The two-line choice prompt is on screen. */
+  choiceOpen: boolean
   settings: Settings
   fear: number
   heartRate: number
@@ -58,6 +62,8 @@ export interface GameState {
   setObjective: (objective: Objective | null) => void
   setTarget: (target: Target | null) => void
   addAnomalySeen: (id: string) => void
+  setDreamChoice: (choice: 'dream' | 'fine' | null) => void
+  setChoiceOpen: (open: boolean) => void
   setSettings: (partial: Partial<Settings>) => void
   setFear: (fear: number) => void
   setHeartRate: (bpm: number) => void
@@ -80,6 +86,8 @@ export const gameStore = createStore<GameState>()((set) => ({
   objective: null,
   target: null,
   anomaliesSeen: [],
+  dreamChoice: null,
+  choiceOpen: false,
   settings: { ...DEFAULT_SETTINGS },
   fear: 0,
   heartRate: 72,
@@ -99,6 +107,8 @@ export const gameStore = createStore<GameState>()((set) => ({
   setTarget: (target) => set({ target }),
   addAnomalySeen: (id) =>
     set((s) => (s.anomaliesSeen.includes(id) ? s : { anomaliesSeen: [...s.anomaliesSeen, id] })),
+  setDreamChoice: (dreamChoice) => set({ dreamChoice }),
+  setChoiceOpen: (choiceOpen) => set({ choiceOpen }),
   setSettings: (partial) => set((s) => ({ settings: applySettings(s.settings, partial) })),
   setFear: (fear) =>
     set((s) => (Number.isFinite(fear) ? { fear: Math.min(1, Math.max(0, fear)) } : s)),
@@ -109,5 +119,5 @@ export const gameStore = createStore<GameState>()((set) => ({
   setSubtitle: (subtitle) => set({ subtitle }),
   setUnlockedActs: (unlockedActs) => set({ unlockedActs: [...unlockedActs] }),
   setFinished: (finished) => set({ finished }),
-  resetAnomalies: () => set({ anomaliesSeen: [] }),
+  resetAnomalies: () => set({ anomaliesSeen: [], dreamChoice: null }),
 }))

@@ -53,3 +53,23 @@ export function setAct4Source(fn: (() => Act4Info) | null): void {
 }
 
 export const getAct4Info = (): Act4Info | null => (act4Source ? act4Source() : null)
+
+/** Act 3 numbers for `window.__los.act3`. */
+export interface Act3Info {
+  phase: string
+  /** Who was carried first: 'cdr', 'cmp' or null. */
+  carriedFirst: 'cdr' | 'cmp' | null
+  carrying: 'cdr' | 'cmp' | null
+  /** Answer the player chose, or null. */
+  choice: 'dream' | 'fine' | null
+  /** Pick answer 1 or 2 while the choice is open. */
+  pick(n: number): boolean
+}
+
+let act3Source: (() => Act3Info) | null = null
+
+export function setAct3Source(fn: (() => Act3Info) | null): void {
+  act3Source = fn
+}
+
+export const getAct3Info = (): Act3Info | null => (act3Source ? act3Source() : null)

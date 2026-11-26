@@ -66,8 +66,16 @@ export const MENUS = {
     source: 'Source',
     back: 'Back to title',
     menu: 'Archive',
+    told: 'You told them:',
   },
 } as const
+
+/** The two answers after waking from the act 3 dream. */
+export const DREAM_CHOICES = {
+  dream: 'Bad dream. Something was in the tunnel.',
+  fine: "I'm fine. Go back to sleep.",
+} as const
+export type DreamChoice = keyof typeof DREAM_CHOICES
 
 export const ACT_TITLES: Record<ActId, string> = {
   'act0-pad': 'Pad 39A',

@@ -14,22 +14,15 @@ export const CHECKLISTS: Record<string, Objective> = {
   act2Back: { text: 'Float back up the tunnel to the command module', keys: 'E' },
   act2Sleep: { text: 'Get into your sleeping bag', keys: 'E', markers: ['act2:bag'] },
   act2Eyes: { text: 'Hold C to close your eyes and sleep', keys: 'C' },
-  act3Find: { text: 'Find Mike at the far end of the tunnel', keys: 'E' },
+  act3Find: { text: 'Find Neil and Mike.', keys: 'E' },
   act3Hide: {
     text: 'Hide in the locker on your left. Inside, hold SPACE',
     keys: 'E',
     markers: ['act3:locker0'],
   },
-  act3Sneak: {
-    text: 'Reach Mike. Push off gently. If it comes your way, hide in a locker',
-    keys: 'E',
-  },
   act3Hunted: { text: 'It heard you. Get in a locker and hold SPACE', keys: 'SPACE' },
-  act3Chase: {
-    text: 'Run. Keep pushing off the rails back to the hatch',
-    keys: 'E',
-    markers: ['act3:hatch'],
-  },
+  act3Carry: { text: 'Carry him back to the bags.', keys: 'E', markers: ['act3:bags'] },
+  act3Back: { text: 'Go back for the other one.', keys: 'E' },
   act4Tasks: {
     text: 'Surface tasks, any order',
     keys: 'E',

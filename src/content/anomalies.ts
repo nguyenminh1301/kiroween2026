@@ -33,7 +33,7 @@ export const ANOMALIES: AnomalyText[] = [
   },
   {
     id: 'impostor-capcom',
-    seen: 'Houston called during loss of signal and asked how many were aboard.',
+    seen: 'Houston called in the dark corridor and asked how many were aboard. The corridor and the creature were a dream.',
     real: 'Behind the Moon the spacecraft had no radio contact with Earth at all, roughly 45 to 48 minutes on each orbit.',
     source: 'https://www.nasa.gov/history/afj/ap11fj/index.html',
   },
