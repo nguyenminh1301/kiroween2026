@@ -1,7 +1,8 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { HUD } from '../content/hud'
 import { VERB_LABELS } from '../content/verbs'
-import { MENUS } from '../content/menus'
+import { DREAM_CHOICES, MENUS } from '../content/menus'
+import { pickChoice } from '../engine/choiceBridge'
 import { METER_TICK } from '../engine/fx'
 import { isDebugUrl, lockRuntime, requestLock } from '../engine/inputRuntime'
 import { needsLockPrompt } from '../engine/pointerLock'
@@ -222,11 +223,57 @@ export function FxLayer() {
   )
 }
 
-/** Inside a locker: dark metal slats across the view with clear gaps, and the locker frame around the edges. */
-export function LockerSlats() {
-  const act = useGame((s) => s.act)
-  const mode = useGame((s) => s.moveMode)
+/**
+ * The two answers after waking from the act 3 dream, at the bottom of the screen in menu style.
+ * Keys 1 and 2 pick. The pointer is locked, so the mouse moves the mark (up and down) and a click picks it.
+ */
+export function ChoicePrompt() {
+  const open = useGame((s) => s.choiceOpen)
   const paused = useGame((s) => s.paused)
-  if (act !== 'act3-farside' || mode !== 'seated' || paused) return null
-  return <div className="locker-slats" data-testid="locker-slats" aria-hidden="true" />
+  const [mark, setMark] = useState<0 | 1>(0)
+  const markRef = useRef<0 | 1>(0)
+  markRef.current = mark
+  const live = open && !paused
+  useEffect(() => {
+    if (!live) return
+    setMark(0)
+    const answers = ['dream', 'fine'] as const
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.code === 'Digit1' || e.code === 'Numpad1') pickChoice(answers[0])
+      else if (e.code === 'Digit2' || e.code === 'Numpad2') pickChoice(answers[1])
+    }
+    const onMove = (e: MouseEvent): void => {
+      if (e.movementY > 3) setMark(1)
+      else if (e.movementY < -3) setMark(0)
+    }
+    const onClick = (): void => void pickChoice(answers[markRef.current])
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('click', onClick)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('click', onClick)
+    }
+  }, [live])
+  if (!live) return null
+  return (
+    <div className="choice-prompt" data-testid="choice-prompt">
+      {(['dream', 'fine'] as const).map((k, i) => (
+        <button
+          key={k}
+          type="button"
+          className={`btn${mark === i ? ' marked' : ''}`}
+          data-choice={k}
+          onClick={(e) => {
+            e.stopPropagation()
+            pickChoice(k)
+          }}
+        >
+          <span className="num">{i + 1}</span>
+          {DREAM_CHOICES[k]}
+        </button>
+      ))}
+    </div>
+  )
 }

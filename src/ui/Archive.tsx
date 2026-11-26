@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { ANOMALIES } from '../content/anomalies'
-import { FORM_LINE, MENUS } from '../content/menus'
+import { DREAM_CHOICES, FORM_LINE, MENUS } from '../content/menus'
 import { goScreen } from '../app/session'
 import { useGame } from './hooks'
 
 export function Archive() {
   const seen = useGame((s) => s.anomaliesSeen)
+  const told = useGame((s) => s.dreamChoice)
   const m = MENUS.archive
   const back = useRef<HTMLButtonElement>(null)
   useEffect(() => back.current?.focus({ preventScroll: true }), [])
@@ -26,6 +27,11 @@ export function Archive() {
               <div className="tag">{got ? m.noticed : m.missed}</div>
               <p className="seen">{a.seen}</p>
               <p className="real">{a.real}</p>
+              {a.id === 'impostor-capcom' && told ? (
+                <p className="told" data-testid="archive-told">
+                  {m.told} {DREAM_CHOICES[told]}
+                </p>
+              ) : null}
               <a href={a.source} target="_blank" rel="noreferrer">
                 {m.source}
               </a>
