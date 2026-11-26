@@ -4,7 +4,7 @@ This file describes how Kiro built LOSS OF SIGNAL. It sticks to what the repo sh
 
 ## Who wrote what
 
-Kiro wrote all of the code in `src/`, `scripts/` and `e2e/`. The author planned the work in phases outside Kiro and wrote one prompt per phase from that plan. For phases 1 to 5 the prompt was pasted into the Kiro IDE. From phase 6 on, it was passed to Kiro CLI.
+Kiro wrote all of the code in `src/`, `scripts/` and `e2e/`. The work was planned in phases outside Kiro, and one prompt per phase was written from that plan. For phases 1 to 5 the prompt was pasted into the Kiro IDE. From phase 6 on, it was passed to Kiro CLI.
 
 ## Steering (`.kiro/steering/`)
 
@@ -39,6 +39,10 @@ Each spec has `requirements.md` (EARS form), `design.md` and `tasks.md`. In the 
 | `act4-moon` | Chapter 5: the descent with the 1202 alarm, low gravity, the three surface tasks, the run to the ladder, liftoff | 9 |
 | `act5-home` | Chapter 6: re-entry, blackout, chutes, splashdown, recovery, then the Archive | 7 |
 | `polish` | A live backdrop behind the menus, visual fixes against the reference shots, idle hints, reduced motion, stable e2e scripts | 9 |
+| `play-fixes` | Play fixes from the full play review: scripted looks capped at 1.5 s so dialogue no longer freezes the view, pointer lock kept through chapter cards with a click to continue prompt, radio lines tagged with a beat so stale lines drop, push off from any handrail in reach, the creature stops 3.5 m away in the flashlight, an error boundary with the no-WebGL message, a quieter idle hint | Not in the repo |
+| `look-fixes` | Look fixes from the same review: rounded suited figures with helmet bubble and visor, the Saturn V stack behind the White Room, cabin windows that paint their own view, flat pad ground and a narrow TLI plume, a wider act 3 flashlight with rust plates, locker view and dark slats, small carried items in act 4, a lunar module with foil panels and ladder rails, a smaller broken foam ring in act 5 | Not in the repo |
+
+The `play-fixes` and `look-fixes` spec folders are not in the repo, so their task counts are not shown here. The table rows come from the commits.
 
 ## Hooks (`.kiro/hooks/`)
 
@@ -54,17 +58,18 @@ Phases 1 to 5 ran in the Kiro IDE in Spec mode. The author approved the requirem
 
 From phase 6 on, Kiro CLI ran headless. It used a custom agent with no sub-agent tool and with all other tools trusted. In this mode Kiro wrote the spec, committed it and carried out every task without an approval step.
 
-After each phase the author reviewed the work in a fresh clone. The review ran the tests, lint, build, budget check, copy check and the e2e chain, and compared the e2e screenshots with the reference shots in `docs/reference/shots/`. Fixes went back to Kiro as new prompts.
+Each phase was reviewed in a fresh clone. The review ran the tests, lint, build, budget check, copy check and the e2e chain, and compared the e2e screenshots with the reference shots in `docs/reference/shots/`. Fixes went back to Kiro as new prompts.
 
 ## What went wrong and how it was fixed
 
 - **Spec folders left uncommitted.** Early specs stayed out of git. Rule 10 in `repo-rules.md` now makes Kiro commit the spec folder with the first task and again whenever it changes (`d168a3e`).
 - **The render spec's size and sub-agent cost.** The render spec reached over 1,400 lines and 43 property-test tasks, and the run leaned on sub-agents. `working.md` was added to keep specs short and the work in one chat.
+- **A full play review found the game playable but rough.** Dialogue froze the player, the mouse was dead after the chapter cards, dialogue lagged behind the action, the figures were crude and some windows clipped. `play-fixes` and `look-fixes` fixed these.
 - **CLI runs that ended early.** Two CLI runs stopped partway because a `pkill -f` pattern used to stop the dev server also matched Kiro's own process. The prompts now start the dev server with its PID saved to a file and stop it with `kill` on that PID.
 
 ## Testing
 
-**Unit and property tests.** Vitest runs 357 tests in 77 files. 31 of those files use fast-check, with 92 property checks. The main properties:
+**Unit and property tests.** Vitest runs 379 tests in 79 files. 31 of those files use fast-check, with 92 property checks. The main properties:
 
 - Movement: horizontal speed never exceeds the set speed, opposing keys cancel, pitch stays within ±90°.
 - Collision: resolving leaves no overlap, leaves a free capsule unchanged, and is idempotent.
@@ -76,7 +81,7 @@ After each phase the author reviewed the work in a fresh clone. The review ran t
 - Targeting and seeded random numbers: the nearest enabled item in reach is picked, and the generator is deterministic and in [0, 1).
 - Act 4 tasks: the creature comes out after the third task in all six orders, and only then.
 
-**E2E.** Plain Node scripts in `e2e/` drive headless Chromium with SwiftShader through Playwright, against a running dev server. They control the game through `window.__los` and wait on game state. `npm run e2e` chains 14 scripts: smoke, engine, render, audio, ui, one per act, act switching, idle hints, and a full playthrough that runs twice, the second time with every audio request blocked. Each act script plays its act to the next one with real key presses. The full chain takes about 20 minutes on SwiftShader.
+**E2E.** Plain Node scripts in `e2e/` drive headless Chromium with SwiftShader through Playwright, against a running dev server. They control the game through `window.__los` and wait on game state. `npm run e2e` chains 18 scripts in 19 runs: smoke, engine, render, audio, ui, one per act, walking, pointer lock, rails, no WebGL, act switching, idle hints, and a full playthrough that runs twice, the second time with every audio request blocked. Each act script plays its act to the next one with real key presses. The full chain takes about 20 minutes on SwiftShader.
 
 ## Assets that existed before this repo
 
