@@ -54,11 +54,6 @@ export const LINES: Record<string, Line> = {
     text: 'Twelve, eleven, ten, nine. Ignition sequence start.',
     seconds: 4,
   },
-  'act1.count2': {
-    speaker: 'LAUNCH',
-    text: 'Six, five, four, three, two, one, zero. All engines running.',
-    seconds: 4.5,
-  },
   'act1.liftoff': { speaker: 'LAUNCH', mood: 'shout', text: 'Liftoff! We have a liftoff!', seconds: 3 },
   'act1.clock': { speaker: 'CDR', text: 'Liftoff. The clock is running.', seconds: 3 },
   'act1.tower': { speaker: 'CAPCOM', text: "Roger. You've cleared the tower.", seconds: 3 },

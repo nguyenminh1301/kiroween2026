@@ -9,7 +9,7 @@ const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
-const ALL = ['o2-for-four', 'tunnel-longer', 'fourth-sleeper', 'impostor-capcom', 'burn-baby-burn']
+const ALL = ['tunnel-longer', 'fourth-sleeper', 'impostor-capcom', 'burn-baby-burn']
 const errors = []
 const check = (ok, msg) => {
   if (!ok) errors.push(`check failed: ${msg}`)
@@ -139,20 +139,8 @@ try {
   // Act 1.
   stage = 'act1'
   await actReady('act1-launch')
-  // The view does not turn by itself: look at the O2 gauge.
-  await subtitle('oxygen', 90000)
-  await page.evaluate(() => {
-    const b = window.__los.player.body
-    const dx = -0.35 - b.pos.x
-    const dy = 1.5 - (b.pos.y + 1.65)
-    const dz = -1.05 - b.pos.z
-    window.__los.player.set({ yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(dy, Math.hypot(dx, dz)) })
-  })
-  await wait(() => window.__los.store.getState().anomaliesSeen.includes('o2-for-four'), null, 90000)
-  await objective('red switch')
+  await objective('numbers on the card')
   await shot('playthrough-act1')
-  await useAt('act1:switch', 'FLIP')
-  await objective('computer in front of you')
   for (let i = 0; i < 3; i++) {
     await useAt('act1:dsky', 'KEY IN')
     await page.waitForTimeout(250)

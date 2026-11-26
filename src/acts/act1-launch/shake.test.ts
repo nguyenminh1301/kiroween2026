@@ -1,21 +1,23 @@
 import { describe, expect, it } from 'vitest'
+import { MAXQ_AT, ORBIT_AT, STAGING_AT } from './timelines'
 import { launchEnvelope, MAX_OFFSET, MAX_ROT, noise, shakeSample, tliEnvelope } from './shake'
 
 describe('act 1 shake', () => {
   it('never passes 0.4 degrees or 1 cm', () => {
-    for (let t = 0; t < 16; t += 0.005) {
+    for (let t = 0; t < 150; t += 0.01) {
       const s = shakeSample(launchEnvelope(t), t, false)
       for (const r of [s.rx, s.ry, s.rz]) expect(Math.abs(r)).toBeLessThanOrEqual(MAX_ROT + 1e-12)
       for (const o of [s.ox, s.oy, s.oz]) expect(Math.abs(o)).toBeLessThanOrEqual(MAX_OFFSET + 1e-12)
     }
   })
-  it('is strongest in the first 10 s after liftoff, bumps at staging and fades', () => {
+  it('follows the beats: strong at liftoff, a peak at max Q, a bump at staging, silent by orbit', () => {
     expect(launchEnvelope(2)).toBe(0)
     expect(launchEnvelope(8)).toBeCloseTo(0.8)
-    expect(launchEnvelope(10.1)).toBeGreaterThan(launchEnvelope(8))
-    expect(launchEnvelope(10.5)).toBeCloseTo(0.8)
-    expect(launchEnvelope(15.2)).toBeLessThan(0.5)
-    expect(launchEnvelope(16)).toBe(0)
+    expect(launchEnvelope(MAXQ_AT)).toBeCloseTo(0.8)
+    expect(launchEnvelope(40)).toBeCloseTo(0.5)
+    expect(launchEnvelope(STAGING_AT + 0.01)).toBeGreaterThan(launchEnvelope(STAGING_AT + 1))
+    expect(launchEnvelope(ORBIT_AT + 3)).toBe(0)
+    expect(launchEnvelope(150)).toBe(0)
     expect(tliEnvelope(3)).toBeLessThan(0.5)
   })
   it('is zero with reduced motion', () => {

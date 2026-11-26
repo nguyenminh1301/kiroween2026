@@ -24,7 +24,7 @@ try {
     if (m.type() === 'error') errors.push(`console: ${m.text()}`)
   })
   const shot = (name) => page.screenshot({ path: join(shotDir, `${name}.png`) })
-  const atTime = (t) => page.waitForFunction((t) => (window.__los.timeline() ?? 0) >= t, t, { timeout: 60000, polling: 50 })
+  const atTime = (t) => page.waitForFunction((t) => (window.__los.timeline() ?? 0) >= t, t, { timeout: 200000, polling: 50 })
   const budget = async (label) => {
     const s = await page.evaluate(() => ({ calls: window.__los.stats.calls, tris: window.__los.stats.triangles }))
     check(s.calls > 0 && s.calls < 150, `${label}: draw calls ${s.calls}, expected under 150`)
@@ -73,31 +73,16 @@ try {
   await atTime(9.4)
   await shot('act1-shake')
   await budget('cabin during shake')
-  await atTime(11)
+  await atTime(111)
   await shot('act1-staging')
   await budget('staging shot')
 
-  // The O2 line does not turn the view. The player looks at the gauge, which counts as a sighting.
-  await page.waitForFunction(() => /oxygen/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 40000, polling: 100 })
-  check(!(await page.evaluate(() => window.__los.focus())), 'the O2 line does not turn the view')
-  await page.evaluate(() => {
-    const b = window.__los.player.body
-    const dx = -0.35 - b.pos.x
-    const dy = 1.5 - (b.pos.y + 1.65)
-    const dz = -1.05 - b.pos.z
-    window.__los.player.set({ yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(dy, Math.hypot(dx, dz)) })
-  })
-  await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('o2-for-four'), null, { timeout: 30000 })
-  check(true, 'o2-for-four noticed')
-  await shot('act1-o2')
-
-  // Switch, then the DSKY three times.
-  await objective('red switch')
-  check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
-  check(await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act1:switch').enabled), 'switch enabled')
-  await shot('act1-switch')
-  await useAt('act1:switch', 'FLIP')
-  await objective('computer in front of you')
+  // Upper stages: the later beats never turn the view. Then the DSKY three times.
+  await atTime(123)
+  await shot('act1-jettison')
+  await budget('jettison shot')
+  await atTime(140)
+  await objective('numbers on the card')
   check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   for (let i = 0; i < 3; i++) {
     await useAt('act1:dsky', 'KEY IN')
@@ -124,7 +109,7 @@ try {
   await shot('act1-tli')
   await budget('TLI shot')
   await atTime(7.5)
-  await page.waitForFunction(() => /Earth fits/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 30000, polling: 100 })
+  await page.waitForFunction(() => /whole Earth/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 30000, polling: 100 })
   check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   await shot('act1-earth')
 

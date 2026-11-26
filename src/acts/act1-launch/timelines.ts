@@ -19,14 +19,24 @@ export const SPACE_Y = 150
 export const PAD_BASE_Y = 18
 export const LIFTOFF_AT = 4.5
 export const IGNITION_AT = 3.5
-export const STAGING_AT = 10
+/** Beat times of the 150 s launch, in seconds of game time. */
+export const TOWER_AT = 9.5
+export const ROLL_AT = 20
+export const MAXQ_AT = 70
+export const STAGING_AT = 110
+export const JETTISON_AT = 122
+export const SECOND_STAGE_AT = 126
+export const THIRD_STAGE_AT = 135
+export const ORBIT_AT = 145
 
-export const LAUNCH_DURATION = 16
+export const LAUNCH_DURATION = 150
 export const TLI_DURATION = 15
 
 /** Rocket height above the pad `t` seconds into the launch timeline. */
 export function rocketHeight(t: number): number {
-  return t <= LIFTOFF_AT ? 0 : (t - LIFTOFF_AT) ** 2 * 1.8
+  // The pad views end by 9 s. The height stays where it was after 12 s.
+  const u = Math.min(t, 12)
+  return u <= LIFTOFF_AT ? 0 : (u - LIFTOFF_AT) ** 2 * 1.8
 }
 
 const lerp = (a: number, b: number, f: number): number => a + (b - a) * f
@@ -55,11 +65,20 @@ export const LAUNCH_SHOTS: NamedShot[] = [
   {
     name: 'staging',
     view: 'space',
-    from: 10,
-    to: 12.6,
+    from: STAGING_AT,
+    to: STAGING_AT + 2.6,
     fov: 60,
     far: 9000,
     cam: (u) => ({ position: v(SPACE_X + lerp(60, 50, u), SPACE_Y + 12, 90), lookAt: v(SPACE_X, SPACE_Y - 8, 0) }),
+  },
+  {
+    name: 'jettison',
+    view: 'space',
+    from: JETTISON_AT,
+    to: JETTISON_AT + 3.4,
+    fov: 55,
+    far: 9000,
+    cam: (u) => ({ position: v(SPACE_X + lerp(-40, -34, u), SPACE_Y + 30, 70), lookAt: v(SPACE_X, SPACE_Y + 24, 0) }),
   },
 ]
 
@@ -88,13 +107,15 @@ export function shotAt(shots: NamedShot[], t: number): NamedShot | null {
 export const launchViewAt = (t: number): View => shotAt(LAUNCH_SHOTS, t)?.view ?? 'cabin'
 export const tliViewAt = (t: number): View => shotAt(TLI_SHOTS, t)?.view ?? 'cabin'
 
-/** Engine level 0 to 1 during the launch. */
+/** Engine level 0 to 1 during the launch: first stage, a gap at staging, then the upper stages. */
 export function engineLevel(t: number): number {
   if (t < IGNITION_AT) return 0
   if (t < 9.5) return (t - IGNITION_AT) / (9.5 - IGNITION_AT)
-  if (t < STAGING_AT) return 1 - ((t - 9.5) / 0.5) * 0.7
-  if (t < 11) return 0.3
-  return Math.max(0, 0.3 - (t - 11) * 0.1)
+  if (t < STAGING_AT - 0.5) return 1
+  if (t < STAGING_AT) return 1 - ((t - (STAGING_AT - 0.5)) / 0.5) * 0.7
+  if (t < THIRD_STAGE_AT) return 0.3
+  if (t < ORBIT_AT) return 0.2
+  return Math.max(0, 0.2 - (t - ORBIT_AT) * 0.1)
 }
 
 /** Engine level during the TLI timeline: a burn from 0.2 s, ending about 6 s. */
@@ -105,7 +126,7 @@ export function tliEngineLevel(t: number): number {
   return Math.max(0, 1 - (t - 5.8) * 1.5)
 }
 
-export const alarmOn = (t: number): boolean => t >= 9.8 && t < 11.6
+export const alarmOn = (t: number): boolean => t >= STAGING_AT - 0.2 && t < STAGING_AT + 1.6
 
 export const SKY = {
   pad: '#9db7c9',
@@ -136,17 +157,25 @@ export function launchEvents(h: LaunchHooks): TimelineEvent[] {
       },
     },
     { at: 5.2, run: () => h.playSound('launchRoar') },
-    { at: 7, run: () => h.setSky(SKY.climb) },
-    { at: 9, run: () => h.setSky(SKY.dark) },
-    { at: 9.8, run: () => h.playSound('alarm') },
+    { at: 8, run: () => h.say('act1.clock') },
+    { at: TOWER_AT, run: () => h.say('act1.tower') },
+    { at: 40, run: () => h.setSky(SKY.climb) },
+    { at: ROLL_AT, run: () => h.say('act1.roll') },
+    { at: ROLL_AT + 2.5, run: () => h.say('act1.rollok') },
+    { at: MAXQ_AT, run: () => h.say('act1.maxq') },
+    { at: 95, run: () => h.setSky(SKY.dark) },
+    { at: STAGING_AT - 0.2, run: () => h.playSound('alarm') },
     {
       at: STAGING_AT,
       run: () => {
         h.playSound('staging')
-        h.say('act1.staging', { })
+        h.say('act1.staging', {})
       },
     },
-    { at: 13, run: () => h.setSky(SKY.space) },
+    { at: JETTISON_AT, run: () => h.say('act1.jettison') },
+    { at: SECOND_STAGE_AT, run: () => h.setSky(SKY.space) },
+    { at: THIRD_STAGE_AT, run: () => h.say('act1.sky') },
+    { at: ORBIT_AT, run: () => h.say('act1.orbit') },
   ]
 }
 

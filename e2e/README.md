@@ -38,7 +38,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 
 ## Act 1 test
 
-`e2e/act1.mjs` plays the launch and TLI by timeline time. The O2 line and the later lines never turn the view: the script checks `focus()` stays false and looks at the gauge itself to notice `o2-for-four`.
+`e2e/act1.mjs` plays the launch and TLI by timeline time. The launch runs 150 s: the script jumps to the pad, liftoff, staging and tower jettison shots, then keys in the card. The later lines never turn the view: the script checks `focus()` stays false.
 
 ## Act 2 test
 

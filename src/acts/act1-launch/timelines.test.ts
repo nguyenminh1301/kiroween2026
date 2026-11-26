@@ -33,7 +33,7 @@ function record() {
 describe('launch timeline', () => {
   it('lists the events at the right times', () => {
     const r = record()
-    for (const e of sortedEvents({ duration: 16, events: launchEvents(r.hooks) })) {
+    for (const e of sortedEvents({ duration: 150, events: launchEvents(r.hooks) })) {
       r.setAt(e.at)
       e.run()
     }
@@ -44,29 +44,39 @@ describe('launch timeline', () => {
       [4.5, 'liftoff'],
       [4.5, 'act1.liftoff'],
       [5.2, 'launchRoar'],
-      [7, 'sky #4a6a8a'],
-      [9, 'sky #1a2636'],
-      [9.8, 'alarm'],
-      [10, 'staging'],
-      [10, 'act1.staging'],
-      [13, 'sky #000000'],
+      [8, 'act1.clock'],
+      [9.5, 'act1.tower'],
+      [20, 'act1.roll'],
+      [22.5, 'act1.rollok'],
+      [40, 'sky #4a6a8a'],
+      [70, 'act1.maxq'],
+      [95, 'sky #1a2636'],
+      [109.8, 'alarm'],
+      [110, 'staging'],
+      [110, 'act1.staging'],
+      [122, 'act1.jettison'],
+      [126, 'sky #000000'],
+      [135, 'act1.sky'],
+      [145, 'act1.orbit'],
     ])
   })
 
   it('has the shot windows', () => {
     const at = (t: number) => shotAt(LAUNCH_SHOTS, t)?.name ?? null
-    expect([2, 4, 6, 11, 14].map(at)).toEqual(['padFar', null, 'padLow', 'staging', null])
-    expect(LAUNCH_SHOTS.map((s) => s.fov)).toEqual([50, 75, 60])
+    expect([2, 4, 6, 50, 111, 123, 140].map(at)).toEqual(['padFar', null, 'padLow', null, 'staging', 'jettison', null])
+    expect(LAUNCH_SHOTS.map((s) => s.fov)).toEqual([50, 75, 60, 55])
   })
 
   it('shakes, climbs and sounds the alarm on schedule', () => {
     expect(engineLevel(3.4)).toBe(0)
     expect(engineLevel(9.5)).toBe(1)
-    expect(engineLevel(10.5)).toBeCloseTo(0.3)
-    expect(engineLevel(15)).toBeLessThan(0.3)
-    expect([9.7, 9.8, 11.5, 11.6].map(alarmOn)).toEqual([false, true, true, false])
+    expect(engineLevel(60)).toBe(1)
+    expect(engineLevel(111)).toBeCloseTo(0.3)
+    expect(engineLevel(149)).toBeLessThan(0.3)
+    expect([109.7, 109.8, 111.5, 111.6].map(alarmOn)).toEqual([false, true, true, false])
     expect(rocketHeight(4.5)).toBe(0)
     expect(rocketHeight(6.5)).toBeCloseTo(7.2)
+    expect(rocketHeight(100)).toBe(rocketHeight(12))
   })
 })
 
