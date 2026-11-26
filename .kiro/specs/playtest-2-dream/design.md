@@ -17,3 +17,9 @@
 
 ## Checkpoints and map
 `start` in the bag, `wp0` at the junction (0, -4.4), `wp1` before the cage bars, `wp2` set on laying the first crewman down, `wp3` set when the player returns to the cage with the corridor silent.
+
+## Notes from the work
+- Visors up: the figure builder got a `visorUp` option that drops the gold visor shell. The helmet inside is a dark ball, so no face is modelled or shown.
+- `act3.impostor` stays a CAPCOM line. The beat still shows it as "HOUSTON?" with a detune, as before.
+- The creature starts on its patrol at waypoint 5 (hall) for `start` and `wp0`, so it reaches the junction after about 40 s. The e2e scripts teleport only where it is 8 m away.
+- Right store room spans rows 8 to 11 so it does not merge with the right crew bay (a layout test guards this).
