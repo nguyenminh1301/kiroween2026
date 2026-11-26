@@ -11,7 +11,7 @@ const FOIL_LO = '#7d6a40'
 const GREY = '#a9a9a4'
 const GREY_DARK = '#6e6e6a'
 const SILVER = '#cfcfca'
-const BLACK = '#101010'
+const FOIL_BLACK = '#1b1813'
 const STRUT = '#8c7a4a'
 
 const OCT_R = 2.05
@@ -29,11 +29,13 @@ export function buildDescentBody(): BufferGeometry {
   const hi = ring(STAGE_TOP)
   const tone = (): string => {
     const r = rng()
+    // Crinkled gold foil with patches of black Kapton.
+    if (r > 0.86) return FOIL_BLACK
     const c = new Color(r < 0.18 ? FOIL_HI : r < 0.4 ? FOIL_LO : FOIL)
     return '#' + c.offsetHSL(0, 0, (rng() - 0.5) * 0.08).getHexString()
   }
-  const NX = 4
-  const NY = 3
+  const NX = 6
+  const NY = 4
   for (let k = 0; k < 8; k++) {
     const a0 = lo[k]
     const a1 = lo[(k + 1) % 8]
@@ -49,6 +51,29 @@ export function buildDescentBody(): BufferGeometry {
         q.quad(p(i / NX, j / NY), p((i + 1) / NX, j / NY), p((i + 1) / NX, (j + 1) / NY), p(i / NX, (j + 1) / NY), 0, 0, 1, 1, tone())
       }
     }
+  }
+  // Raised foil panels with dark edging on every face: one black, one bright gold.
+  const at = (k: number, u: number, v: number, out: number): P3 => {
+    const a0 = lo[k]
+    const a1 = lo[(k + 1) % 8]
+    const b0 = hi[k]
+    const b1 = hi[(k + 1) % 8]
+    const bx = a0[0] + (a1[0] - a0[0]) * u
+    const bz = a0[2] + (a1[2] - a0[2]) * u
+    const tx = b0[0] + (b1[0] - b0[0]) * u
+    const tz = b0[2] + (b1[2] - b0[2]) * u
+    const ang = ((k + 1) * Math.PI) / 4
+    return [bx + (tx - bx) * v + Math.sin(ang) * out, STAGE_BOTTOM + (STAGE_TOP - STAGE_BOTTOM) * v, bz + (tz - bz) * v + Math.cos(ang) * out]
+  }
+  for (let k = 0; k < 8; k++) {
+    const panel = (u0: number, u1: number, v0: number, v1: number, out: number, c: string): void =>
+      q.quad(at(k, u0, v0, out), at(k, u1, v0, out), at(k, u1, v1, out), at(k, u0, v1, out), 0, 0, 1, 1, c)
+    panel(0.08, 0.46, 0.12, 0.88, 0.05, '#2a261e')
+    panel(0.1, 0.44, 0.16, 0.84, 0.07, k % 2 ? FOIL_BLACK : FOIL_HI)
+    panel(0.54, 0.92, 0.12, 0.88, 0.05, '#2a261e')
+    panel(0.56, 0.9, 0.16, 0.84, 0.07, k % 2 ? FOIL_HI : '#3a3224')
+    // Horizontal tape bands.
+    panel(0, 1, 0.47, 0.5, 0.03, '#d8c98c')
   }
   q.fan([0, STAGE_TOP, 0], hi.slice().reverse(), '#8a8a84')
   q.fan([0, STAGE_BOTTOM, 0], lo, '#2a2a28')
@@ -74,7 +99,20 @@ export function buildLegs(): BufferGeometry {
     const foot: P3 = [dx * FOOTPAD_DIST, 0.25, dz * FOOTPAD_DIST]
     parts.push(cstrut(top, foot, 0.1, STRUT))
     parts.push(cstrut([dx * 1.9, 1.2, dz * 1.9], [dx * (FOOTPAD_DIST - 0.4), 0.35, dz * (FOOTPAD_DIST - 0.4)], 0.06, STRUT))
-    parts.push(ccyl(FOOTPAD_RADIUS, 0.14, '#b09a62', dx * FOOTPAD_DIST, 0.07, dz * FOOTPAD_DIST, 'y', 8))
+    parts.push(ccyl(FOOTPAD_RADIUS, 0.14, '#b09a62', dx * FOOTPAD_DIST, 0.07, dz * FOOTPAD_DIST, 'y', 10))
+    // Footpad rim and the contact probe sticking out from the pad.
+    parts.push(ccyl(FOOTPAD_RADIUS * 1.05, 0.04, '#7d6a40', dx * FOOTPAD_DIST, 0.16, dz * FOOTPAD_DIST, 'y', 10))
+    if (dx !== 0 || dz < 0) {
+      const out: P3 = [dx * (FOOTPAD_DIST + 1.5), 0.55, dz * (FOOTPAD_DIST + 1.5)]
+      parts.push(cstrut([dx * FOOTPAD_DIST, 0.2, dz * FOOTPAD_DIST], out, 0.018, '#d8d8d4'))
+      parts.push(cbox(0.06, 0.06, 0.06, '#d8d8d4', out[0], out[1], out[2]))
+    }
+  }
+  // Cross braces between the legs.
+  for (const [a, b] of [[0, 2], [2, 1], [1, 3], [3, 0]]) {
+    const pa: P3 = [dirs[a][0] * 1.9, 1.5, dirs[a][1] * 1.9]
+    const pb: P3 = [dirs[b][0] * 1.9, 1.5, dirs[b][1] * 1.9]
+    parts.push(cstrut(pa, pb, 0.04, '#6e6040'))
   }
   // Ladder on the front leg.
   const top: P3 = [0, 1.75, 1.95]
@@ -86,7 +124,9 @@ export function buildLegs(): BufferGeometry {
     const z = top[2] + (bot[2] - top[2]) * f
     parts.push(cbox(0.5, 0.04, 0.07, '#c9b57a', 0, y, z))
   }
+  for (const sx of [-0.25, 0.25]) parts.push(cstrut([sx, 1.95, 2.05], [sx, 2.0, 2.7], 0.03, '#d8d8d4'))
   parts.push(cbox(1.0, 0.06, 0.95, '#a9a9a4', 0, 1.55, 2.4))
+  parts.push(cbox(1.0, 0.03, 0.03, '#d8d8d4', 0, 2.0, 2.7))
   parts.push(cbox(1.15, 0.9, 0.28, '#5b5b58', -1.05, 1.65, 2.0))
   return mergeColored(parts)
 }
@@ -106,9 +146,32 @@ export function buildAscent(): BufferGeometry {
     q.quad(lo[k], lo[(k + 1) % 6], hi[(k + 1) % 6], hi[k], 0, 0, 1, 1, k % 2 ? GREY : SILVER)
   }
   q.fan([0, 4.75, 0], hi.slice().reverse(), GREY_DARK)
-  // Front is +z. Two triangular windows.
-  q.fan([-0.55, 4.2, 1.2], [[-0.85, 4.35, 1.2], [-0.25, 4.45, 1.2], [-0.5, 3.95, 1.2]], BLACK)
-  q.fan([0.55, 4.2, 1.2], [[0.85, 4.35, 1.2], [0.25, 4.45, 1.2], [0.5, 3.95, 1.2]], BLACK)
+  // Front is +z. Two triangular windows set into the two front faces, each with a silver frame.
+  const onFace = (k: number, u: number, v: number, out: number): P3 => {
+    const a0 = lo[k]
+    const a1 = lo[(k + 1) % 6]
+    const b0 = hi[k]
+    const b1 = hi[(k + 1) % 6]
+    const bx = a0[0] + (a1[0] - a0[0]) * u
+    const bz = a0[2] + (a1[2] - a0[2]) * u
+    const tx = b0[0] + (b1[0] - b0[0]) * u
+    const tz = b0[2] + (b1[2] - b0[2]) * u
+    const ang = ((k + 0.5) * Math.PI) / 3
+    return [bx + (tx - bx) * v + Math.sin(ang) * out, STAGE_TOP + (4.75 - STAGE_TOP) * v, bz + (tz - bz) * v + Math.cos(ang) * out]
+  }
+  for (const k of [5, 0]) {
+    const flip = k === 5
+    // Triangle pointing down toward the middle of the front.
+    const tri = (out: number, grow: number): P3[] => [
+      onFace(k, flip ? 0.12 - grow : 0.12 - grow, 0.72 + grow, out),
+      onFace(k, 0.9 + grow, 0.72 + grow, out),
+      onFace(k, flip ? 0.9 : 0.12, 0.3 - grow, out),
+    ]
+    q.fan(onFace(k, 0.5, 0.58, 0.015), tri(0.015, 0.06), '#d8d8d4')
+    q.fan(onFace(k, 0.5, 0.58, 0.03), tri(0.03, 0), '#0b1016')
+  }
+  // Docking target on top: a ring, a dark centre and a cross.
+  q.fan([0, 4.76, 0.2], Array.from({ length: 10 }, (_, k) => [Math.sin((k * Math.PI) / 5) * 0.5, 4.76, 0.2 + Math.cos((k * Math.PI) / 5) * 0.5] as P3).reverse(), '#a9a9a4')
   const parts: BufferGeometry[] = [q.build()]
   // Thruster quads and antennas.
   for (const [x, z] of [
@@ -121,6 +184,20 @@ export function buildAscent(): BufferGeometry {
   parts.push(cstrut([-0.4, 4.7, -0.3], [-1.1, 5.3, -0.2], 0.04, '#d8d8d4'))
   parts.push(ccyl(0.28, 0.06, SILVER, 0.9, 5.5, -0.5, 'y', 8))
   parts.push(cbox(0.9, 0.12, 0.5, '#3a3a38', 0, 3.2, 1.45))
+  // Docking target: raised ring, dark disc and cross hairs.
+  parts.push(ccyl(0.38, 0.07, '#cfcfca', 0, 4.8, 0.2, 'y', 10))
+  parts.push(ccyl(0.22, 0.09, '#1a1a18', 0, 4.8, 0.2, 'y', 10))
+  parts.push(cbox(0.6, 0.02, 0.04, '#e8e6de', 0, 4.86, 0.2))
+  parts.push(cbox(0.04, 0.02, 0.6, '#e8e6de', 0, 4.86, 0.2))
+  // Steerable dish on a mast, and the VHF antenna rods.
+  parts.push(cstrut([-0.7, 4.7, -0.9], [-0.7, 5.25, -1.0], 0.035, '#d8d8d4'))
+  parts.push(ccyl(0.38, 0.05, '#e8e6de', -0.7, 5.3, -1.0, 'z', 10))
+  parts.push(cstrut([0.2, 4.74, -0.7], [0.2, 5.9, -0.7], 0.012, '#d8d8d4'))
+  // Forward hatch and its landing light panel.
+  parts.push(cbox(0.55, 0.6, 0.05, '#8c8c88', 0, 3.4, 1.3))
+  parts.push(cbox(0.4, 0.45, 0.02, '#bdbdb8', 0, 3.4, 1.34))
+  // RCS quad struts.
+  for (const [x, z] of [[1.5, 0.9], [-1.5, 0.9], [1.5, -0.9], [-1.5, -0.9]]) parts.push(cstrut([x * 0.82, 3.9, z * 0.82], [x, 3.9, z], 0.03, '#8c8c88'))
   return mergeColored(parts)
 }
 
