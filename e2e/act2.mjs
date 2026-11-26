@@ -176,15 +176,16 @@ try {
   check((await page.evaluate(() => document.querySelectorAll('.fx-flash, .fx-figure').length)) === 0, 'no flashes or figure in the dark')
   await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('fourth-sleeper'), null, { timeout: 90000, polling: 200 })
   check((await page.evaluate(() => document.querySelectorAll('.fx-flash, .fx-figure').length)) === 0, 'still no flashes')
-  await page.keyboard.up('KeyC')
+  // Act 2 ends after 12 s of eyes closed in total, so keep C held until act 3 loads.
   await page.waitForFunction(
     () => window.__los.store.getState().act === 'act3-farside' || window.__los.loader.state.getState().act === 'act3-farside',
     null,
     { timeout: 30000, polling: 200 },
   )
+  await page.keyboard.up('KeyC')
   check(true, 'act3 loading')
 } catch (e) {
-  errors.push(`script: ${e.message}`)
+  errors.push(`script: ${e.message.split("\n")[0]} at ${(e.stack.match(/act2.mjs:(\d+)/g) ?? []).join(" ")}`)
 } finally {
   await browser.close()
 }

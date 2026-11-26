@@ -8,7 +8,7 @@ import { fxStore } from '../../engine/fx'
 import { inputState } from '../../engine/inputRuntime'
 import { createBody, eyePosition } from '../../engine/playerBody'
 import { getPlayerBody, setPlayerBody, updatePlayerBody } from '../../engine/playerRuntime'
-import { addPlayerSystem } from '../../engine/playerSystem'
+import { addPlayerSystem, PLAYER_PRIORITY } from '../../engine/playerSystem'
 import { addSystem, addTimeout } from '../../engine/registerHelpers'
 import { gameStore } from '../../engine/store'
 import { focus } from '../../interaction/Focus'
@@ -41,6 +41,7 @@ import {
   START_POS,
 } from './layout'
 import { createAct2Beats, type Next, type ObjectiveKey, type RepairName } from './beats'
+import { borrowMoveKeys, type Borrowed } from './dialKeys'
 import { createPhases } from './phases'
 import { KNOB_SPEED, needleAngle, BAND_HI, BAND_LO, repairObjective, WHEEL_STEP, COMPUTER_LINES } from './repairs'
 import { createSleepTimer } from './sleepTimer'
@@ -179,16 +180,25 @@ export function startAct2(): void {
     window.addEventListener('wheel', onWheel, { passive: false })
     cleanupRegistry.register(() => window.removeEventListener('wheel', onWheel))
   }
+  let borrowed: Borrowed | null = null
+  addSystem(
+    'act2-gauge-keys',
+    PLAYER_PRIORITY + 1,
+    () => {
+      borrowed?.restore()
+      borrowed = null
+    },
+    { pausable: true },
+  )
   addSystem(
     'act2-gauge',
     GAUGE_PRIORITY,
     (dt) => {
       if (R.s.gaugeOpen) {
-        const held = inputState.held
-        const dir = (held.right ? 1 : 0) - (held.left ? 1 : 0)
         // The dial uses A and D, so the body does not strafe or drift meanwhile.
-        held.left = held.right = held.forward = held.back = false
-        R.turn(dir * KNOB_SPEED * dt + wheel * WHEEL_STEP)
+        // The keys go back after the player step, so a held key keeps turning the dial.
+        borrowed = borrowMoveKeys(inputState.held)
+        R.turn(borrowed.dir * KNOB_SPEED * dt + wheel * WHEEL_STEP)
         wheel = 0
       }
       const wasOpen = R.s.gaugeOpen
