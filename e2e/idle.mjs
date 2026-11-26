@@ -81,6 +81,8 @@ try {
       }, p1, 60000)
       check(true, 'creature still moves')
     }
+    // The idle hint waits for a quiet line and an objective that is 45 s old.
+    await wait(() => !!document.querySelector('[data-testid=hint]'), null, 4 * 60000).catch(() => {})
     const st = await page.evaluate(() => {
       const s = window.__los.store.getState()
       return {
