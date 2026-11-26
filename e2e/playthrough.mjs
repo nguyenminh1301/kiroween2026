@@ -178,6 +178,7 @@ try {
   if ((await z()) > 0.6) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: 0.5 } }))
   await hold()
   await useAt('act2:pouch', 'TAKE')
+  await wait(() => window.__los.interactables().find((i) => i.id === 'act2:joint')?.enabled, null, 10000)
   await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -0.4 }, vel: { x: 0, y: 0, z: 0 } }))
   for (let i = 0; i < 3; i++) {
     await hold()
@@ -206,17 +207,25 @@ try {
   await shot('playthrough-act2')
   await page.keyboard.down('KeyC')
   await wait(() => window.__los.store.getState().anomaliesSeen.includes('fourth-sleeper'), null, 90000)
+  // Act 2 ends after 12 s of eyes closed in total, so keep C held until act 3 loads.
+  await wait(() => window.__los.loader.state.getState().act === 'act3-farside', null, 60000)
   await page.keyboard.up('KeyC')
 
-  // Act 3.
+  // Act 3: the dream. Walk (teleports only where the act 3 script teleports), carry both crewmen, wake, answer.
   stage = 'act3'
   const teleport3 = (x, zz) => page.evaluate(([x, z]) => window.__los.player.set({ pos: { x, y: 0.2, z }, yaw: 0, pitch: 0 }), [x, zz])
+  const frames = async () => {
+    const t0 = await page.evaluate(() => window.__los.gameTime())
+    await wait((t) => window.__los.gameTime() > t + 0.2, t0, 30000)
+  }
+  const phase3 = () => page.evaluate(() => window.__los.act3?.phase)
   await actReady('act3-farside')
-  await wait(() => window.__los.director, null, 30000)
-  await objective('Find Mike')
-  for (let i = 0; i < 200 && (await z()) > -5.2; i++) await push(0, 700)
-  await page.evaluate(() => window.__los.player.set({ vel: { x: 0, y: 0, z: 0 } }))
-  if ((await z()) > -5.1) await teleport3(0, -5.4)
+  await wait(() => window.__los.director && window.__los.act3, null, 30000)
+  await objective('Find Neil and Mike')
+  await wait(() => window.__los.player.body.mode === 'walk', null, 30000)
+  await teleport3(0, -4.2)
+  await frames()
+  await teleport3(0, -5.4)
   await objective('Hide in the locker', 20000)
   await wait(() => window.__los.director.monster.pos.z > -15.6, null, 30000)
   await page.keyboard.down('Space')
@@ -224,41 +233,49 @@ try {
   await useAt('act3:locker0', 'HIDE')
   await wait(() => window.__los.store.getState().moveMode === 'seated', null, 30000)
   await shot('playthrough-act3')
-  await objective('Reach Mike')
+  await objective('Find Neil and Mike')
   await page.keyboard.up('Space')
-  await subtitle('It went by', 20000)
   await page.waitForTimeout(1500)
   await page.keyboard.press('KeyE')
-  await wait(() => window.__los.store.getState().moveMode === 'zeroG', null, 30000)
-  // The impostor call fires when a frame sees the body cross z = -12, so step across it.
+  await wait(() => window.__los.store.getState().moveMode === 'walk', null, 30000)
+  // The impostor call fires when a frame sees the body cross z = -14, so step across it.
   await unfocused()
-  await teleport3(0, -11.5)
-  const t0 = await page.evaluate(() => window.__los.gameTime())
-  await wait((t) => window.__los.gameTime() > t + 0.2, t0, 30000)
-  await teleport3(0, -12.6)
+  await teleport3(0, -13.5)
+  await frames()
+  await teleport3(0, -14.6)
   await wait(() => window.__los.store.getState().anomaliesSeen.includes('impostor-capcom'), null, 30000)
   check(await seen('impostor-capcom'), 'impostor-capcom noticed')
-  await subtitle('That is not Houston', 60000)
-  await teleport3(0, -37.5)
-  await page.waitForTimeout(300)
-  await teleport3(0, -38.3)
-  await subtitle('You came', 30000)
-  await wait(() => window.__los.director.state.phase === 'chase', null, 30000)
-  await objective('Run', 5000)
-  await unfocused()
-  for (let i = 0; i < 200 && (await z()) < 1.4; i++) {
-    if ((await page.evaluate(() => window.__los.director.state.phase)) !== 'chase') break
-    await push(Math.PI, 450)
-  }
-  // A push near the hatch can already use it. Either act 3 ends by itself, or the hatch is ready to use.
-  await wait(
-    () =>
-      window.__los.loader.state.getState().act !== 'act3-farside' ||
-      (!window.__los.focus() && window.__los.interactables().find((i) => i.id === 'act3:hatch')?.enabled),
-    null,
-    60000,
-  )
-  if (await page.evaluate(() => window.__los.loader.state.getState().act === 'act3-farside')) await useAt('act3:hatch', 'GRAB')
+  await subtitle('how many crew aboard', 30000)
+  // The cage.
+  await teleport3(0, -36.5)
+  await frames()
+  await teleport3(0, -39.4)
+  await wait(() => window.__los.store.getState().checkpoint === 'wp1', null, 30000)
+  await useAt('act3:cage', 'OPEN')
+  await wait(() => window.__los.act3.phase === 'cageOpen', null, 30000)
+  await teleport3(-0.3, -42.2)
+  await useAt('act3:cdr', 'TAKE')
+  await objective('Carry him back')
+  check((await page.evaluate(() => window.__los.act3.carrying)) === 'cdr', 'carrying Neil')
+  await teleport3(-0.4, 5.4)
+  await useAt('act3:bags', 'LAY DOWN')
+  await objective('Go back for the other one')
+  check((await page.evaluate(() => window.__los.store.getState().checkpoint)) === 'wp2', 'wp2 set')
+  // The silent corridor.
+  await teleport3(0, -36.5)
+  await frames()
+  await teleport3(0, -41.2)
+  await wait(() => window.__los.store.getState().checkpoint === 'wp3', null, 30000)
+  await useAt('act3:second', 'TAKE')
+  await wait(() => window.__los.act3.phase === 'lunge', null, 30000)
+  await page.waitForTimeout(700)
+  await shot('playthrough-act3-lunge')
+  await wait(() => window.__los.act3.phase === 'choice', null, 90000)
+  await shot('playthrough-act3-choice')
+  await page.keyboard.press('Digit1')
+  await wait(() => window.__los.store.getState().dreamChoice === 'dream', null, 30000)
+  check((await phase3()) !== 'choice', 'choice taken with key 1')
+  await wait(() => window.__los.loader.state.getState().act === 'act4-moon', null, 120000)
 
   // Act 4.
   stage = 'act4'
@@ -331,6 +348,8 @@ try {
   for (const id of ALL) check(got.includes(id), `${id} noticed in the full run`)
   const count = await page.evaluate(() => document.querySelector('[data-testid=archive-count]')?.textContent ?? '')
   check(count.includes('You noticed: 6 / 6.'), `archive count: ${count}`)
+  const told = await page.evaluate(() => document.querySelector('[data-testid=archive-told]')?.textContent ?? '')
+  check(told.includes('You told them:'), `archive choice line: ${told}`)
   check(await page.evaluate(() => document.querySelectorAll('.anomaly.noticed').length) === 6, 'six noticed rows')
   check(await page.evaluate(() => window.__los.store.getState().finished), 'act 5 saved as finished')
   const blocker = await page.evaluate(() => {
