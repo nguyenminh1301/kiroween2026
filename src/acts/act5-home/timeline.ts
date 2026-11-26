@@ -1,6 +1,6 @@
 // Act 5 timeline data: shots, shake, formulas and events. Pure: events call injected hooks,
 // so a test can record them. No Three.js or React imports.
-import type { ShakeKey, Shot, TimelineEvent } from '../../timeline/timeline'
+import type { Shot, TimelineEvent } from '../../timeline/timeline'
 import type { Vec3 } from '../../types'
 import { mainsOpen } from './chutes'
 import { heliProgress, HORNET_OFFSET } from './heli'
@@ -203,16 +203,23 @@ export const SHOTS: NamedShot[] = RAW_SHOTS.map((shot) => {
   }
 })
 
-export const SHAKE: ShakeKey[] = [
-  { t: 0, amp: 0 },
-  { t: 4, amp: 0.01 },
-  { t: 12, amp: 0.05 },
-  { t: 16, amp: 0.09 },
-  { t: 20, amp: 0.03 },
-  { t: 21, amp: 0.08 },
-  { t: 22, amp: 0.01 },
-  { t: 26, amp: 0 },
-]
+/** Moments the shake peaks: the drogues, the mains and the splash. */
+export const KICKS: readonly number[] = [21, 28.2, SPLASH_AT]
+
+/**
+ * Cabin shake strength 0 to 1 at `t`. It follows the plasma heat, peaks at the top of the heating and kicks
+ * at each chute opening and at the splash. The cap on the sample is the launch cap: 0.4 degrees and 1 cm.
+ */
+export function shakeEnvelope(t: number): number {
+  let e = 0.7 * heat(t)
+  const peak = Math.abs(t - 14)
+  if (peak < 2) e += 0.3 * (1 - peak / 2)
+  for (const k of KICKS) {
+    const d = t - k
+    if (d >= 0 && d < 0.9) e += 0.9 * (1 - d / 0.9)
+  }
+  return clamp01(e)
+}
 
 export function shotAt(t: number): NamedShot | null {
   return SHOTS.find((s) => t >= s.from && t < s.to) ?? null
@@ -222,7 +229,9 @@ export const viewAt = (t: number): View => shotAt(t)?.view ?? 'cabin'
 /** Ocean ambience level: none before 31 s, full while a shot is outside, 0.35 in the cabin. */
 export function oceanLevel(t: number, outside: boolean): number {
   if (t < 31) return 0
-  return outside ? 1 : 0.35
+  // A soft bed under the voices: a little louder on the approach, quieter once afloat.
+  if (t < SPLASH_AT) return outside ? 0.5 : 0.2
+  return outside ? 0.22 : 0.1
 }
 
 /** Helicopter ambience level: rises with the approach, 0.3 of it in the cabin. */
@@ -243,6 +252,8 @@ export interface Hooks {
   setSky(color: string): void
   hideEarth(): void
   fadeOut(): void
+  /** A real moment of the flight happened in front of the player. */
+  moment(id: string): void
   complete(): void
 }
 
@@ -262,6 +273,7 @@ export function events(h: Hooks): TimelineEvent[] {
     { at: 17.5, run: () => h.setSky(SKY.burn) },
     { at: 19.5, run: () => h.setSky(SKY.blue) },
     { at: 21, run: () => h.playSound('chute') },
+    { at: 21.8, run: () => h.say('act5.drogues', { focus: CDR_HEAD }) },
     { at: 26.3, run: () => h.say('act5.radar') },
     { at: 28.2, run: () => h.playSound('chute') },
     { at: 29, run: () => h.say('act5.mains', { focus: CDR_HEAD }) },
@@ -273,7 +285,13 @@ export function events(h: Hooks): TimelineEvent[] {
         h.say('act5.splash')
       },
     },
-    { at: 50, run: () => h.say('act5.hornet') },
+    {
+      at: 50,
+      run: () => {
+        h.say('act5.hornet')
+        h.moment('hornet')
+      },
+    },
     { at: 52, run: () => h.playSound('horn') },
     { at: 62, run: () => h.say('act5.end') },
     { at: FADE_AT, run: () => h.fadeOut() },

@@ -50,6 +50,7 @@ describe('act 5 runtime', () => {
     expect(log.filter((l) => l.startsWith('say'))).toEqual([
       'say act5.entry',
       'say act5.blackout',
+      'say act5.drogues',
       'say act5.radar',
       'say act5.mains',
       'say act5.splash',

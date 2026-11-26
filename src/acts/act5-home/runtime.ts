@@ -4,6 +4,8 @@ import { audio, radio, startAudioSession } from '../../audio'
 import { completeAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { fxStore } from '../../engine/fx'
+import { setCameraShaker } from '../../engine/cameraShake'
+import { shakeSample } from '../../engine/shakeNoise'
 import { createBody } from '../../engine/playerBody'
 import { getPlayerBody, setPlayerBody } from '../../engine/playerRuntime'
 import { addPlayerSystem } from '../../engine/playerSystem'
@@ -13,7 +15,7 @@ import { cabinState } from '../../procgen/cabin/cabinState'
 import { HELMET_BODY_POS, START_PITCH } from '../../procgen/cabin/layout'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
 import { act5State, resetAct5State } from './state'
-import { DURATION, events, fadeLevel, heat, heliLevel, oceanLevel, SHAKE, SHOTS, SKY, viewAt, windowViewAt } from './timeline'
+import { DURATION, events, fadeLevel, heat, heliLevel, oceanLevel, shakeEnvelope, SHOTS, SKY, viewAt, windowViewAt } from './timeline'
 
 export function startAct5(): void {
   resetAct5State()
@@ -35,6 +37,8 @@ export function startAct5(): void {
   })
 
   addPlayerSystem({ boxes: [], seatForwardYaw: 0 })
+  // The same cap as the launch: 0.4 degrees and 1 cm. Only the cabin shakes, the outside shots are steady.
+  setCameraShaker(() => (act5State.view === 'cabin' ? shakeSample(shakeEnvelope(act5State.t), act5State.t, gameStore.getState().settings.reducedMotion) : null))
   startAudioSession()
   let ocean = 0
   let heli = 0
@@ -47,7 +51,6 @@ export function startAct5(): void {
   const player = new TimelinePlayer({
     duration: DURATION,
     shots: SHOTS,
-    shake: SHAKE,
     events: events({
       say(id, opts) {
         void radio.say(id, { onStart: opts?.focus ? () => alive && focus.focusOn(opts.focus!, 1.5) : undefined })
@@ -60,6 +63,7 @@ export function startAct5(): void {
         cabinState.earth = false
       },
       fadeOut: () => {},
+      moment: (id) => gameStore.getState().addAnomalySeen(id),
       complete: () => completeAct(),
     }),
     onTick(t) {

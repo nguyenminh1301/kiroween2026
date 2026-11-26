@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
-import { sortedEvents, shakeAmplitude } from '../../timeline/timeline'
+import { MAX_OFFSET, MAX_ROT, shakeSample } from '../../engine/shakeNoise'
+import { sortedEvents } from '../../timeline/timeline'
 import {
   capsuleY,
   collarProgress,
@@ -19,7 +20,7 @@ import {
   mainsOpen,
   oceanLevel,
   shotAt,
-  SHAKE,
+  shakeEnvelope,
   SHOTS,
   splashProgress,
   type Hooks,
@@ -34,6 +35,7 @@ function recorder() {
     setSky: (c) => log.push(`sky ${c}`),
     hideEarth: () => log.push('earth off'),
     fadeOut: () => log.push('fade'),
+    moment: (id) => log.push(`moment ${id}`),
     complete: () => log.push('complete'),
   }
   return { log, hooks }
@@ -101,19 +103,32 @@ describe('formulas', () => {
     expect(fadeLevel(70.5)).toBeCloseTo(0.5)
     expect(fadeLevel(72)).toBe(1)
     expect(oceanLevel(30, true)).toBe(0)
-    expect(oceanLevel(40, true)).toBe(1)
-    expect(oceanLevel(50, false)).toBe(0.35)
+    expect(oceanLevel(40, true)).toBe(0.5)
+    expect(oceanLevel(50, false)).toBe(0.1)
     expect(heliLevel(40, true)).toBe(0)
     expect(heliLevel(60, true)).toBe(1)
     expect(heliLevel(60, false)).toBeCloseTo(0.3)
   })
-  it('shake keys match the plan', () => {
-    const at = (t: number) => shakeAmplitude(SHAKE, t, false)
-    expect(at(2)).toBeCloseTo(0.005)
-    expect(at(12)).toBe(0.05)
-    expect(at(16)).toBe(0.09)
-    expect(at(21)).toBe(0.08)
-    expect(at(26)).toBe(0)
+  it('shakes hardest at peak heating and at the chute openings, and never past the launch cap', () => {
+    expect(shakeEnvelope(2)).toBe(0)
+    expect(shakeEnvelope(14)).toBeGreaterThan(shakeEnvelope(8))
+    expect(shakeEnvelope(14)).toBeGreaterThan(shakeEnvelope(17.5))
+    expect(shakeEnvelope(21.1)).toBeGreaterThan(0.7)
+    expect(shakeEnvelope(28.3)).toBeGreaterThan(0.7)
+    expect(shakeEnvelope(35)).toBe(0)
+    for (let t = 0; t < 72; t += 0.05) {
+      const s = shakeSample(shakeEnvelope(t), t, false)
+      expect(Math.hypot(s.rx, s.ry, s.rz)).toBeLessThanOrEqual(Math.hypot(MAX_ROT, MAX_ROT, MAX_ROT) + 1e-12)
+      expect(Math.abs(s.ox)).toBeLessThanOrEqual(MAX_OFFSET)
+      expect(Math.abs(s.oy)).toBeLessThanOrEqual(MAX_OFFSET)
+      expect(Math.abs(s.oz)).toBeLessThanOrEqual(MAX_OFFSET)
+      expect(Math.abs(s.rx)).toBeLessThanOrEqual(MAX_ROT)
+    }
+  })
+  it('keeps the sea a soft bed: quieter after splashdown than on the approach', () => {
+    expect(oceanLevel(50, true)).toBeLessThan(oceanLevel(40, true))
+    expect(oceanLevel(50, true)).toBeLessThanOrEqual(0.25)
+    expect(oceanLevel(50, false)).toBeLessThanOrEqual(0.12)
   })
   it('shots do not overlap and sit in the timeline', () => {
     for (let i = 1; i < SHOTS.length; i++) expect(SHOTS[i].from).toBeGreaterThanOrEqual(SHOTS[i - 1].to)
@@ -139,6 +154,7 @@ describe('events', () => {
       'sky #ffa25a',
       'sky #5e8fc8',
       'chute',
+      'act5.drogues+focus',
       'act5.radar',
       'chute',
       'act5.mains+focus',
@@ -146,13 +162,14 @@ describe('events', () => {
       'splash',
       'act5.splash',
       'act5.hornet',
+      'moment hornet',
       'horn',
       'act5.end',
       'fade',
       'complete',
     ])
     expect(sortedEvents({ duration: 72, events: events(r.hooks) }).map((e) => e.at)).toEqual(
-      [0.8, 12.3, 13.2, 13.2, 17.5, 19.5, 21, 26.3, 28.2, 29, 30.5, 45.1, 50, 52, 62, 69.5, 71.5],
+      [0.8, 12.3, 13.2, 13.2, 17.5, 19.5, 21, 21.8, 26.3, 28.2, 29, 30.5, 45.1, 50, 52, 62, 69.5, 71.5],
     )
   })
   it('stop mid-timeline fires nothing more', () => {
