@@ -1,10 +1,11 @@
 import { useThree } from '@react-three/fiber'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { CircleGeometry, Matrix4, PlaneGeometry, Quaternion, Vector3, type InstancedMesh, type Material } from 'three'
+import { BufferGeometry, CircleGeometry, Matrix4, PlaneGeometry, Quaternion, Vector3, type InstancedMesh, type Material } from 'three'
 import { PlayerCamera } from '../../engine/PlayerCamera'
 import { applyFog, clearFog } from '../../render/fog'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { mergeStatic, tiledBoxAt, tiledCylinder } from '../../procgen/tiledBox'
+import { buildEscapeTower } from '../../procgen/escapeTower'
 import { buildSideHatch } from '../../procgen/sideHatch'
 import { buildSkyDome, buildSunDisc } from '../../procgen/skyDome'
 import { bootprints, HATCH_POS, SUN_DIRECTION, VISUAL_BOXES, type MatName } from './room'
@@ -37,14 +38,16 @@ const STACK_Z = -9 - CM_R
 function buildRocket() {
   const X = 0
   const Z = STACK_Z
-  const white = [
+  const white: BufferGeometry[] = [
     tiledCylinder(CM_R, CM_R, 2.6, X, 0.4, Z, 3, 16),
-    tiledCylinder(0.55, CM_R, 4.3, X, 3.85, Z, 3, 16),
+    // Command module cone under the boost protective cover: 3.9 m base, 3.2 m tall.
+    tiledCylinder(0.45, CM_R, 3.2, X, 3.3, Z, 3, 16),
     tiledCylinder(CM_R, CM_R, 4.5, X, -3.15, Z, 6, 16),
     tiledCylinder(CM_R, 3.3, 4, X, -7.4, Z, 6, 16),
-    tiledCylinder(0.45, 0.45, 3.5, X, 11.25, Z, 3, 10),
   ]
-  const steel = [tiledCylinder(0.12, 0.12, 3.5, X, 7.75, Z, 3, 6), tiledCylinder(0.03, 0.45, 2, X, 13.25, Z, 3, 10)]
+  const tower = buildEscapeTower(X, 4.9, Z)
+  white.push(tower.white)
+  const steel = [tower.dark]
   const roll = [
     tiledCylinder(3.3, 3.3, 10, X, -14.4, Z, 10, 16),
     tiledCylinder(3.3, 5, 3, X, -20.9, Z, 3, 16),
