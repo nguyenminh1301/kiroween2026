@@ -13,7 +13,6 @@ import {
   IcosahedronGeometry,
   InstancedMesh,
   Matrix4,
-  CylinderGeometry,
   MeshBasicMaterial,
   MeshLambertMaterial,
   PlaneGeometry,
@@ -50,6 +49,8 @@ const OUTSIDE_PRIORITY = 660
 export const SMOKE_MAX = 600
 const SMOKE_LIFE = 7
 const S_IC_TOP = 44
+/** The pad rocket is drawn wider than life so it fills the shots: 16 m instead of 10 m. */
+const ROCKET_WIDTH = 1.6
 
 const PAD_FOG = { color: '#c8b49a', near: 500, far: 4500 }
 const CABIN_FOG = { color: '#4a4232', near: 5, far: 16 }
@@ -93,11 +94,11 @@ function Flame({ level, radius, length, glow = 0 }: FlameProps) {
   const group = useRef<Group>(null)
   const outer = useMemo(() => new ConeGeometry(radius, length, 7, 1, true).rotateX(Math.PI).translate(0, -length / 2, 0), [radius, length])
   const inner = useMemo(() => new ConeGeometry(radius * 0.55, length * 0.7, 7, 1, true).rotateX(Math.PI).translate(0, -length * 0.35, 0), [radius, length])
-  const glowGeo = useMemo(() => new SphereGeometry(radius * 2.2, 8, 6), [radius])
+  const glowGeo = useMemo(() => new SphereGeometry(radius * 1.1, 10, 8), [radius])
   const outerMat = useMemo(() => new MeshBasicMaterial({ color: '#ff9a2a', side: 2, fog: false }), [])
   const innerMat = useMemo(() => new MeshBasicMaterial({ color: '#fff0b8', side: 2, fog: false }), [])
   const glowMat = useMemo(
-    () => new MeshBasicMaterial({ color: '#ffd9a0', transparent: true, opacity: 0.45, blending: AdditiveBlending, depthWrite: false, fog: false }),
+    () => new MeshBasicMaterial({ color: '#ffd9a0', transparent: true, opacity: 0.22, blending: AdditiveBlending, depthWrite: false, fog: false }),
     [],
   )
   useEffect(() => {
@@ -120,7 +121,8 @@ function Flame({ level, radius, length, glow = 0 }: FlameProps) {
     <group ref={group} visible={false}>
       <mesh geometry={outer} material={outerMat} />
       <mesh geometry={inner} material={innerMat} />
-      {glow > 0 && <mesh geometry={glowGeo} material={glowMat} position={[0, -radius * 2, 0]} scale={glow} />}
+      {/* A soft glow hugging the plume: long and thin, never a disc. */}
+      {glow > 0 && <mesh geometry={glowGeo} material={glowMat} position={[0, -length * 0.3, 0]} scale={[glow * 0.55, glow * 2.4, glow * 0.55]} />}
     </group>
   )
 }
@@ -193,7 +195,9 @@ function PadSet() {
       tower: createMaterial({ color: '#8e3b22' }),
       pad: createMaterial({ color: '#8a8780' }),
       trench: createMaterial({ color: '#2b2824' }),
-      ground: createMaterial({ color: '#7d7a5a' }),
+      ground: createMaterial({ color: '#c4b48c' }),
+      sea: createMaterial({ color: '#5d7d8a' }),
+      fence: createMaterial({ color: '#8a8b86' }),
       leg: createMaterial({ color: '#6c6a62' }),
     }),
     [],
@@ -208,16 +212,18 @@ function PadSet() {
         // Flame deflector under the engines.
         new BoxGeometry(16, 3, 14).rotateZ(0.5).translate(0, 1, 0),
       ]),
-      service: mergeStatic([
-        new SphereGeometry(9, 8, 6).translate(-70, 9, -85),
-        new SphereGeometry(9, 8, 6).translate(-70, 9, -62),
-        new CylinderGeometry(3, 3, 22, 6).translate(70, 11, -70),
-        new BoxGeometry(24, 10, 18).translate(-110, 5, 40),
-        new BoxGeometry(2, 30, 2).translate(-95, 15, -30),
-        new BoxGeometry(2, 30, 2).translate(95, 15, -30),
-        new BoxGeometry(4, 2, 40).translate(0, 1, 95),
-      ]),
-      ground: new PlaneGeometry(9000, 9000).rotateX(-Math.PI / 2).translate(0, -3.2, 0),
+      // A chain-link fence line far behind the rocket: posts and two rails.
+      fence: (() => {
+        const g: BufferGeometry[] = [
+          new BoxGeometry(900, 0.25, 0.25).translate(0, 2.2, -230),
+          new BoxGeometry(900, 0.25, 0.25).translate(0, 0.8, -230),
+        ]
+        for (let x = -450; x <= 450; x += 15) g.push(new BoxGeometry(0.4, 3.2, 0.4).translate(x, 1.6, -230))
+        return mergeStatic(g)
+      })(),
+      // Flat sandy ground that ends at the shore, with the sea beyond.
+      ground: new PlaneGeometry(9000, 6300).rotateX(-Math.PI / 2).translate(0, -3.2, 1350),
+      sea: new PlaneGeometry(9000, 3200).rotateX(-Math.PI / 2).translate(0, -3.3, -3400),
       legs: (() => {
         const g = [
           new BoxGeometry(4, PAD_BASE_Y, 4).translate(9, PAD_BASE_Y / 2, 9),
@@ -257,10 +263,11 @@ function PadSet() {
       <mesh geometry={geo.slab} material={mat.pad} />
       <mesh geometry={geo.trench} material={mat.trench} />
       <mesh geometry={geo.trenchWalls} material={mat.pad} />
-      <mesh geometry={geo.service} material={mat.leg} />
+      <mesh geometry={geo.sea} material={mat.sea} />
+      <mesh geometry={geo.fence} material={mat.fence} />
       <mesh geometry={geo.legs} material={mat.leg} />
       <mesh geometry={tower} material={mat.tower} position={[-40, 0, 0]} />
-      <group ref={rocket} position={[0, PAD_BASE_Y, 0]}>
+      <group ref={rocket} position={[0, PAD_BASE_Y, 0]} scale={[ROCKET_WIDTH, 1, ROCKET_WIDTH]}>
         <Stack geo={lower} mats={mats} />
         <group position={[0, S_IC_TOP, 0]}>
           <Stack geo={upper} mats={mats} />
