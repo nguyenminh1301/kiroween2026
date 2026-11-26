@@ -9,7 +9,7 @@ const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
-const ALL = ['tunnel-longer', 'fourth-sleeper', 'impostor-capcom', 'burn-baby-burn']
+const ALL = ['impostor-capcom', 'burn-baby-burn']
 const errors = []
 const check = (ok, msg) => {
   if (!ok) errors.push(`check failed: ${msg}`)
@@ -198,8 +198,7 @@ try {
   for (const k of ['Digit0', 'Digit2', 'Digit4', 'Digit7', 'Digit1', 'Enter']) await page.keyboard.press(k)
   await page.waitForFunction(() => !document.querySelector('[data-testid="pad-keypad"]'), null, { timeout: 10000 })
   await objective('Float back up the tunnel')
-  for (let i = 0; i < 100 && !(await seen("tunnel-longer")); i++) await push(Math.PI, 1500)
-  check(await seen('tunnel-longer'), 'tunnel-longer noticed')
+  for (let i = 0; i < 100 && (await pos()).z < 1.6; i++) await push(Math.PI, 1500)
   await objective('sleeping bag')
   await unfocused()
   const bag = await page.evaluate(() => window.__los.interactables().find((i) => i.id === 'act2:bag').position)
@@ -209,8 +208,7 @@ try {
   await objective('Hold C')
   await shot('playthrough-act2')
   await page.keyboard.down('KeyC')
-  await wait(() => window.__los.store.getState().anomaliesSeen.includes('fourth-sleeper'), null, 90000)
-  // Act 2 ends after 12 s of eyes closed in total, so keep C held until act 3 loads.
+  // Act 2 ends after 6 s of eyes closed in total, so keep C held until act 3 loads.
   await wait(() => window.__los.loader.state.getState().act === 'act3-farside', null, 60000)
   await page.keyboard.up('KeyC')
 
@@ -355,10 +353,10 @@ try {
   const got = await page.evaluate(() => window.__los.store.getState().anomaliesSeen)
   for (const id of ALL) check(got.includes(id), `${id} noticed in the full run`)
   const count = await page.evaluate(() => document.querySelector('[data-testid=archive-count]')?.textContent ?? '')
-  check(count.includes('You noticed: 6 / 6.'), `archive count: ${count}`)
+  check(count.includes('You noticed: 2 / 2.'), `archive count: ${count}`)
   const told = await page.evaluate(() => document.querySelector('[data-testid=archive-told]')?.textContent ?? '')
   check(told.includes('You told them:'), `archive choice line: ${told}`)
-  check(await page.evaluate(() => document.querySelectorAll('.anomaly.noticed').length) === 6, 'six noticed rows')
+  check(await page.evaluate(() => document.querySelectorAll('.anomaly.noticed').length) === 2, 'two noticed rows')
   check(await page.evaluate(() => window.__los.store.getState().finished), 'act 5 saved as finished')
   const blocker = await page.evaluate(() => {
     const btn = [...document.querySelectorAll('[data-screen="archive"] button')].pop()

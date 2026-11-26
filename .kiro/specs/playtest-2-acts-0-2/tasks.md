@@ -7,4 +7,4 @@
 - [x] 5. Eye height, brighter cabin, crew and drifting items (req 5)
 - [x] 6. Turning spacecraft and Earth (req 6)
 - [x] 7. Act 2 breaker panel, site keypad, close-up release (req 7)
-- [ ] 8. Act 2 bedtime (req 8)
+- [x] 8. Act 2 bedtime (req 8)

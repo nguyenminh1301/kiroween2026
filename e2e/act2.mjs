@@ -154,12 +154,8 @@ try {
 
   // Back: the tunnel is longer, so it takes more pushes.
   const before = pushes
-  for (let i = 0; i < 100; i++) {
-    const seen = await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('tunnel-longer'))
-    if (seen) break
-    await push(Math.PI)
-  }
-  await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('tunnel-longer'), null, { timeout: 30000 })
+  for (let i = 0; i < 100 && (await z()) < 1.6; i++) await push(Math.PI)
+  await page.waitForFunction(() => window.__los.player.body.pos.z > 1.6, null, { timeout: 30000 })
   check(pushes - before >= 3, `the way back took ${pushes - before} pushes, expected at least 3`)
   await subtitle('You were gone a while')
   await page.waitForTimeout(1500)
@@ -184,14 +180,12 @@ try {
     'bag disabled once in',
   )
 
-  // Hold C: fade to black over two seconds, slow breathing, no flashes. Six seconds closed marks the fourth sleeper.
+  // Hold C: fade to black over two seconds, no breathing, no flashes. A few quiet seconds later act 3 loads.
   await page.keyboard.down('KeyC')
   await page.waitForFunction(() => parseFloat(document.querySelector('.fx-black')?.style.opacity ?? '0') > 0.95, null, { timeout: 30000, polling: 100 })
   await shot('act2-dark')
   check((await page.evaluate(() => document.querySelectorAll('.fx-flash, .fx-figure').length)) === 0, 'no flashes or figure in the dark')
-  await page.waitForFunction(() => window.__los.store.getState().anomaliesSeen.includes('fourth-sleeper'), null, { timeout: 90000, polling: 200 })
-  check((await page.evaluate(() => document.querySelectorAll('.fx-flash, .fx-figure').length)) === 0, 'still no flashes')
-  // Act 2 ends after 12 s of eyes closed in total, so keep C held until act 3 loads.
+  // Act 2 ends after 6 s of eyes closed in total, so keep C held until act 3 loads.
   await page.waitForFunction(
     () => window.__los.store.getState().act === 'act3-farside' || window.__los.loader.state.getState().act === 'act3-farside',
     null,

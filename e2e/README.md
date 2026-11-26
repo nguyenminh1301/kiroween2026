@@ -42,7 +42,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 
 ## Act 2 test
 
-`e2e/act2.mjs` plays the three repairs with real key presses, in the order gauge, oxygen line, breaker panel, keypad: E on the gauge and D until the needle sits in the green band; E on the tool pouch, then E three times on the joint; E on the breaker panel and keys 1 to 6; E on the keypad, a wrong number (OPR ERR), walking away to release the close-up, then the right digits and Enter. It then floats back (the tunnel is longer), gets in the bag and holds C: the view fades to black, no flash elements appear, and `fourth-sleeper` is marked after six seconds. It ends when act 3 loads.
+`e2e/act2.mjs` plays the three repairs with real key presses, in the order gauge, oxygen line, breaker panel, keypad: E on the gauge and D until the needle sits in the green band; E on the tool pouch, then E three times on the joint; E on the breaker panel and keys 1 to 6; E on the keypad, a wrong number (OPR ERR), walking away to release the close-up, then the right digits and Enter. It then floats back (the tunnel is longer), gets in the bag and holds C: the view fades to black, no flash elements appear, no breathing plays, and act 3 loads about four quiet seconds later. It ends when act 3 loads.
 
 ## Act 4 test
 

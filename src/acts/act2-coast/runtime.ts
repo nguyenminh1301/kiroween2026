@@ -20,8 +20,6 @@ import { showHint } from '../../ui/hints'
 import {
   bagPos,
   BAG_RADIUS,
-  breathPos,
-  cdrPos,
   cmFarFor,
   collisionBoxes,
   CLOSE_UP_DISTANCE,
@@ -33,7 +31,6 @@ import {
   JOINT_RADIUS,
   KEYPAD_POS,
   LANDER_ENTRY_Z,
-  mikePos,
   PAD_RADIUS,
   PANEL_POS,
   POUCH_POS,
@@ -356,11 +353,6 @@ export function startAct2(): void {
   const timer = createSleepTimer({
     setBlackout: (v) => fxStore.getState().setBlackout(v),
     setHum: (level) => audio.setScene({ hum: level, bed: 'ship', breath: false }),
-    breathe(i) {
-      const pos = [cdrPos, mikePos, undefined, breathPos][i]?.(act2State.cmFar)
-      audio.play('breathe', { position: pos, gain: i === 3 ? 0.55 : 0.8 })
-    },
-    fourthSleeper: () => gameStore.getState().addAnomalySeen('fourth-sleeper'),
     complete() {
       phases.finish()
       completeAct()
@@ -434,7 +426,6 @@ export function startAct2(): void {
           beats.enterLander()
         }
         if (z > act2State.cmFar && phases.crossBack()) {
-          gameStore.getState().addAnomalySeen('tunnel-longer')
           phases.setRepairsDone(R.allDone())
           beats.crossBack(nextStep())
         }

@@ -47,7 +47,6 @@ export const bagPos = (cmFar: number): Vec3 => ({ x: -1.25, y: 1.1, z: cmFar + 2
 export const BAG_RADIUS = 0.5
 export const cdrPos = (cmFar: number): Vec3 => ({ x: -1.12, y: 0.2, z: cmFar + 1.2 })
 export const mikePos = (cmFar: number): Vec3 => ({ x: 1.12, y: 0.2, z: cmFar + 2.4 })
-export const breathPos = (cmFar: number): Vec3 => ({ x: 0, y: 2, z: cmFar + 1.5 })
 export const lightPos = (cmFar: number): Vec3 => ({ x: 0, y: 2.3, z: cmFar + CM_LENGTH / 2 })
 /** Eye just above the bag top. The feet sit 1.65 m below. */
 export const sleepEye = (cmFar: number): Vec3 => ({ x: -1.15, y: 1.75, z: cmFar + 2.75 })
