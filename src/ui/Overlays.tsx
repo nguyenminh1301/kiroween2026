@@ -194,3 +194,12 @@ export function FxLayer() {
     </>
   )
 }
+
+/** Inside a locker: dark metal slats across the view with clear gaps, and the locker frame around the edges. */
+export function LockerSlats() {
+  const act = useGame((s) => s.act)
+  const mode = useGame((s) => s.moveMode)
+  const paused = useGame((s) => s.paused)
+  if (act !== 'act3-farside' || mode !== 'seated' || paused) return null
+  return <div className="locker-slats" data-testid="locker-slats" aria-hidden="true" />
+}

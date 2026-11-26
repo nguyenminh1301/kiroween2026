@@ -57,7 +57,7 @@ function Ambient() {
     () =>
       registerSystem('act3-ambient', FLASH_PRIORITY + 1, () => {
         const body = getPlayerBody()
-        light.intensity = body?.mode === 'seated' ? 2.6 : 0.9
+        light.intensity = body?.mode === 'seated' ? 6 : 0.9
       }),
     [light],
   )

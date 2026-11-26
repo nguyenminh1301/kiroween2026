@@ -1,7 +1,8 @@
 // The corridor: shell, ribs, pipes, lockers, floor strips, the hatch and the two crew figures.
 import { useEffect, useMemo, useRef } from 'react'
-import { Color, DoubleSide, Matrix4, type InstancedMesh } from 'three'
+import { Color, DoubleSide, Matrix4, type InstancedMesh, type Mesh } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
+import { getPlayerBody } from '../../engine/playerRuntime'
 import { buildFigure } from '../../procgen/figure'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { CDR_POS, MIKE_POS, rails, STRIP_X, Z_FAR_END, Z_HATCH_END } from './layout'
@@ -15,14 +16,16 @@ const WAVE_SPEED = 14
 const WAVE_PERIOD = 60
 
 /** Strip brightness 0 to 1 at `z`, given the time. Dark while sneaking, a wave toward the hatch in the chase. */
-function stripLevel(z: number, t: number, chase: boolean): number {
-  if (!chase) return 0.3
+function stripLevel(z: number, t: number, chase: boolean, hidden: boolean): number {
+  // Inside a locker the strips glow brighter: they are what lights the corridor seen through the slats.
+  if (!chase) return hidden ? 0.75 : 0.3
   const wave = Z_FAR_END + ((t * WAVE_SPEED) % WAVE_PERIOD)
   const d = (z - wave) / 3
   return 0.3 + 0.7 * Math.exp(-d * d)
 }
 
 export function Corridor() {
+  const lockers = useRef<Mesh>(null)
   const geo = useMemo(() => {
     const railSpecs = rails()
     return {
@@ -68,8 +71,11 @@ export function Corridor() {
     mesh.instanceMatrix.needsUpdate = true
     const c = new Color()
     const remove = registerSystem('act3-strips', STRIP_PRIORITY, (_dt, t) => {
+      const hidden = getPlayerBody()?.mode === 'seated'
+      // The 2D slat overlay stands in for the locker door while the player is inside.
+      if (lockers.current) lockers.current.visible = !hidden
       zs.forEach((z, i) => {
-        const k = stripLevel(z, t, act3State.chase)
+        const k = stripLevel(z, t, act3State.chase, hidden)
         c.copy(DARK).lerp(BRIGHT, k).multiplyScalar(0.25 + 0.75 * k)
         mesh.setColorAt(i * 2, c)
         mesh.setColorAt(i * 2 + 1, c)
@@ -102,7 +108,7 @@ export function Corridor() {
       <mesh geometry={geo.shell} material={mats.shell} />
       <mesh geometry={geo.ribs} material={mats.solid} />
       <mesh geometry={geo.pipes} material={mats.solid} />
-      <mesh geometry={geo.lockers} material={mats.solid} />
+      <mesh ref={lockers} geometry={geo.lockers} material={mats.solid} />
       <mesh geometry={geo.hatch} material={mats.solid} />
       <instancedMesh ref={strips} args={[undefined, undefined, SEG_COUNT * 2]} material={mats.strip} frustumCulled={false}>
         <boxGeometry args={[0.1, 0.03, SEG - 0.3]} />
