@@ -769,6 +769,33 @@
   background: #2f9e44;
 }
 
+/* Act 2: the close-up breaker panel and landing site keypad. */
+.pad-close {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 35;
+  min-width: min(70vw, 460px);
+  padding: 18px 22px;
+  background: #1c1f20;
+  border: 3px solid #8d9296;
+  color: #e8e3d2;
+  font-family: 'IBM Plex Mono', monospace;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+}
+.pad-title { letter-spacing: 0.2em; font-size: 14px; margin-bottom: 14px; }
+.pad-note { margin-top: 14px; font-size: 12px; opacity: 0.8; }
+.pad-switches { display: flex; gap: 14px; justify-content: center; }
+.pad-switches .sw { width: 48px; height: 96px; background: #2a2c2e; border: 2px solid #5f646a; position: relative; }
+.pad-switches .lever { position: absolute; left: 14px; width: 18px; height: 40px; background: #8d9296; top: 48px; }
+.pad-switches .sw.on .lever { top: 6px; background: #e9b740; }
+.pad-switches .no { position: absolute; bottom: 2px; left: 0; right: 0; font-size: 12px; }
+.pad-display { font-size: 34px; letter-spacing: 0.1em; background: #0b0d0c; color: #7dffa0; padding: 10px; border: 2px solid #5f646a; }
+.pad-lamp { margin-top: 12px; display: inline-block; padding: 3px 12px; border: 2px solid #5f646a; color: #5f646a; font-size: 14px; }
+.pad-lamp.on { color: #ff4a3a; border-color: #ff4a3a; }
+
 .fx-photo-flash {
   position: fixed;
   inset: 0;

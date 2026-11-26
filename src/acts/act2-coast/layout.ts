@@ -30,11 +30,14 @@ export const JOINT_NEAR_Z = 0.9
 /** Cabin pressure gauge on the right wall of the command module. */
 export const gaugePos = (cmFar: number): Vec3 => ({ x: 1.36, y: 1.5, z: cmFar + 0.9 })
 export const GAUGE_RADIUS = 0.2
-/** Computer screen on the lander back wall: three error lines, a button beside each. */
-export const COMP_SCREEN: Vec3 = { x: 0, y: 1.55, z: LANDER_Z0 + 0.03 }
-export const COMP_BUTTON_X = 0.48
-export const COMP_RADIUS = 0.06
-export const compButtonPos = (i: number): Vec3 => ({ x: COMP_BUTTON_X, y: COMP_SCREEN.y + 0.14 - 0.14 * i, z: COMP_SCREEN.z + 0.02 })
+/** Breaker panel (left) and landing site keypad (right) on the lander back wall, each with a card under it. */
+export const PANEL_POS: Vec3 = { x: -0.8, y: 1.6, z: LANDER_Z0 + 0.03 }
+export const PANEL_CARD_POS: Vec3 = { x: -0.8, y: 1.0, z: LANDER_Z0 + 0.03 }
+export const KEYPAD_POS: Vec3 = { x: 0.8, y: 1.6, z: LANDER_Z0 + 0.03 }
+export const SITE_CARD_POS: Vec3 = { x: 0.8, y: 1.0, z: LANDER_Z0 + 0.03 }
+export const PAD_RADIUS = 0.3
+/** A close-up ends when the eye is farther than this from its panel. */
+export const CLOSE_UP_DISTANCE = 1.8
 
 export const RAIL_Y = 1.6
 export const RAIL_RADIUS = 0.3

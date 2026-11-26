@@ -24,8 +24,6 @@ export interface Act2Beats {
   begin(): void
   /** The player came near the oxygen line joint. */
   nearJoint(): void
-  /** The player came near the breaker panel. */
-  nearPanel(): void
   /** The player floated into the lander. */
   enterLander(): void
   /** A repair is done. */
@@ -73,13 +71,9 @@ export function createAct2Beats(d: Act2BeatDeps): Act2Beats {
       go()
       say('act2.o2')
     },
-    nearPanel() {
-      go()
-      say('act2.panel')
-    },
     enterLander() {
       go()
-      say('act2.site')
+      say('act2.site', () => say('act2.panel'))
     },
     repairDone(which, next) {
       go()

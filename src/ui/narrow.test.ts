@@ -25,7 +25,7 @@ describe('narrow windows', () => {
     expect(block('.fx-card p')).toContain('90vw')
   })
   it('keeps the longest repair strip short enough for three lines on a phone', () => {
-    const longest = ACT2_TEXT.prefix + [ACT2_TEXT.o2Hammer, ACT2_TEXT.press, ACT2_TEXT.comp].join(', ')
+    const longest = ACT2_TEXT.prefix + [ACT2_TEXT.o2Hammer, ACT2_TEXT.press, ACT2_TEXT.panel, ACT2_TEXT.site].join(', ')
     expect(longest.length).toBeLessThanOrEqual(90)
   })
 })

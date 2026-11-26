@@ -46,8 +46,9 @@ export const ACT4_TEXT = {
 /** Act 2 repair strip text. */
 export const ACT2_TEXT = {
   prefix: 'Repairs left: ',
-  o2Hammer: 'oxygen line (take the hammer from the pouch)',
+  o2Hammer: 'oxygen line (take the hammer)',
   o2Tap: 'oxygen line (tap the joint)',
   press: 'cabin pressure',
-  comp: 'computer',
+  panel: 'breaker panel',
+  site: 'landing site',
 } as const

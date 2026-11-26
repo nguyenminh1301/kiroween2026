@@ -21,7 +21,7 @@ export const HUD = {
     lines: ['ASCENT ENGINE ARMED', 'EXECUTING ROUTINE', 'BURN_BABY_BURN--MASTER_IGNITION_ROUTINE', 'ENGINE ON'],
   },
   caught: 'It found you. Back to the last checkpoint.',
-  screen: { errors: ['ERR 0107', 'ERR 0212', 'ERR 0330'], ok: 'OK' },
+  pad: { panel: 'BREAKERS', keypad: 'LANDING SITE', enter: 'ENTR', err: 'OPR ERR', keys: '1 to 6 flip a breaker. Esc to step back.', keypadKeys: 'Type five digits, then Enter. Esc to step back.' },
   gauge: { unit: 'PSI', title: 'CABIN PRESSURE' },
   meter: {
     title: 'NOISE',

@@ -18,6 +18,11 @@ export interface DskyReadout {
   alarm: number | null
 }
 
+/** The close-up breaker panel or landing site keypad of act 2. */
+export type PadView =
+  | { kind: 'panel'; switches: boolean[] }
+  | { kind: 'keypad'; entry: string; err: boolean }
+
 /** The close-up pressure gauge of act 2. */
 export interface GaugeView {
   /** Pressure reading in psi. */
@@ -83,6 +88,8 @@ export interface FxState {
   wrist: boolean
   gauge: GaugeView | null
   setGauge: (g: GaugeView | null) => void
+  pad: PadView | null
+  setPad: (p: PadView | null) => void
   setBlackout: (v: number) => void
   photo: PhotoView | null
   readout: ReadoutView | null
@@ -97,7 +104,7 @@ export interface FxState {
   clearFx: () => void
 }
 
-const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, photo: null as PhotoView | null, readout: null as ReadoutView | null }
+const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, blackout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, pad: null as PadView | null, photo: null as PhotoView | null, readout: null as ReadoutView | null }
 
 export const fxStore = createStore<FxState>()((set) => ({
   ...EMPTY,
@@ -113,6 +120,7 @@ export const fxStore = createStore<FxState>()((set) => ({
   setDsky: (dsky) => set({ dsky }),
   setHint: (hint) => set({ hint }),
   setGauge: (gauge) => set({ gauge }),
+  setPad: (pad) => set({ pad }),
   setWrist: (wrist) => set((s) => (s.wrist === wrist ? s : { wrist })),
   clearFx: () => set({ ...EMPTY, flashes: [] }),
 }))

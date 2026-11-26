@@ -122,18 +122,33 @@ try {
   await subtitle('Oxygen flow looks steady')
   check(!(await enabled('act2:joint')), 'joint is done after three taps')
 
-  // Computer in the lander: three buttons.
+  // Lander: breaker panel and landing site keypad.
   for (let i = 0; i < 100 && (await z()) > -3.2; i++) await push(0)
   if ((await z()) > -3.2) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.6 } }))
-  await subtitle('three faults')
+  await subtitle('landing site numbers')
   await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -5 }, vel: { x: 0, y: 0, z: 0 } }))
-  for (let i = 0; i < 3; i++) {
-    await hold()
-    await useAt(`act2:comp${i}`, 'CLEAR')
-    await page.waitForTimeout(300)
-  }
-  await subtitle('Computer is clean')
-  await shot('act2-computer')
+  // Breaker panel: E opens the close-up, keys 1 to 6 flip every breaker to match the card.
+  await hold()
+  await useAt('act2:panel', 'FLIP')
+  await page.waitForSelector('[data-testid="pad-panel"]', { timeout: 10000 })
+  for (const k of ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6']) await page.keyboard.press(k)
+  await page.waitForFunction(() => !document.querySelector('[data-testid="pad-panel"]'), null, { timeout: 10000 })
+  // Landing site keypad: a wrong number lights OPR ERR, walking away releases the player, then the right number.
+  await hold()
+  await useAt('act2:keypad', 'KEY IN')
+  await page.waitForSelector('[data-testid="pad-keypad"]', { timeout: 10000 })
+  for (const k of ['Digit1', 'Digit1', 'Digit1', 'Digit1', 'Digit1', 'Enter']) await page.keyboard.press(k)
+  await page.waitForFunction(() => document.querySelector('[data-testid="pad-err"]')?.classList.contains('on'), null, { timeout: 10000 })
+  await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -3.4 } }))
+  await page.waitForFunction(() => !document.querySelector('[data-testid="pad-keypad"]'), null, { timeout: 10000 })
+  await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: -5 }, vel: { x: 0, y: 0, z: 0 } }))
+  await hold()
+  await useAt('act2:keypad', 'KEY IN')
+  await page.waitForSelector('[data-testid="pad-keypad"]', { timeout: 10000 })
+  for (const k of ['Digit0', 'Digit2', 'Digit4', 'Digit7', 'Digit1', 'Enter']) await page.keyboard.press(k)
+  await page.waitForFunction(() => !document.querySelector('[data-testid="pad-keypad"]'), null, { timeout: 10000 })
+  await subtitle('We copy the site')
+  await shot('act2-site')
   await objective('Float back up the tunnel')
   check(!(await page.evaluate(() => window.__los.focus())), 'no scripted turn in the lander')
 
