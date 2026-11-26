@@ -1,153 +1,135 @@
-// Builds the corridor shell, ribs, pipes and lockers as merged geometry. Three.js only, no React.
-import type { BufferGeometry } from 'three'
-import { BAYS, BAY_DEPTH, CABIN, CAGE, CHAMFER, DOORS, DOORWAY, HALF_W, HEIGHT, LOCKERS, LOCKER_D, LOCKER_H, LOCKER_W, ROOM, Z_FAR_END, Z_HATCH_END, type Opening } from './layout'
-import { cbox, ccyl, mergeColored, QuadBuilder, type P3 } from './geo'
-
-export const SEG = 1.5
-export const SEG_COUNT = Math.round((Z_HATCH_END - Z_FAR_END) / SEG)
-const FLAT = HALF_W - CHAMFER
-
-/** The octagon profile, going around from the floor left. */
-export const PROFILE: ReadonlyArray<readonly [number, number]> = [
-  [-FLAT, 0],
-  [FLAT, 0],
-  [HALF_W, CHAMFER],
-  [HALF_W, HEIGHT - CHAMFER],
-  [FLAT, HEIGHT],
-  [-FLAT, HEIGHT],
-  [-HALF_W, HEIGHT - CHAMFER],
-  [-HALF_W, CHAMFER],
-]
-const RIGHT_EDGES = [1, 2, 3]
-const LEFT_EDGES = [5, 6, 7]
-
-const segZ0 = (i: number): number => Z_HATCH_END - SEG * i
-const isOpen = (i: number, list: Opening[]): boolean => list.some((o) => Math.abs(o.z1 - segZ0(i)) < 1e-6)
+// Builds the dream map's shell, ribs, pipes, lockers, hatch, door leaves, crew bays and the cage as merged
+// geometry. Three.js only, no React.
+import { Matrix4, type BufferGeometry } from 'three'
+import {
+  BAG_SPOTS,
+  CABIN,
+  CAGE,
+  CAGED,
+  CORNERS,
+  DOORWAY,
+  GRID,
+  HALF_W,
+  HATCH,
+  HEIGHT,
+  LOCKERS,
+  LOCKER_D,
+  LOCKER_H,
+  LOCKER_W,
+  Z_FAR_END,
+  Z_HATCH_END,
+  type LockerDef,
+} from './layout'
+import { cbox, ccyl, mergeColored, QuadBuilder } from './geo'
+import { CELL } from './mapgrid'
 
 const SHADES = ['#9a6a5a', '#b8826c', '#7a4a3c', '#c89580', '#6a3a30']
 const shade = (i: number, j: number): string => SHADES[(i * 3 + j * 5 + ((i * j) % 4)) % SHADES.length]
+const T = 1 / 1.5
 
-/** The tunnel walls, openings, bays and the side room. Inside faces, drawn double sided. */
+/** Floors, ceilings and walls of the whole map. Inside faces, drawn double sided. */
 export function buildShell(): BufferGeometry {
   const q = new QuadBuilder()
-  const T = 1 / 1.5
-  for (let i = 0; i < SEG_COUNT; i++) {
-    const za = segZ0(i)
-    const zb = za - SEG
-    let u = 0
-    for (let j = 0; j < 8; j++) {
-      const [x0, y0] = PROFILE[j]
-      const [x1, y1] = PROFILE[(j + 1) % 8]
-      const len = Math.hypot(x1 - x0, y1 - y0)
-      const skip = (RIGHT_EDGES.includes(j) && isOpen(i, DOORS)) || (LEFT_EDGES.includes(j) && isOpen(i, BAYS))
-      if (!skip) {
-        q.quad([x0, y0, za], [x1, y1, za], [x1, y1, zb], [x0, y0, zb], u * T, i * T, (u + len) * T, (i + 1) * T, shade(i, j))
-      }
-      u += len
+  for (const [c, r] of GRID.openCells()) {
+    const x0 = GRID.colX0(c)
+    const x1 = x0 + CELL
+    const z1 = GRID.rowZ0(r)
+    const z0 = z1 - CELL
+    // Floor and ceiling.
+    q.quad([x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], 0, 0, T * CELL, T * CELL, '#7a4a3c')
+    q.quad([x0, HEIGHT, z1], [x1, HEIGHT, z1], [x1, HEIGHT, z0], [x0, HEIGHT, z0], 0, 0, T * CELL, T * CELL, '#5a2a22')
+  }
+  let i = 0
+  for (const e of GRID.edges()) {
+    i++
+    // The wall at the cabin doorway belongs to `buildDoorway`.
+    if (e.axis === 'z' && Math.abs(e.at - Z_HATCH_END) < 1e-6) continue
+    const col = shade(i, Math.round(Math.abs(e.at) * 3))
+    const len = e.to - e.from
+    if (e.axis === 'x') {
+      q.quad([e.at, 0, e.to], [e.at, 0, e.from], [e.at, HEIGHT, e.from], [e.at, HEIGHT, e.to], 0, 0, T * len, T * HEIGHT, col)
+    } else {
+      q.quad([e.from, 0, e.at], [e.to, 0, e.at], [e.to, HEIGHT, e.at], [e.from, HEIGHT, e.at], 0, 0, T * len, T * HEIGHT, col)
     }
   }
-  const wall = '#8a5a4a'
-  // End caps.
-  const ring = (z: number): P3[] => PROFILE.map(([x, y]) => [x, y, z] as P3)
-  q.fan([0, HEIGHT / 2, Z_FAR_END], ring(Z_FAR_END), '#3a1a14')
-  // Doorway and bay shells.
-  for (const d of DOORS) {
-    q.quad([FLAT, 0, d.z1], [ROOM.x0, 0, d.z1], [ROOM.x0, 0, d.z0], [FLAT, 0, d.z0], 0, 0, 0.6, 1, wall)
-    q.quad([FLAT, HEIGHT, d.z1], [ROOM.x0, HEIGHT, d.z1], [ROOM.x0, HEIGHT, d.z0], [FLAT, HEIGHT, d.z0], 0, 0, 0.6, 1, wall)
-    for (const z of [d.z0, d.z1]) {
-      q.quad([HALF_W, 0, z], [ROOM.x0, 0, z], [ROOM.x0, HEIGHT, z], [HALF_W, HEIGHT, z], 0, 0, 0.3, 1, '#6a3a30')
-    }
-  }
-  for (const b of BAYS) {
-    q.quad([-FLAT, 0, b.z1], [-BAY_DEPTH, 0, b.z1], [-BAY_DEPTH, 0, b.z0], [-FLAT, 0, b.z0], 0, 0, 1, 1, wall)
-    q.quad([-FLAT, HEIGHT, b.z1], [-BAY_DEPTH, HEIGHT, b.z1], [-BAY_DEPTH, HEIGHT, b.z0], [-FLAT, HEIGHT, b.z0], 0, 0, 1, 1, wall)
-    q.quad([-BAY_DEPTH, 0, b.z1], [-BAY_DEPTH, HEIGHT, b.z1], [-BAY_DEPTH, HEIGHT, b.z0], [-BAY_DEPTH, 0, b.z0], 0, 0, 1, 1, '#5a2a22')
-    for (const z of [b.z0, b.z1]) {
-      q.quad([-HALF_W, 0, z], [-BAY_DEPTH, 0, z], [-BAY_DEPTH, HEIGHT, z], [-HALF_W, HEIGHT, z], 0, 0, 0.8, 1, '#6a3a30')
-    }
-  }
-  // Side room: floor, ceiling, back, two end walls, front wall between the doorways.
-  const { x0, x1, z0, z1 } = ROOM
-  q.quad([x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], 0, 0, 2, 5, '#7a4a3c')
-  q.quad([x0, HEIGHT, z1], [x1, HEIGHT, z1], [x1, HEIGHT, z0], [x0, HEIGHT, z0], 0, 0, 2, 5, '#5a2a22')
-  q.quad([x1, 0, z1], [x1, 0, z0], [x1, HEIGHT, z0], [x1, HEIGHT, z1], 0, 0, 5, 1.5, '#8a5a4a')
-  for (const z of [z0, z1]) q.quad([x0, 0, z], [x1, 0, z], [x1, HEIGHT, z], [x0, HEIGHT, z], 0, 0, 2, 1.5, '#7a4a3c')
-  const gaps = [...DOORS].sort((a, b) => a.z0 - b.z0)
-  let z = z0
-  const front = (a: number, b: number): void => {
-    if (b > a) q.quad([x0, 0, a], [x0, 0, b], [x0, HEIGHT, b], [x0, HEIGHT, a], 0, 0, (b - a) / 1.5, 1.5, '#7a4a3c')
-  }
-  for (const g of gaps) {
-    front(z, g.z0)
-    z = g.z1
-  }
-  front(z, z1)
   return q.build()
 }
 
-/** Ribs at the segment joints, skipped where an opening is. */
+/** Ribs on the walls at every cell joint, and across the ceiling of long corridors. */
 export function buildRibs(): BufferGeometry {
   const parts: BufferGeometry[] = []
+  const seen = new Set<string>()
   const C = '#2a0f0b'
   const R = '#5a2214'
-  for (let i = 0; i <= SEG_COUNT; i++) {
-    const z = Z_HATCH_END - SEG * i
-    const openR = isOpen(i, DOORS) || isOpen(i - 1, DOORS)
-    const openL = isOpen(i, BAYS) || isOpen(i - 1, BAYS)
-    const col = i % 2 ? C : R
-    parts.push(cbox(2 * FLAT, 0.12, 0.12, col, 0, 0.06, z))
-    parts.push(cbox(2 * FLAT, 0.12, 0.12, col, 0, HEIGHT - 0.06, z))
-    if (!openR) parts.push(cbox(0.12, HEIGHT - 2 * CHAMFER, 0.12, col, HALF_W - 0.06, HEIGHT / 2, z))
-    if (!openL) parts.push(cbox(0.12, HEIGHT - 2 * CHAMFER, 0.12, col, -HALF_W + 0.06, HEIGHT / 2, z))
+  let k = 0
+  for (const e of GRID.edges()) {
+    for (const end of [e.from, e.to]) {
+      const key = `${e.axis}:${e.at.toFixed(2)}:${end.toFixed(2)}:${e.open}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      k++
+      const col = k % 2 ? C : R
+      const off = e.open * 0.06
+      if (e.axis === 'x') parts.push(cbox(0.12, HEIGHT, 0.12, col, e.at + off, HEIGHT / 2, end))
+      else parts.push(cbox(0.12, HEIGHT, 0.12, col, end, HEIGHT / 2, e.at + off))
+    }
   }
   return mergeColored(parts)
 }
 
-/** Cables and pipes along the upper corners, and the handrail bars. */
-export function buildPipes(rails: Array<{ a: { x: number; y: number; z: number }; b: { x: number; y: number; z: number } }>): BufferGeometry {
+/** Cables and pipes along the upper edge of every long wall. */
+export function buildPipes(): BufferGeometry {
   const parts: BufferGeometry[] = []
-  const len = Z_HATCH_END - Z_FAR_END
-  const mid = (Z_HATCH_END + Z_FAR_END) / 2
-  parts.push(ccyl(0.07, len, '#3a2a24', 0.95, 2.05, mid, 'z', 6))
-  parts.push(ccyl(0.07, len, '#3a2a24', -0.95, 2.05, mid, 'z', 6))
-  parts.push(ccyl(0.035, len, '#e9b740', 0.82, 2.2, mid, 'z', 4))
-  parts.push(ccyl(0.035, len, '#6a6a60', -0.82, 2.2, mid, 'z', 4))
-  parts.push(ccyl(0.025, len, '#15100e', 1.05, 1.9, mid, 'z', 4))
-  parts.push(ccyl(0.025, len, '#15100e', -1.05, 1.9, mid, 'z', 4))
-  for (const r of rails) {
-    const zc = (r.a.z + r.b.z) / 2
-    parts.push(ccyl(0.025, Math.abs(r.a.z - r.b.z), '#cfc7b4', r.a.x, r.a.y, zc, 'z', 6))
-    const side = Math.sign(r.a.x)
-    for (const z of [r.a.z, r.b.z]) parts.push(cbox(0.1, 0.03, 0.03, '#6a6558', r.a.x + side * 0.05, r.a.y, z))
+  let k = 0
+  for (const e of GRID.runs()) {
+    const len = e.to - e.from
+    if (len < 2.3) continue
+    k++
+    const mid = (e.from + e.to) / 2
+    const off = e.open * 0.12
+    const axis = e.axis === 'x' ? 'z' : 'x'
+    const at = (d: number): [number, number] => [e.at + off + e.open * d, mid]
+    const put = (r: number, color: string, y: number, d: number): void => {
+      const [a, b] = at(d)
+      parts.push(e.axis === 'x' ? ccyl(r, len, color, a, y, b, axis, 6) : ccyl(r, len, color, b, y, a, axis, 6))
+    }
+    put(0.07, '#3a2a24', 2.05, 0)
+    if (k % 2) put(0.035, '#e9b740', 2.2, 0.05)
+    else put(0.035, '#6a6a60', 2.2, 0.05)
+    if (k % 3 === 0) put(0.025, '#15100e', 1.9, 0.02)
   }
   return mergeColored(parts)
+}
+
+const BODY = '#2e2c28'
+const DOOR = '#3a2e26'
+/** The locker built facing +x at the origin, then turned and moved. */
+function lockerGeo(l: LockerDef): BufferGeometry {
+  const parts: BufferGeometry[] = []
+  const t = 0.04
+  const y = LOCKER_H / 2
+  // Local: the wall side is x = -W/2, the door face x = +W/2, depth along z.
+  parts.push(cbox(t, LOCKER_H, LOCKER_D, BODY, -LOCKER_W / 2 + t / 2, y, 0))
+  parts.push(cbox(LOCKER_W, LOCKER_H, t, BODY, 0, y, -LOCKER_D / 2 + t / 2))
+  parts.push(cbox(LOCKER_W, LOCKER_H, t, BODY, 0, y, LOCKER_D / 2 - t / 2))
+  parts.push(cbox(LOCKER_W, t, LOCKER_D, BODY, 0, LOCKER_H - t / 2, 0))
+  parts.push(cbox(LOCKER_W, t, LOCKER_D, '#2a2622', 0, t / 2, 0))
+  const fx = LOCKER_W / 2
+  parts.push(cbox(0.05, LOCKER_H, 0.06, DOOR, fx, y, -LOCKER_D / 2 + 0.03))
+  parts.push(cbox(0.05, LOCKER_H, 0.06, DOOR, fx, y, LOCKER_D / 2 - 0.03))
+  // Slats 4.5 cm tall on a 14 cm pitch, so the gaps are clear.
+  for (let k = 0; k < 13; k++) parts.push(cbox(0.03, 0.045, LOCKER_D - 0.1, k % 5 === 0 ? '#4a2c20' : '#1c1814', fx, 0.2 + k * 0.14, 0))
+  parts.push(cbox(0.06, 0.18, 0.06, '#c8bfa8', fx + 0.02, 1.0, 0.25))
+  const g = mergeColored(parts)
+  const theta = { E: 0, W: Math.PI, N: Math.PI / 2, S: -Math.PI / 2 }[l.facing]
+  g.applyMatrix4(new Matrix4().makeRotationY(theta))
+  g.applyMatrix4(new Matrix4().makeTranslation(l.center.x, 0, l.center.z))
+  return g
 }
 
 /** The stowage lockers: open-front frames with slatted doors. */
 export function buildLockers(): BufferGeometry {
-  const parts: BufferGeometry[] = []
-  const BODY = '#2e2c28'
-  const DOOR = '#3a2e26'
-  for (const l of LOCKERS) {
-    const { x, z } = l.center
-    const t = 0.04
-    parts.push(cbox(t, LOCKER_H, LOCKER_D, BODY, x - LOCKER_W / 2 + t / 2, LOCKER_H / 2, z))
-    parts.push(cbox(LOCKER_W, LOCKER_H, t, BODY, x, LOCKER_H / 2, z - LOCKER_D / 2 + t / 2))
-    parts.push(cbox(LOCKER_W, LOCKER_H, t, BODY, x, LOCKER_H / 2, z + LOCKER_D / 2 - t / 2))
-    parts.push(cbox(LOCKER_W, t, LOCKER_D, BODY, x, LOCKER_H - t / 2, z))
-    parts.push(cbox(LOCKER_W, t, LOCKER_D, '#2a2622', x, t / 2, z))
-    // Door frame and slats on the corridor face (x = center + W/2).
-    const fx = x + LOCKER_W / 2
-    parts.push(cbox(0.05, LOCKER_H, 0.06, DOOR, fx, LOCKER_H / 2, z - LOCKER_D / 2 + 0.03))
-    parts.push(cbox(0.05, LOCKER_H, 0.06, DOOR, fx, LOCKER_H / 2, z + LOCKER_D / 2 - 0.03))
-    // Dark slats with real gaps between them.
-    // Slats 4.5 cm tall on a 14 cm pitch, so the gaps are clear.
-    for (let k = 0; k < 13; k++) {
-      parts.push(cbox(0.03, 0.045, LOCKER_D - 0.1, k % 5 === 0 ? '#4a2c20' : '#1c1814', fx, 0.2 + k * 0.14, z))
-    }
-    parts.push(cbox(0.06, 0.18, 0.06, '#c8bfa8', fx + 0.02, 1.0, z + 0.25))
-  }
-  return mergeColored(parts)
+  return mergeColored(LOCKERS.map(lockerGeo))
 }
 
 /** The wall between the corridor and the cabin, with the doorway cut in it. */
@@ -159,15 +141,80 @@ export function buildDoorway(): BufferGeometry {
   parts.push(cbox(C - DOORWAY.halfW, HEIGHT, 0.2, col, -(C + DOORWAY.halfW) / 2, HEIGHT / 2, z))
   parts.push(cbox(C - DOORWAY.halfW, HEIGHT, 0.2, col, (C + DOORWAY.halfW) / 2, HEIGHT / 2, z))
   parts.push(cbox(2 * DOORWAY.halfW, HEIGHT - DOORWAY.h, 0.2, col, 0, (HEIGHT + DOORWAY.h) / 2, z))
-  // Door frame, in a warmer metal.
   parts.push(cbox(0.08, DOORWAY.h, 0.24, '#8a8272', -DOORWAY.halfW, DOORWAY.h / 2, z))
   parts.push(cbox(0.08, DOORWAY.h, 0.24, '#8a8272', DOORWAY.halfW, DOORWAY.h / 2, z))
   parts.push(cbox(2 * DOORWAY.halfW + 0.08, 0.08, 0.24, '#8a8272', 0, DOORWAY.h, z))
   return mergeColored(parts)
 }
 
+/** The jammed hatch on the straight way: a steel slab with a wheel, a 6 cm gap under it. */
+export function buildHatch(): BufferGeometry {
+  const parts: BufferGeometry[] = []
+  const z = HATCH.z
+  const w = HATCH.halfW * 2
+  parts.push(cbox(w, HATCH.h - 0.06, HATCH.thick, '#4a3a30', 0, 0.06 + (HATCH.h - 0.06) / 2, z))
+  parts.push(cbox(w, HEIGHT - HATCH.h, HATCH.thick + 0.1, '#3a2a24', 0, (HEIGHT + HATCH.h) / 2, z))
+  parts.push(cbox(0.1, HATCH.h, HATCH.thick + 0.08, '#6a5a4c', -HATCH.halfW + 0.05, HATCH.h / 2, z))
+  parts.push(cbox(0.1, HATCH.h, HATCH.thick + 0.08, '#6a5a4c', HATCH.halfW - 0.05, HATCH.h / 2, z))
+  // Wheel and a dent from something that tried to push through.
+  const zf = z + HATCH.thick / 2 + 0.04
+  parts.push(ccyl(0.22, 0.04, '#7a6a58', 0, 1.2, zf, 'z', 10))
+  parts.push(cbox(0.5, 0.05, 0.05, '#7a6a58', 0, 1.2, zf + 0.03))
+  parts.push(cbox(0.05, 0.5, 0.05, '#7a6a58', 0, 1.2, zf + 0.03))
+  parts.push(cbox(0.7, 0.35, 0.03, '#3a2e26', 0.4, 0.6, zf - 0.01))
+  return mergeColored(parts)
+}
+
+/** The light under the hatch: a bright line at the gap and a warm spill on the floor. Unlit. */
+export function buildHatchLight(): BufferGeometry {
+  const q = new QuadBuilder()
+  const z = HATCH.z + HATCH.thick / 2
+  const y = 0.012
+  const spill = (d0: number, d1: number, halfW: number, c: string): void =>
+    q.quad([-halfW, y, z + d0], [halfW, y, z + d0], [halfW, y, z + d1], [-halfW, y, z + d1], 0, 0, 1, 1, c)
+  spill(0, 0.12, 1.15, '#fff1d0')
+  spill(0.12, 0.4, 1.0, '#c89a6a')
+  spill(0.4, 0.9, 0.8, '#8a5a3c')
+  spill(0.9, 1.6, 0.5, '#5a3426')
+  // The gap itself, seen from the side.
+  q.quad([-1.15, 0.0, z], [1.15, 0.0, z], [1.15, 0.06, z], [-1.15, 0.06, z], 0, 0, 1, 1, '#fff1d0')
+  return q.build()
+}
+
+/** The open doors: a dark slab swung into the room, hung on its hinge post. */
+export function buildDoorLeaves(): BufferGeometry {
+  const parts: BufferGeometry[] = []
+  for (const c of CORNERS) {
+    const b = c.leaf
+    const w = b.max.x - b.min.x
+    const d = b.max.z - b.min.z
+    parts.push(cbox(w, 2.05, Math.max(d, 0.06), '#3a2a22', (b.min.x + b.max.x) / 2, 1.025, (b.min.z + b.max.z) / 2))
+    // Frame, kick plate and handle.
+    parts.push(cbox(w, 0.04, Math.max(d, 0.06) + 0.04, '#6a5a4c', (b.min.x + b.max.x) / 2, 2.07, (b.min.z + b.max.z) / 2))
+    parts.push(cbox(w - 0.1, 0.25, Math.max(d, 0.06) + 0.02, '#5a4a3c', (b.min.x + b.max.x) / 2, 0.15, (b.min.z + b.max.z) / 2))
+  }
+  return mergeColored(parts)
+}
+
+/** Empty sleeping bags standing against the walls of the crew bays, unzipped. */
+export function buildBays(): BufferGeometry {
+  const parts: BufferGeometry[] = []
+  for (const s of BAG_SPOTS) {
+    const into = Math.sign(s.exit.x - s.usePos.x)
+    const wall = s.usePos.x - into * 0.2
+    const z = s.usePos.z
+    const w = wall + into * 0.06
+    parts.push(cbox(0.12, 1.5, 0.62, '#8c8a78', w, 1.0, z))
+    parts.push(cbox(0.02, 1.35, 0.4, '#3a362c', w + into * 0.07, 1.0, z))
+    parts.push(cbox(0.14, 0.16, 0.34, '#d9d2bf', w + into * 0.06, 1.6, z))
+    parts.push(cbox(0.14, 0.06, 0.66, '#6d6a5a', w, 0.6, z))
+    parts.push(cbox(0.14, 0.06, 0.66, '#6d6a5a', w, 1.2, z))
+  }
+  return mergeColored(parts)
+}
+
 const BAR = '#2a2622'
-/** The cage bars at the far end, the two fixed slabs either side of the door. */
+/** The cage bars across the approach, the two fixed slabs either side of the door, and the ceiling shackles. */
 export function buildCage(): BufferGeometry {
   const parts: BufferGeometry[] = []
   const z = CAGE.z
@@ -177,10 +224,10 @@ export function buildCage(): BufferGeometry {
   parts.push(cbox(2 * HALF_W, 0.05, 0.05, BAR, 0, 0.5, z))
   parts.push(cbox(2 * HALF_W, 0.05, 0.05, BAR, 0, 1.3, z))
   parts.push(cbox(2 * HALF_W, 0.05, 0.05, BAR, 0, HEIGHT - 0.05, z))
-  // Straps on the back wall.
-  for (const x of [-0.65, 0.65]) {
-    parts.push(cbox(0.5, 0.06, 0.04, '#4a4a3c', x, 1.2, Z_FAR_END + 0.05))
-    parts.push(cbox(0.5, 0.06, 0.04, '#4a4a3c', x, 0.7, Z_FAR_END + 0.05))
+  // Ceiling rail and hooks the crew hang from.
+  parts.push(cbox(2 * HALF_W - 0.1, 0.06, 0.08, '#3a342c', 0, HEIGHT - 0.04, CAGED.cdr.z))
+  for (const who of ['cdr', 'cmp'] as const) {
+    parts.push(cbox(0.1, 0.1, 0.1, '#6a6558', CAGED[who].x, HEIGHT - 0.09, CAGED[who].z))
   }
   return mergeColored(parts)
 }
@@ -194,4 +241,55 @@ export function buildCageDoor(): BufferGeometry {
   parts.push(cbox(w, 0.05, 0.05, BAR, w / 2, 1.3, 0))
   parts.push(cbox(w, 0.05, 0.05, BAR, w / 2, HEIGHT - 0.05, 0))
   return mergeColored(parts)
+}
+
+/** Dark blood on the floor under the crew and on the walls behind them. Unlit, a hair off the surface. */
+export function buildBlood(): BufferGeometry {
+  const q = new QuadBuilder()
+  const fl = (x: number, z: number, w: number, d: number, c: string): void =>
+    q.quad([x - w / 2, 0.012, z + d / 2], [x + w / 2, 0.012, z + d / 2], [x + w / 2, 0.012, z - d / 2], [x - w / 2, 0.012, z - d / 2], 0, 0, 1, 1, c)
+  const backZ = Z_FAR_END + 0.012
+  const wall = (x: number, y0: number, y1: number, w: number, c: string): void =>
+    q.quad([x - w / 2, y0, backZ], [x + w / 2, y0, backZ], [x + w / 2, y1, backZ], [x - w / 2, y1, backZ], 0, 0, 1, 1, c)
+  const side = (sx: -1 | 1, z: number, y0: number, y1: number, w: number, c: string): void => {
+    const x = sx * (HALF_W - 0.012)
+    q.quad([x, y0, z - w / 2], [x, y0, z + w / 2], [x, y1, z + w / 2], [x, y1, z - w / 2], 0, 0, 1, 1, c)
+  }
+  for (const who of ['cdr', 'cmp'] as const) {
+    const { x, z } = CAGED[who]
+    fl(x, z, 0.9, 0.8, '#2a0707')
+    fl(x + 0.25, z + 0.35, 0.5, 0.3, '#1c0505')
+    fl(x - 0.3, z - 0.3, 0.3, 0.5, '#3a0a0a')
+  }
+  fl(0, CAGED.cdr.z + 0.6, 1.4, 0.35, '#2a0707')
+  // Smears down the back wall and the side walls, longest below the hooks.
+  wall(-0.6, 0.05, 1.7, 0.22, '#3a0a0a')
+  wall(-0.35, 0.05, 1.1, 0.14, '#2a0707')
+  wall(0.5, 0.05, 1.9, 0.26, '#3a0a0a')
+  wall(0.8, 0.05, 0.9, 0.12, '#2a0707')
+  wall(0.0, 0.05, 0.5, 0.4, '#1c0505')
+  side(-1, CAGED.cdr.z, 0.1, 1.3, 0.3, '#3a0a0a')
+  side(1, CAGED.cmp.z + 0.2, 0.1, 1.6, 0.26, '#3a0a0a')
+  side(-1, CAGED.cdr.z - 0.5, 0.05, 0.7, 0.16, '#2a0707')
+  return q.build()
+}
+
+export interface StripSpot {
+  x: number
+  z: number
+  /** The strip runs along z (a wall facing east or west). */
+  alongZ: boolean
+}
+
+/** One floor strip per cell along every long wall, 0.3 m from the wall. */
+export function stripSpots(): StripSpot[] {
+  const out: StripSpot[] = []
+  for (const e of GRID.runs()) {
+    if (e.to - e.from < 2.3) continue
+    for (let a = e.from + CELL / 2; a < e.to; a += CELL) {
+      const off = e.at + e.open * 0.3
+      out.push(e.axis === 'x' ? { x: off, z: a, alongZ: true } : { x: a, z: off, alongZ: false })
+    }
+  }
+  return out
 }

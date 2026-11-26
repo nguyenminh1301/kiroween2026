@@ -42,10 +42,7 @@ import {
   detectBump,
   LOCKERS,
   LOCKER_EXIT_DELAY,
-  LOCKER_LOOK_LIMIT,
-  LOCKER_RADIUS,
   LOCKER_YAW,
-  SEAT_POS,
   SLEEP_EYE,
   SLEEP_YAW,
   speedOf,
@@ -117,7 +114,7 @@ export function startAct3(requested: string): void {
   store.setFear(tension.fear)
   store.setHeartRate(heartRate)
 
-  const monster: Monster = createMonster(def.patrolS)
+  const monster: Monster = createMonster(0)
   act3State.monster = monster
   act3State.creatureVisible = cp === 'wp1'
   if (later && persistedFirst) {
@@ -242,10 +239,10 @@ export function startAct3(requested: string): void {
     lockerTime = 0
     audio.play('locker', { position: { ...l.doorPos } })
     focus.clearFocus()
-    step.seatForwardYaw = LOCKER_YAW
-    step.seatedYawLimit = LOCKER_LOOK_LIMIT
-    step.seatedPitchLimit = LOCKER_LOOK_LIMIT
-    updatePlayerBody({ pos: { ...l.inside }, vel: { x: 0, y: 0, z: 0 }, yaw: LOCKER_YAW, pitch: 0, mode: 'seated' })
+    step.seatForwardYaw = l.yaw
+    step.seatedYawLimit = l.look
+    step.seatedPitchLimit = l.look
+    updatePlayerBody({ pos: { ...l.inside }, vel: { x: 0, y: 0, z: 0 }, yaw: l.yaw, pitch: 0, mode: 'seated' })
     const obj = gameStore.getState().objective
     if (obj?.markers?.length) gameStore.getState().setObjective({ ...obj, markers: [] })
     beats.hidden(true)
@@ -264,8 +261,8 @@ export function startAct3(requested: string): void {
     registerInteractable({
       id: l.id,
       verb: 'HIDE',
-      position: { ...l.doorPos },
-      radius: LOCKER_RADIUS,
+      position: { ...l.usePos },
+      radius: l.radius,
       enabled: () => !inLocker() && beats.hunting(),
       use: () => enter(i),
     })
@@ -284,8 +281,8 @@ export function startAct3(requested: string): void {
       verb: 'TAKE',
       position: cagedVoice(who),
       radius: CREW_RADIUS,
-      enabled: () => beats.phase() === 'cageOpen',
-      use: () => beats.pickUp(who),
+      enabled: () => beats.phase() === 'cageOpen' || (beats.phase() === 'final' && beats.second() === who),
+      use: () => (beats.phase() === 'final' ? beats.useSecond() : beats.pickUp(who)),
     })
   }
   registerInteractable({
@@ -299,15 +296,6 @@ export function startAct3(requested: string): void {
       if (who) beats.layDown(who)
     },
   })
-  registerInteractable({
-    id: 'act3:second',
-    verb: 'TAKE',
-    position: { x: SEAT_POS.x, y: 1.0, z: SEAT_POS.z },
-    radius: CREW_RADIUS,
-    enabled: () => beats.phase() === 'final',
-    use: () => beats.useSecond(),
-  })
-
   let breath = createBreath()
   let noise = 0.12
   let prevVel = { x: 0, y: 0, z: 0 }

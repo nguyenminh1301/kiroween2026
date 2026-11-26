@@ -4,9 +4,10 @@ import { Color, DoubleSide, Matrix4, type Group, type InstancedMesh } from 'thre
 import { registerSystem } from '../../engine/frameDriver'
 import { getPlayerBody } from '../../engine/playerRuntime'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { rails, STRIP_X, Z_FAR_END, Z_HATCH_END } from './layout'
+import { Z_FAR_END } from './layout'
 import { act3State } from './state'
-import { buildDoorway, buildLockers, buildPipes, buildRibs, buildShell, SEG, SEG_COUNT } from './tunnel'
+import { buildBays, buildDoorLeaves, buildDoorway, buildHatch, buildHatchLight, buildLockers, buildPipes, buildRibs, buildShell, stripSpots } from './tunnel'
+import { CELL } from './mapgrid'
 
 const STRIP_PRIORITY = 700
 const DARK = new Color('#3a0a05')
@@ -25,23 +26,30 @@ function stripLevel(z: number, t: number, chase: boolean, hidden: boolean): numb
 
 export function Corridor() {
   const root = useRef<Group>(null)
-  const geo = useMemo(() => {
-    const railSpecs = rails()
-    return {
+  const geo = useMemo(
+    () => ({
       shell: buildShell(),
       ribs: buildRibs(),
-      pipes: buildPipes(railSpecs),
+      pipes: buildPipes(),
       lockers: buildLockers(),
       doorway: buildDoorway(),
-    }
-  }, [])
+      hatch: buildHatch(),
+      leaves: buildDoorLeaves(),
+      bays: buildBays(),
+      hatchLight: buildHatchLight(),
+    }),
+    [],
+  )
+  const spots = useMemo(() => stripSpots(), [])
   const mats = useMemo(() => {
     const shell = createMaterial({ textureName: 'rust', textureSeed: 31, vertexColors: true })
     shell.side = DoubleSide
     const solid = createMaterial({ vertexColors: true })
     solid.side = DoubleSide
     const strip = createMaterial({ kind: 'unlit', color: '#ffffff', snap: false })
-    return { shell, solid, strip }
+    const glow = createMaterial({ kind: 'unlit', vertexColors: true, snap: false, fog: false })
+    glow.side = DoubleSide
+    return { shell, solid, strip, glow }
   }, [])
   const strips = useRef<InstancedMesh>(null)
 
@@ -49,13 +57,11 @@ export function Corridor() {
     const mesh = strips.current
     if (!mesh) return
     const m = new Matrix4()
-    const zs: number[] = []
-    for (let i = 0; i < SEG_COUNT; i++) zs.push(Z_HATCH_END - SEG * (i + 0.5))
-    zs.forEach((z, i) => {
-      for (const [k, x] of [-STRIP_X + 0.3, STRIP_X - 0.3].entries()) {
-        m.makeTranslation(x, 0.03, z)
-        mesh.setMatrixAt(i * 2 + k, m)
-      }
+    const turn = new Matrix4()
+    spots.forEach((s, i) => {
+      m.makeTranslation(s.x, 0.03, s.z)
+      if (!s.alongZ) m.multiply(turn.makeRotationY(Math.PI / 2))
+      mesh.setMatrixAt(i, m)
     })
     mesh.instanceMatrix.needsUpdate = true
     const c = new Color()
@@ -63,16 +69,15 @@ export function Corridor() {
       const hidden = getPlayerBody()?.mode === 'seated'
       // After waking only the real cabin shows.
       if (root.current) root.current.visible = act3State.world === 'dream'
-      zs.forEach((z, i) => {
-        const k = stripLevel(z, t, act3State.chase, hidden)
+      spots.forEach((s, i) => {
+        const k = stripLevel(s.z, t, act3State.chase, hidden)
         c.copy(DARK).lerp(BRIGHT, k).multiplyScalar(0.25 + 0.75 * k)
-        mesh.setColorAt(i * 2, c)
-        mesh.setColorAt(i * 2 + 1, c)
+        mesh.setColorAt(i, c)
       })
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     })
     return remove
-  }, [])
+  }, [spots])
 
   useEffect(
     () => () => {
@@ -94,8 +99,12 @@ export function Corridor() {
       <mesh geometry={geo.pipes} material={mats.solid} />
       <mesh geometry={geo.lockers} material={mats.solid} />
       <mesh geometry={geo.doorway} material={mats.solid} />
-      <instancedMesh ref={strips} args={[undefined, undefined, SEG_COUNT * 2]} material={mats.strip} frustumCulled={false}>
-        <boxGeometry args={[0.1, 0.03, SEG - 0.3]} />
+      <mesh geometry={geo.hatch} material={mats.solid} />
+      <mesh geometry={geo.leaves} material={mats.solid} />
+      <mesh geometry={geo.bays} material={mats.solid} />
+      <mesh geometry={geo.hatchLight} material={mats.glow} />
+      <instancedMesh ref={strips} args={[undefined, undefined, spots.length]} material={mats.strip} frustumCulled={false}>
+        <boxGeometry args={[0.1, 0.03, CELL - 0.3]} />
       </instancedMesh>
     </group>
   )

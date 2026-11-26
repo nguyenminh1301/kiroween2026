@@ -1,6 +1,6 @@
 # Tasks
 
-- [ ] 1. A map with choices (req 1)
+- [x] 1. A map with choices (req 1)
 - [ ] 2. More places to hide (req 2)
 - [ ] 3. An easier creature (req 3)
 - [ ] 4. The captured crew (req 4)

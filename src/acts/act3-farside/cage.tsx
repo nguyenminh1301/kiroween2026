@@ -7,7 +7,7 @@ import { getPlayerBody } from '../../engine/playerRuntime'
 import { buildFigure } from '../../procgen/figure'
 import { cbox, mergeColored } from '../../procgen/coloredGeo'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { CAGE, CAGED, SEAT_POS } from './layout'
+import { CAGE, CAGED } from './layout'
 import { act3State, type Crew } from './state'
 import { buildCage, buildCageDoor } from './tunnel'
 
@@ -75,13 +75,8 @@ export function CagedCrew() {
           const gone = act3State.carried === who || act3State.laid[who]
           f.root.visible = dream && !gone
           if (!f.root.visible) return
-          if (act3State.second === who) {
-            f.root.position.set(SEAT_POS.x, 0.25, SEAT_POS.z)
-            f.setPose('seated', t * 0.2)
-          } else {
-            f.root.position.set(CAGED[who].x, 0, CAGED[who].z)
-            f.setPose('standing', t * 0.25 + i)
-          }
+          f.root.position.set(CAGED[who].x, 0, CAGED[who].z)
+          f.setPose('standing', t * 0.25 + i)
         })
       }),
     [figures],

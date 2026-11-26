@@ -6,7 +6,9 @@ import { getPlayerBody } from '../../engine/playerRuntime'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { buildAstronaut, poseAstronaut } from '../../procgen/astronaut'
 import { lungeFrame } from '../../procgen/lunge'
-import { AMBUSH_POS } from './layout'
+import { CAGED } from './layout'
+
+const AMBUSH_POS = { x: 0, z: CAGED.cdr.z - 0.5 }
 import { act3State } from './state'
 
 const CREATURE_PRIORITY = 710
