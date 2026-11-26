@@ -72,7 +72,7 @@ export const MENUS = {
 
 /** The two answers after waking from the act 3 dream. */
 export const DREAM_CHOICES = {
-  dream: 'Bad dream. Something was in the tunnel.',
+  dream: 'Just a bad dream.',
   fine: "I'm fine. Go back to sleep.",
 } as const
 export type DreamChoice = keyof typeof DREAM_CHOICES

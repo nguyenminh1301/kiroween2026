@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { HUD } from '../content/hud'
 import { VERB_LABELS } from '../content/verbs'
 import { DREAM_CHOICES, MENUS } from '../content/menus'
@@ -15,10 +15,12 @@ export function LockPrompt() {
   const paused = useGame((s) => s.paused)
   const locked = useGame((s) => s.pointerLocked)
   const card = useFx((s) => s.card)
+  const choice = useGame((s) => s.choiceOpen)
   const show = needsLockPrompt({
     screen,
     paused,
     card: card !== null,
+    choice,
     locked,
     everLocked: lockRuntime.everLocked,
     debug: isDebugUrl(),
@@ -277,51 +279,44 @@ export function FxLayer() {
   )
 }
 
+const ANSWERS = ['dream', 'fine'] as const
+
 /**
- * The two answers after waking from the act 3 dream, at the bottom of the screen in menu style.
- * Keys 1 and 2 pick. The pointer is locked, so the mouse moves the mark (up and down) and a click picks it.
+ * The two answers after waking from the act 3 dream, at the bottom of the screen on a paper strip. The pointer
+ * is free while it shows (the lock is released): hover marks an answer, a click picks it. Keys 1 and 2 pick too.
  */
 export function ChoicePrompt() {
   const open = useGame((s) => s.choiceOpen)
   const paused = useGame((s) => s.paused)
   const [mark, setMark] = useState<0 | 1>(0)
-  const markRef = useRef<0 | 1>(0)
-  markRef.current = mark
   const live = open && !paused
   useEffect(() => {
     if (!live) return
     setMark(0)
-    const answers = ['dream', 'fine'] as const
     const onKey = (e: KeyboardEvent): void => {
-      if (e.code === 'Digit1' || e.code === 'Numpad1') pickChoice(answers[0])
-      else if (e.code === 'Digit2' || e.code === 'Numpad2') pickChoice(answers[1])
+      const pick = e.code === 'Digit1' || e.code === 'Numpad1' ? ANSWERS[0] : e.code === 'Digit2' || e.code === 'Numpad2' ? ANSWERS[1] : null
+      if (!pick) return
+      pickChoice(pick)
+      requestLock()
     }
-    const onMove = (e: MouseEvent): void => {
-      if (e.movementY > 3) setMark(1)
-      else if (e.movementY < -3) setMark(0)
-    }
-    const onClick = (): void => void pickChoice(answers[markRef.current])
     window.addEventListener('keydown', onKey)
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('click', onClick)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('click', onClick)
-    }
+    return () => window.removeEventListener('keydown', onKey)
   }, [live])
   if (!live) return null
   return (
     <div className="choice-prompt" data-testid="choice-prompt">
-      {(['dream', 'fine'] as const).map((k, i) => (
+      {ANSWERS.map((k, i) => (
         <button
           key={k}
           type="button"
           className={`btn${mark === i ? ' marked' : ''}`}
           data-choice={k}
+          onMouseEnter={() => setMark(i as 0 | 1)}
+          onFocus={() => setMark(i as 0 | 1)}
           onClick={(e) => {
             e.stopPropagation()
             pickChoice(k)
+            requestLock()
           }}
         >
           <span className="num">{i + 1}</span>

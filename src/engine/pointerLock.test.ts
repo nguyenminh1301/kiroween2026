@@ -67,6 +67,10 @@ describe('lock through chapter cards', () => {
     expect(shouldHoldLock('game', true, false)).toBe(false)
     expect(shouldHoldLock('title', true, true)).toBe(false)
   })
+  it('lets go of the lock while the act 3 choice shows', () => {
+    expect(shouldHoldLock('game', false, false, true)).toBe(false)
+    expect(shouldHoldLock('game', false, false, false)).toBe(true)
+  })
 
   it('prompts only in game, unpaused, with no card and no lock', () => {
     const base = { screen: 'game', paused: false, card: false, locked: false, everLocked: true, debug: true }
@@ -74,6 +78,7 @@ describe('lock through chapter cards', () => {
     expect(needsLockPrompt({ ...base, locked: true })).toBe(false)
     expect(needsLockPrompt({ ...base, paused: true })).toBe(false)
     expect(needsLockPrompt({ ...base, card: true })).toBe(false)
+    expect(needsLockPrompt({ ...base, choice: true })).toBe(false)
     expect(needsLockPrompt({ ...base, screen: 'title' })).toBe(false)
     expect(needsLockPrompt({ ...base, everLocked: false })).toBe(false)
     expect(needsLockPrompt({ ...base, everLocked: false, debug: false })).toBe(true)

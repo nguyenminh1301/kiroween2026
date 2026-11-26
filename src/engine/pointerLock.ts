@@ -62,16 +62,19 @@ export function createPauseCollector(): PauseCollector {
 
 /**
  * The pointer lock stays held in the game, also through a chapter card (paused, card up) and
- * act changes. It is released for pause, title, chapters, settings, credits and the Archive.
+ * act changes. It is released for pause, title, chapters, settings, credits and the Archive, and while the
+ * act 3 choice shows, so the answers can be clicked.
  */
-export function shouldHoldLock(screen: string, paused: boolean, card = false): boolean {
-  return screen === 'game' && (!paused || card)
+export function shouldHoldLock(screen: string, paused: boolean, card = false, choice = false): boolean {
+  return screen === 'game' && (!paused || card) && !choice
 }
 
 export interface LockPromptInputs {
   screen: string
   paused: boolean
   card: boolean
+  /** The act 3 choice is open: the pointer is free on purpose. */
+  choice?: boolean
   locked: boolean
   /** The lock was taken for real at least once. */
   everLocked: boolean
@@ -83,6 +86,6 @@ export interface LockPromptInputs {
  * for a first real lock, so scripts that never lock are not covered.
  */
 export function needsLockPrompt(i: LockPromptInputs): boolean {
-  if (i.screen !== 'game' || i.paused || i.card || i.locked) return false
+  if (i.screen !== 'game' || i.paused || i.card || i.choice || i.locked) return false
   return i.everLocked || !i.debug
 }

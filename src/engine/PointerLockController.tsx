@@ -67,7 +67,7 @@ export function PointerLockController() {
     // Menus, system screens and pause need a free cursor: let go of the lock when one shows.
     const releaseIfMenu = () => {
       const s = gameStore.getState()
-      if (shouldHoldLock(s.screen, s.paused, fxStore.getState().card !== null) || !document.pointerLockElement) return
+      if (shouldHoldLock(s.screen, s.paused, fxStore.getState().card !== null, s.choiceOpen) || !document.pointerLockElement) return
       lockRuntime.wasHeld = false // a deliberate release is not a lock loss
       try {
         document.exitPointerLock()

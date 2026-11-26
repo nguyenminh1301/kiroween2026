@@ -16,6 +16,8 @@ import { Cage, CagedCrew, CarriedView } from './cage'
 import { act3State } from './state'
 
 const FOG = { color: '#000000', near: 4, far: 24 }
+/** The real cabin: the same pale haze as act 2. */
+const FOG_REAL = { color: '#b8ae98', near: 8, far: 24 }
 const FLASH_PRIORITY = 650
 const AIM = 4
 const BEAM_MAX = 12
@@ -52,7 +54,7 @@ function Flashlight() {
 
 const DREAM_AMBIENT = new Color('#4a1c14')
 const CABIN_AMBIENT = new Color('#a89a86')
-const REAL_AMBIENT = new Color('#7a6e60')
+const REAL_AMBIENT = new Color('#fff0d4')
 
 /** The ambient glow: red in the corridor, a little stronger inside a locker so the corridor shows through the
  *  slats, plain warm in the cabin, and dim warm light after waking. */
@@ -63,8 +65,9 @@ function Ambient() {
       registerSystem('act3-ambient', FLASH_PRIORITY + 1, () => {
         const body = getPlayerBody()
         if (act3State.world === 'real') {
+          // The normal cabin, lights on: bright and warm, like act 2.
           light.color.copy(REAL_AMBIENT)
-          light.intensity = 0.9
+          light.intensity = 3
         } else if (body && body.pos.z > Z_HATCH_END) {
           light.color.copy(CABIN_AMBIENT)
           light.intensity = 1.1
@@ -83,7 +86,17 @@ export function Scene() {
   const gl = useThree((s) => s.gl)
   useEffect(() => {
     applyFog(scene, gl, FOG)
-    return () => clearFog(scene, gl)
+    let real = false
+    const remove = registerSystem('act3-fog', FLASH_PRIORITY + 2, () => {
+      const now = act3State.world === 'real'
+      if (now === real) return
+      real = now
+      applyFog(scene, gl, real ? FOG_REAL : FOG)
+    })
+    return () => {
+      remove()
+      clearFog(scene, gl)
+    }
   }, [scene, gl])
   return (
     <>
