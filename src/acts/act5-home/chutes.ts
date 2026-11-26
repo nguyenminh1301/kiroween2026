@@ -23,6 +23,32 @@ export const RELEASE_AT = 45
 export const LAND_SECONDS = 9
 export const SINK_RATE = 0.05
 export const MAIN_HEIGHT = 30
+/** Real sizes: each main is about 25 m across, each drogue about 5 m, on lines about 30 m long. */
+export const MAIN_DIAMETER = 25
+export const DROGUE_DIAMETER = 5
+export const LINE_LENGTH = 30
+/** Centre to centre of neighbouring mains: a little wider than one canopy, so they sit side by side. */
+export const MAIN_SPACING = 26
+/** Where the lines gather, above the top of the capsule, metres. */
+export const CONFLUENCE_Y = 4
+/** Main canopies per set. */
+export const MAIN_COUNT = 3
+
+/**
+ * Where main `i` (0 to 2) sits when open by `spread` (0 reefed together, 1 full): the centre of its rim,
+ * above the capsule top, and how far it leans outward. The rim height follows from the line length.
+ */
+export function mainCentre(i: number, spread: number): { x: number; y: number; z: number; lean: number } {
+  const f = clamp01(spread)
+  const side = i - 1
+  const near = MAIN_DIAMETER / 2
+  return {
+    x: side * MAIN_SPACING * f,
+    y: CONFLUENCE_Y + Math.sqrt(LINE_LENGTH * LINE_LENGTH - near * near) - Math.abs(side) * 0.5 * f,
+    z: 0,
+    lean: -side * 0.1 * f,
+  }
+}
 
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x))
 const smooth = (x: number): number => {
@@ -113,7 +139,7 @@ export function releasedAt(t: number, i: number, start: Vec3): { pos: Vec3; flat
   const f = releaseFall(t)
   const e = smooth(f)
   // Down and to one side: the wind takes them toward +x and a little to +z.
-  const drift = { x: 24 + i * 7, z: 6 + i * 9 - 8 }
+  const drift = { x: 30 + i * 4, z: -26 + i * 26 }
   const landed = f >= 1
   const sunk = Math.max(0, (t - RELEASE_AT - LAND_SECONDS) * SINK_RATE)
   return {

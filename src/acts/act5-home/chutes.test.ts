@@ -9,7 +9,13 @@ import {
   MAINS_START,
   RELEASE_AT,
   REEF,
+  CONFLUENCE_Y,
+  DROGUE_DIAMETER,
+  LINE_LENGTH,
+  MAIN_DIAMETER,
+  MAIN_SPACING,
   breathe,
+  mainCentre,
   canopyShape,
   coverAt,
   drogueFill,
@@ -118,5 +124,34 @@ describe('release at splashdown', () => {
         expect(b.sunk - a.sunk).toBeLessThan(0.1)
       }),
     )
+  })
+})
+
+describe('real sizes', () => {
+  it('has 25 m mains, 5 m drogues and 30 m lines', () => {
+    expect(MAIN_DIAMETER).toBe(25)
+    expect(DROGUE_DIAMETER).toBe(5)
+    expect(LINE_LENGTH).toBe(30)
+  })
+  it('puts the three full mains side by side without overlap, far wider than the 3.9 m capsule', () => {
+    const c = [0, 1, 2].map((i) => mainCentre(i, 1))
+    expect(c[1].x).toBe(0)
+    expect(c[1].x - c[0].x).toBeGreaterThanOrEqual(MAIN_DIAMETER)
+    expect(c[2].x - c[1].x).toBe(MAIN_SPACING)
+    const span = c[2].x - c[0].x + MAIN_DIAMETER
+    expect(span).toBeGreaterThan(3.9 * 10)
+  })
+  it('hangs the middle main on lines 30 m long from the confluence point', () => {
+    const m = mainCentre(1, 1)
+    const len = Math.hypot(MAIN_DIAMETER / 2, m.y - CONFLUENCE_Y)
+    expect(len).toBeCloseTo(LINE_LENGTH, 5)
+  })
+  it('brings the mains together while reefed', () => {
+    expect(mainCentre(0, 0.3).x).toBeGreaterThan(mainCentre(0, 1).x)
+    expect(mainCentre(2, 0).x).toBe(0)
+  })
+  it('lets the released mains settle side by side, a canopy apart', () => {
+    const p = [0, 1, 2].map((i) => releasedAt(60, i, { x: 0, y: 30, z: 0 }).pos)
+    expect(p[1].z - p[0].z).toBeGreaterThanOrEqual(MAIN_DIAMETER)
   })
 })

@@ -127,7 +127,7 @@ const RAW_SHOTS: NamedShot[] = [
     far: 6000,
     cam: (u, t) => {
       const y = height(t)
-      return { position: v(lerp(9, 12, u), y + lerp(3, 7, u), lerp(12, 15, u)), lookAt: v(0, y + lerp(6, 13, u), 0) }
+      return { position: v(lerp(14, 18, u), y + lerp(2, 6, u), lerp(26, 30, u)), lookAt: v(0, y + lerp(8, 14, u), 0) }
     },
   },
   {
@@ -140,7 +140,7 @@ const RAW_SHOTS: NamedShot[] = [
     cam: (_u, t) => {
       const y = height(t)
       // Well below and off to the side, so the capsule base stays small and all three canopies show.
-      return { position: v(2, y - 14, 30), lookAt: v(0, y + 24, 0) }
+      return { position: v(0, y - 4, 64), lookAt: v(0, y + 20, 0) }
     },
   },
   {
@@ -152,7 +152,7 @@ const RAW_SHOTS: NamedShot[] = [
     far: 6000,
     cam: (u, t) => {
       const y = height(t)
-      return { position: v(lerp(34, 26, u), y + lerp(8, 5, u), lerp(46, 36, u)), lookAt: v(0, y + 6, 0) }
+      return { position: v(lerp(44, 36, u), y + lerp(10, 6, u), lerp(70, 56, u)), lookAt: v(0, y + lerp(18, 10, u), 0) }
     },
   },
   {

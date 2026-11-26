@@ -16,7 +16,9 @@ import {
 } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
 import {
-  MAIN_HEIGHT,
+  CONFLUENCE_Y,
+  DROGUE_DIAMETER,
+  MAIN_DIAMETER,
   RELEASE_AT,
   breathe,
   canopyShape,
@@ -24,6 +26,7 @@ import {
   drogueFill,
   droguePos,
   drogueState,
+  mainCentre,
   mainsOpen,
   openingJerk,
   pilotRun,
@@ -37,14 +40,12 @@ import { waveY } from './waves'
 
 const PRIORITY = 662
 const PHI = 1.25
-const MAIN_R = 11
-const DROGUE_R = 1.5
+const MAIN_R = MAIN_DIAMETER / 2 / Math.sin(PHI)
+const DROGUE_R = DROGUE_DIAMETER / 2
+const DROGUE_H = 6
 const LINES_MAIN = 24
 const LINES_DROGUE = 8
 const RIM_Y = 0.236
-/** Rim height above the capsule top for the mains. */
-const RIM = MAIN_HEIGHT - 6
-const ANGLES = [0, 1, 2].map((i) => Math.PI / 2 + (i * Math.PI * 2) / 3)
 
 const dome = (r: number): BufferGeometry => new SphereGeometry(r, 12, 5, 0, Math.PI * 2, 0, PHI).scale(1, 0.75, 1)
 
@@ -58,11 +59,11 @@ export function Chutes() {
 
   const geo = useMemo(() => {
     const lineGeo = new BufferGeometry()
-    const count = 3 * LINES_MAIN * 2 + 2 * LINES_DROGUE * 2 + 3 * 2
+    const count = 3 * LINES_MAIN * 2 + 2 * LINES_DROGUE * 2 + 3 * 2 + 2
     lineGeo.setAttribute('position', new Float32BufferAttribute(new Float32Array(count * 3), 3))
     return {
       main: dome(MAIN_R),
-      drogue: new ConeGeometry(DROGUE_R, 3.4, 10, 1, true),
+      drogue: new ConeGeometry(DROGUE_R, DROGUE_H, 12, 1, true),
       pilot: new ConeGeometry(0.7, 1.6, 8, 1, true),
       cover: new ConeGeometry(0.55, 0.6, 8),
       lines: lineGeo,
@@ -121,7 +122,7 @@ export function Chutes() {
           m.position.set(p.x, p.y, p.z)
           m.scale.set(0.18 + 0.82 * stream * (fill > 1 ? fill : 1), 1.5 - 0.5 * stream, 0.18 + 0.82 * stream * (fill > 1 ? fill : 1))
           m.rotation.z = ds === 'falling' ? side * 0.6 : 0
-          const mouthY = p.y - 1.7 * m.scale.y
+          const mouthY = p.y - (DROGUE_H / 2) * m.scale.y
           const rr = DROGUE_R * m.scale.x
           for (let k = 0; k < LINES_DROGUE; k++) {
             const a = (k / LINES_DROGUE) * Math.PI * 2
@@ -138,26 +139,30 @@ export function Chutes() {
           const b = breathe(time, i, open)
           const xz = shape.xz * b
           const ys = shape.y * (2 - b)
-          const rimY = RIM
+          const c = mainCentre(i, shape.spread)
+          const rimY = c.y
           const cy = rimY - RIM_Y * MAIN_R * ys
-          const cx = Math.cos(ANGLES[i]) * 9 * shape.spread
-          const cz = Math.sin(ANGLES[i]) * 9 * shape.spread
+          const cx = c.x
+          const cz = c.z
           m.position.set(cx, cy, cz)
+          m.rotation.z = c.lean
           m.scale.set(xz, ys, xz)
           apexes[i] = [cx, cy + MAIN_R * 0.75 * ys, cz]
           const rimR = MAIN_R * Math.sin(PHI) * xz
           for (let k = 0; k < LINES_MAIN; k++) {
             const a = (k / LINES_MAIN) * Math.PI * 2
-            seg(0, 0, 0, cx + Math.cos(a) * rimR, rimY, cz + Math.sin(a) * rimR)
+            seg(0, CONFLUENCE_Y, 0, cx + Math.cos(a) * rimR, rimY, cz + Math.sin(a) * rimR)
           }
         }
+        if (bell) seg(0, 0, 0, 0, CONFLUENCE_Y, 0)
         const pr = pilotRun(t)
         for (let i = 0; i < 3; i++) {
           const m = pilots.current[i]
           if (!m) continue
           m.visible = pr !== null
           if (pr === null) continue
-          const ap = apexes[i] ?? [Math.cos(ANGLES[i]) * 2, RIM + 6, Math.sin(ANGLES[i]) * 2]
+          const c0 = mainCentre(i, 0.3)
+          const ap = apexes[i] ?? [c0.x, c0.y + 6, c0.z]
           const tx = ap[0]
           const ty = ap[1] + 3
           const tz = ap[2]
