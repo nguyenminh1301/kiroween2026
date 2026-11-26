@@ -27,3 +27,9 @@ export function setCameraShaker(s: Shaker | null): void {
 }
 
 export const getCameraShaker = (): Shaker | null => current
+
+/** Size of a sample: the larger of the offset length in metres and the rotation length in radians. 0 for none. */
+export function shakeMagnitude(s: ShakeSample | null): number {
+  if (!s) return 0
+  return Math.max(Math.hypot(s.ox, s.oy, s.oz), Math.hypot(s.rx, s.ry, s.rz))
+}

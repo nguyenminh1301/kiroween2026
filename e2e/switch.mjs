@@ -175,7 +175,7 @@ try {
   await page.evaluate(() => window.__los.store.getState().setSettings({ reducedMotion: true }))
   const shakeReduced = await page.evaluate(() => window.__los.shake())
   check(shakeFull > 0, `launch shake at 8.5 s is ${shakeFull}`)
-  check(Math.abs(shakeReduced - shakeFull * 0.25) < 1e-4, `shake ${shakeReduced} should be a quarter of ${shakeFull}`)
+  check(shakeReduced === 0, `shake ${shakeReduced} should be 0 with reduced motion`)
   await shot('switch-reduced')
   await page.evaluate(() => window.__los.store.getState().setSettings({ reducedMotion: false }))
 } catch (e) {

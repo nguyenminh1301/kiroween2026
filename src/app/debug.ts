@@ -18,6 +18,7 @@ import type { Screen } from '../engine/store'
 import { lookParams } from '../render/fear'
 import { flickerScale } from '../engine/settings'
 import { getActiveTimeline } from '../engine/unloadReset'
+import { getCameraShaker, shakeMagnitude } from '../engine/cameraShake'
 import { loader } from './loader'
 import { goScreen } from './session'
 
@@ -120,6 +121,9 @@ export function installDebug(win: Window = window): void {
     systemCount: () => frameDriver.systemCount(),
     gameTime: () => frameDriver.getGameTime(),
     shake: () => {
+      // An act's camera shaker (act 1 launch and TLI) wins over a timeline shake.
+      const shaker = getCameraShaker()
+      if (shaker) return shakeMagnitude(shaker())
       const t = getActiveTimeline()
       return t && !t.finished ? t.shake() : 0
     },
