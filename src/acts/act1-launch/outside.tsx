@@ -16,7 +16,11 @@ import {
   MeshBasicMaterial,
   MeshLambertMaterial,
   PlaneGeometry,
+  CanvasTexture,
+  CylinderGeometry,
   Quaternion,
+  Sprite,
+  SpriteMaterial,
   SphereGeometry,
   Vector3,
   type Group,
@@ -33,6 +37,15 @@ import { mergeStatic } from '../../procgen/tiledBox'
 import { buildFirstStage, buildTower, buildUpperStack, type StackGeometry } from './saturn'
 import { cabinState } from '../../procgen/cabin/cabinState'
 import { act1State } from './state'
+import {
+  ENGINE_OFFSETS,
+  flicker,
+  PLUME_R_END,
+  PLUME_R_TOP,
+  plumeLength,
+  trenchEmission,
+  trenchFraction,
+} from './plume'
 import {
   IGNITION_AT,
   PAD_BASE_Y,
@@ -127,6 +140,98 @@ function Flame({ level, radius, length, glow = 0 }: FlameProps) {
   )
 }
 
+
+/** A soft round glow, drawn once on a small canvas. */
+function glowTexture(): CanvasTexture {
+  const c = document.createElement('canvas')
+  c.width = c.height = 64
+  const g = c.getContext('2d')
+  if (g) {
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32)
+    grad.addColorStop(0, 'rgba(255,240,200,1)')
+    grad.addColorStop(0.4, 'rgba(255,170,70,0.5)')
+    grad.addColorStop(1, 'rgba(255,120,30,0)')
+    g.fillStyle = grad
+    g.fillRect(0, 0, 64, 64)
+  }
+  return new CanvasTexture(c)
+}
+
+/**
+ * The liftoff flame: five engine plumes (white yellow core, orange edge) that merge into one plume about as wide
+ * as the first stage, plus a glow at the bells. Additive and flickering. Long and wide plumes grow with height.
+ */
+function Plume() {
+  const group = useRef<Group>(null)
+  const parts = useMemo(() => {
+    // Unit-length cones, wide end down. Scaled in y to the plume length each frame.
+    const cone = (r0: number, r1: number) => new CylinderGeometry(r0, r1, 1, 9, 1, true).translate(0, -0.5, 0)
+    const additive = (color: string, opacity: number) =>
+      new MeshBasicMaterial({ color, transparent: true, opacity, blending: AdditiveBlending, depthWrite: false, side: 2, fog: false })
+    return {
+      edge: cone(PLUME_R_TOP, PLUME_R_END),
+      core: cone(PLUME_R_TOP * 0.5, PLUME_R_END * 0.45),
+      merged: cone(4.4, 5.6),
+      edgeMat: additive('#ff8a1e', 0.55),
+      coreMat: additive('#fff3b0', 0.8),
+      mergedMat: additive('#ff9a3a', 0.3),
+      glowTex: glowTexture(),
+    }
+  }, [])
+  const sprite = useMemo(() => {
+    const s = new Sprite(new SpriteMaterial({ map: parts.glowTex, blending: AdditiveBlending, depthWrite: false, transparent: true, fog: false }))
+    s.position.set(0, -1.5, 0)
+    return s
+  }, [parts])
+  const meshes = useRef<Group[]>([])
+
+  useEffect(() => {
+    const remove = registerSystem('act1-plume', OUTSIDE_PRIORITY, (_dt, t) => {
+      const g = group.current
+      if (!g) return
+      const level = cabinState.engine
+      const h = rocketHeight(act1State.launchT)
+      const len = plumeLength(h, level)
+      g.visible = level > 0.02 && act1State.ignited
+      const k = flickerScale(gameStore.getState().settings.reducedMotion)
+      meshes.current.forEach((m, i) => {
+        if (!m) return
+        if (i < ENGINE_OFFSETS.length) m.scale.set(1, len * flicker(t, i, k), 1)
+        else m.scale.set(1, len * 0.8 * flicker(t, i, k), 1)
+      })
+      // More of the flame goes sideways into the trench near the pad: the glow is brighter and wider there.
+      const trench = trenchFraction(h)
+      sprite.scale.setScalar((16 + 10 * trench) * (1 + 0.05 * k * Math.sin(t * 40)))
+      sprite.material.opacity = Math.min(1, level) * (0.6 + 0.3 * trench)
+    })
+    return () => {
+      remove()
+      ;[parts.edge, parts.core, parts.merged, parts.edgeMat, parts.coreMat, parts.mergedMat, parts.glowTex].forEach((x) => x.dispose())
+      sprite.material.dispose()
+    }
+  }, [parts, sprite])
+
+  const slot = (i: number) => (el: Group | null) => {
+    if (el) meshes.current[i] = el
+  }
+  return (
+    <group ref={group} visible={false}>
+      {ENGINE_OFFSETS.map(([x, z], i) => (
+        <group key={i} position={[x, 0, z]}>
+          <group ref={slot(i)}>
+            <mesh geometry={parts.edge} material={parts.edgeMat} />
+            <mesh geometry={parts.core} material={parts.coreMat} />
+          </group>
+        </group>
+      ))}
+      <group ref={slot(ENGINE_OFFSETS.length)} position={[0, -1, 0]}>
+        <mesh geometry={parts.merged} material={parts.mergedMat} />
+      </group>
+      <primitive object={sprite} />
+    </group>
+  )
+}
+
 /** Up to 600 low-poly puffs of smoke and steam pouring out along both sides of the trench and rising. */
 function Smoke() {
   const geo = useMemo(() => new IcosahedronGeometry(1, 1), [])
@@ -158,13 +263,21 @@ function Smoke() {
           continue
         }
         const a = age % SMOKE_LIFE
+        // A puff is born from the trench: it is as big as the trench was pouring when it left.
+        const born = trenchEmission(act1State.launchT - a)
+        if (born < 0.03) {
+          s.set(0, 0, 0)
+          mx.compose(p.set(0, -50, 0), q, s)
+          m.setMatrixAt(i, mx)
+          continue
+        }
         const [r1, r2, r3] = seeds[i]
         const side = i % 2 ? 1 : -1
         const fade = a > SMOKE_LIFE - 1.5 ? (SMOKE_LIFE - a) / 1.5 : 1
         // Puffs roll out along the trench, then lift and thin out.
         const roll = 1 - Math.exp(-a * 0.9)
         p.set(side * (5 + roll * (22 + r1 * 40)), 2 + roll * (3 + r2 * 4) + a * (0.6 + r2 * 1.4), (r3 - 0.5) * (12 + a * 4))
-        s.setScalar((1.2 + a * 0.55 + r2 * 1.2) * fade)
+        s.setScalar((1.2 + a * 0.55 + r2 * 1.2) * fade * (0.35 + 0.65 * born))
         mx.compose(p, q, s)
         m.setMatrixAt(i, mx)
       }
@@ -237,7 +350,6 @@ function PadSet() {
     }),
     [],
   )
-  const level = useMemo(() => () => cabinState.engine, [])
 
   useEffect(() => {
     const remove = registerSystem('act1-pad', OUTSIDE_PRIORITY, () => {
@@ -273,7 +385,7 @@ function PadSet() {
           <Stack geo={upper} mats={mats} />
         </group>
         <group position={[0, -4, 0]}>
-          <Flame level={level} radius={9} length={48} />
+          <Plume />
         </group>
       </group>
       <group position={[0, 2, 0]}>
