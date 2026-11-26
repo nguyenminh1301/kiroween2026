@@ -1,6 +1,6 @@
 import { useThree } from '@react-three/fiber'
 import { useEffect, useMemo } from 'react'
-import { AmbientLight, SpotLight, Object3D } from 'three'
+import { AmbientLight, Color, SpotLight, Object3D } from 'three'
 import { PlayerCamera } from '../../engine/PlayerCamera'
 import { registerSystem } from '../../engine/frameDriver'
 import { eyePosition } from '../../engine/playerBody'
@@ -8,18 +8,17 @@ import { getPlayerBody } from '../../engine/playerRuntime'
 import { applyFog, clearFog } from '../../render/fog'
 import { viewDirection } from '../../interaction/targeting'
 import { Corridor } from './corridor'
-import { collisionBoxes, CDR_POS, MIKE_POS } from './layout'
+import { collisionBoxes, Z_HATCH_END } from './layout'
 import { flashIntensity, rayBoxDistance } from './flashlight'
 import { Creature } from './creature'
+import { Cabin } from './cabin'
+import { Cage, CagedCrew, CarriedView } from './cage'
+import { act3State } from './state'
 
 const FOG = { color: '#000000', near: 4, far: 24 }
 const FLASH_PRIORITY = 650
 const AIM = 4
 const BEAM_MAX = 12
-const figureBox = (p: { x: number; y: number; z: number }) => ({
-  min: { x: p.x - 0.3, y: p.y, z: p.z - 0.3 },
-  max: { x: p.x + 0.3, y: p.y + 1.8, z: p.z + 0.3 },
-})
 
 /** The flashlight: one spot light riding on the camera, aimed 4 m ahead. */
 function Flashlight() {
@@ -28,7 +27,7 @@ function Flashlight() {
     l.target = new Object3D()
     return l
   }, [])
-  const boxes = useMemo(() => [...collisionBoxes(), figureBox(CDR_POS), figureBox(MIKE_POS)], [])
+  const boxes = useMemo(() => collisionBoxes(), [])
   useEffect(() => {
     return registerSystem('act3-flashlight', FLASH_PRIORITY, () => {
       const body = getPlayerBody()
@@ -36,6 +35,7 @@ function Flashlight() {
       const eye = eyePosition(body)
       const d = viewDirection(body.yaw, body.pitch)
       // Off inside a locker (it would give you away), softer close to a wall or a suit.
+      light.visible = act3State.world === 'dream'
       light.intensity = flashIntensity(body.mode === 'seated', rayBoxDistance(eye, d, boxes, BEAM_MAX))
       light.position.set(eye.x, eye.y, eye.z)
       light.target.position.set(eye.x + d.x * AIM, eye.y + d.y * AIM, eye.z + d.z * AIM)
@@ -50,14 +50,28 @@ function Flashlight() {
   )
 }
 
-/** The ambient glow: a little stronger inside a locker so the corridor shows through the slats. */
+const DREAM_AMBIENT = new Color('#4a1c14')
+const CABIN_AMBIENT = new Color('#a89a86')
+const REAL_AMBIENT = new Color('#7a6e60')
+
+/** The ambient glow: red in the corridor, a little stronger inside a locker so the corridor shows through the
+ *  slats, plain warm in the cabin, and dim warm light after waking. */
 function Ambient() {
   const light = useMemo(() => new AmbientLight('#4a1c14', 0.9), [])
   useEffect(
     () =>
       registerSystem('act3-ambient', FLASH_PRIORITY + 1, () => {
         const body = getPlayerBody()
-        light.intensity = body?.mode === 'seated' ? 6 : 0.9
+        if (act3State.world === 'real') {
+          light.color.copy(REAL_AMBIENT)
+          light.intensity = 0.9
+        } else if (body && body.pos.z > Z_HATCH_END) {
+          light.color.copy(CABIN_AMBIENT)
+          light.intensity = 1.1
+        } else {
+          light.color.copy(DREAM_AMBIENT)
+          light.intensity = body?.mode === 'seated' ? 6 : 0.9
+        }
       }),
     [light],
   )
@@ -77,7 +91,11 @@ export function Scene() {
       <Ambient />
       <Flashlight />
       <Corridor />
+      <Cabin />
+      <Cage />
+      <CagedCrew />
       <Creature />
+      <CarriedView />
     </>
   )
 }

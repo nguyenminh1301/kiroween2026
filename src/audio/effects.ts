@@ -2,7 +2,7 @@ export type EffectName =
   | 'switch' | 'breakerPush' | 'hatchSlam' | 'key' | 'alarm' | 'staging' | 'launchRoar' | 'rumble'
   | 'reentry' | 'chute' | 'splash' | 'horn' | 'locker' | 'zipper' | 'grab' | 'static'
   | 'creak' | 'groan' | 'knock' | 'scrape' | 'click' | 'sting' | 'breathe' | 'cheer'
-  | 'tap' | 'hiss'
+  | 'tap' | 'hiss' | 'gasp' | 'cage'
 
 export interface EffectDef {
   files: readonly string[]
@@ -36,9 +36,11 @@ export const EFFECTS: Record<EffectName, EffectDef> = {
   sting: { files: ['creature_scream'], gain: 1 },
   breathe: { files: ['creature_breath'], gain: 0.5 },
   cheer: { files: ['crowd_cheer'], gain: 0.8 },
-  // No recorded files: these two always play their synthesized stand-ins.
+  // No recorded files: these always play their synthesized stand-ins.
   tap: { files: [], gain: 0.9 },
   hiss: { files: [], gain: 0.35 },
+  gasp: { files: [], gain: 0.8 },
+  cage: { files: [], gain: 0.8 },
 }
 
 /**

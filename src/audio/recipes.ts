@@ -53,6 +53,8 @@ export const RECIPES: Record<EffectName, Recipe> = {
   cheer: [noise(0, 3, 'bandpass', 1200, 0.8, undefined, 0.4, 0.5)],
   tap: [osc(0, 0.12, 1250, 900, 0.5, 'triangle'), osc(0, 0.2, 420, 380, 0.4), noise(0, 0.03, 'highpass', 3500, 0.5)],
   hiss: [noise(0, 2.2, 'highpass', 4500, 0.5, undefined, undefined, 0.3)],
+  gasp: [noise(0, 0.5, 'bandpass', 1400, 0.8, 2600, 1, 0.05), noise(0.55, 0.35, 'lowpass', 900, 0.4)],
+  cage: [osc(0, 0.35, 180, 90, 0.6, 'square'), noise(0, 0.5, 'bandpass', 2200, 0.7, 900, 3, 0.05), osc(0.3, 0.6, 70, 50, 0.5)],
 }
 
 /** Extra stand-ins that are not named Effects. */

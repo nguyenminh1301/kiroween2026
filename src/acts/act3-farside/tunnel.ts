@@ -1,6 +1,6 @@
 // Builds the corridor shell, ribs, pipes and lockers as merged geometry. Three.js only, no React.
 import type { BufferGeometry } from 'three'
-import { BAYS, BAY_DEPTH, CHAMFER, DOORS, HALF_W, HEIGHT, LOCKERS, LOCKER_D, LOCKER_H, LOCKER_W, ROOM, Z_FAR_END, Z_HATCH_END, type Opening } from './layout'
+import { BAYS, BAY_DEPTH, CABIN, CAGE, CHAMFER, DOORS, DOORWAY, HALF_W, HEIGHT, LOCKERS, LOCKER_D, LOCKER_H, LOCKER_W, ROOM, Z_FAR_END, Z_HATCH_END, type Opening } from './layout'
 import { cbox, ccyl, mergeColored, QuadBuilder, type P3 } from './geo'
 
 export const SEG = 1.5
@@ -49,7 +49,6 @@ export function buildShell(): BufferGeometry {
   const wall = '#8a5a4a'
   // End caps.
   const ring = (z: number): P3[] => PROFILE.map(([x, y]) => [x, y, z] as P3)
-  q.fan([0, HEIGHT / 2, Z_HATCH_END], ring(Z_HATCH_END), '#4a2a22')
   q.fan([0, HEIGHT / 2, Z_FAR_END], ring(Z_FAR_END), '#3a1a14')
   // Doorway and bay shells.
   for (const d of DOORS) {
@@ -142,26 +141,57 @@ export function buildLockers(): BufferGeometry {
     parts.push(cbox(0.05, LOCKER_H, 0.06, DOOR, fx, LOCKER_H / 2, z - LOCKER_D / 2 + 0.03))
     parts.push(cbox(0.05, LOCKER_H, 0.06, DOOR, fx, LOCKER_H / 2, z + LOCKER_D / 2 - 0.03))
     // Dark slats with real gaps between them.
-    for (let k = 0; k < 14; k++) {
-      parts.push(cbox(0.03, 0.06, LOCKER_D - 0.1, k % 5 === 0 ? '#4a2c20' : '#1c1814', fx, 0.2 + k * 0.13, z))
+    // Slats 4.5 cm tall on a 14 cm pitch, so the gaps are clear.
+    for (let k = 0; k < 13; k++) {
+      parts.push(cbox(0.03, 0.045, LOCKER_D - 0.1, k % 5 === 0 ? '#4a2c20' : '#1c1814', fx, 0.2 + k * 0.14, z))
     }
     parts.push(cbox(0.06, 0.18, 0.06, '#c8bfa8', fx + 0.02, 1.0, z + 0.25))
   }
   return mergeColored(parts)
 }
 
-/** Door frame and the open hatch at the lander end. */
-export function buildHatch(): BufferGeometry {
+/** The wall between the corridor and the cabin, with the doorway cut in it. */
+export function buildDoorway(): BufferGeometry {
   const parts: BufferGeometry[] = []
-  const z = Z_HATCH_END - 0.06
-  const y = 1.3
-  const r = 0.62
-  for (let k = 0; k < 12; k++) {
-    const a = (k / 12) * Math.PI * 2
-    parts.push(cbox(0.2, 0.1, 0.12, '#8a8272', Math.cos(a) * r, y + Math.sin(a) * r, z))
+  const C = CABIN.halfW
+  const z = Z_HATCH_END + 0.1
+  const col = '#6a5a4c'
+  parts.push(cbox(C - DOORWAY.halfW, HEIGHT, 0.2, col, -(C + DOORWAY.halfW) / 2, HEIGHT / 2, z))
+  parts.push(cbox(C - DOORWAY.halfW, HEIGHT, 0.2, col, (C + DOORWAY.halfW) / 2, HEIGHT / 2, z))
+  parts.push(cbox(2 * DOORWAY.halfW, HEIGHT - DOORWAY.h, 0.2, col, 0, (HEIGHT + DOORWAY.h) / 2, z))
+  // Door frame, in a warmer metal.
+  parts.push(cbox(0.08, DOORWAY.h, 0.24, '#8a8272', -DOORWAY.halfW, DOORWAY.h / 2, z))
+  parts.push(cbox(0.08, DOORWAY.h, 0.24, '#8a8272', DOORWAY.halfW, DOORWAY.h / 2, z))
+  parts.push(cbox(2 * DOORWAY.halfW + 0.08, 0.08, 0.24, '#8a8272', 0, DOORWAY.h, z))
+  return mergeColored(parts)
+}
+
+const BAR = '#2a2622'
+/** The cage bars at the far end, the two fixed slabs either side of the door. */
+export function buildCage(): BufferGeometry {
+  const parts: BufferGeometry[] = []
+  const z = CAGE.z
+  for (const side of [-1, 1]) {
+    for (let x = CAGE.doorHalf + 0.05; x < HALF_W + 0.02; x += 0.14) parts.push(cbox(0.04, HEIGHT, 0.04, BAR, side * x, HEIGHT / 2, z))
   }
-  // The open door leaning to the side.
-  parts.push(ccyl(0.45, 0.06, '#7a7262', 0.72, y, z - 0.3, 'z', 10))
-  parts.push(cbox(0.14, 0.14, 0.1, '#b44a2e', 0.72, y, z - 0.37))
+  parts.push(cbox(2 * HALF_W, 0.05, 0.05, BAR, 0, 0.5, z))
+  parts.push(cbox(2 * HALF_W, 0.05, 0.05, BAR, 0, 1.3, z))
+  parts.push(cbox(2 * HALF_W, 0.05, 0.05, BAR, 0, HEIGHT - 0.05, z))
+  // Straps on the back wall.
+  for (const x of [-0.65, 0.65]) {
+    parts.push(cbox(0.5, 0.06, 0.04, '#4a4a3c', x, 1.2, Z_FAR_END + 0.05))
+    parts.push(cbox(0.5, 0.06, 0.04, '#4a4a3c', x, 0.7, Z_FAR_END + 0.05))
+  }
+  return mergeColored(parts)
+}
+
+/** The cage door, built around a hinge at x = 0 so it can swing about its own origin. Centre it at x = -doorHalf. */
+export function buildCageDoor(): BufferGeometry {
+  const parts: BufferGeometry[] = []
+  const w = CAGE.doorHalf * 2
+  for (let x = 0.04; x < w; x += 0.12) parts.push(cbox(0.04, HEIGHT, 0.04, BAR, x, HEIGHT / 2, 0))
+  parts.push(cbox(w, 0.05, 0.05, BAR, w / 2, 0.5, 0))
+  parts.push(cbox(w, 0.05, 0.05, BAR, w / 2, 1.3, 0))
+  parts.push(cbox(w, 0.05, 0.05, BAR, w / 2, HEIGHT - 0.05, 0))
   return mergeColored(parts)
 }

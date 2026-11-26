@@ -1,13 +1,12 @@
-// The corridor: shell, ribs, pipes, lockers, floor strips, the hatch and the two crew figures.
+// The corridor: shell, ribs, pipes, lockers, floor strips and the doorway to the cabin.
 import { useEffect, useMemo, useRef } from 'react'
-import { Color, DoubleSide, Matrix4, type InstancedMesh, type Mesh } from 'three'
+import { Color, DoubleSide, Matrix4, type Group, type InstancedMesh } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
 import { getPlayerBody } from '../../engine/playerRuntime'
-import { buildFigure } from '../../procgen/figure'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { CDR_POS, MIKE_POS, rails, STRIP_X, Z_FAR_END, Z_HATCH_END } from './layout'
+import { rails, STRIP_X, Z_FAR_END, Z_HATCH_END } from './layout'
 import { act3State } from './state'
-import { buildHatch, buildLockers, buildPipes, buildRibs, buildShell, SEG, SEG_COUNT } from './tunnel'
+import { buildDoorway, buildLockers, buildPipes, buildRibs, buildShell, SEG, SEG_COUNT } from './tunnel'
 
 const STRIP_PRIORITY = 700
 const DARK = new Color('#3a0a05')
@@ -25,7 +24,7 @@ function stripLevel(z: number, t: number, chase: boolean, hidden: boolean): numb
 }
 
 export function Corridor() {
-  const lockers = useRef<Mesh>(null)
+  const root = useRef<Group>(null)
   const geo = useMemo(() => {
     const railSpecs = rails()
     return {
@@ -33,7 +32,7 @@ export function Corridor() {
       ribs: buildRibs(),
       pipes: buildPipes(railSpecs),
       lockers: buildLockers(),
-      hatch: buildHatch(),
+      doorway: buildDoorway(),
     }
   }, [])
   const mats = useMemo(() => {
@@ -45,16 +44,6 @@ export function Corridor() {
     return { shell, solid, strip }
   }, [])
   const strips = useRef<InstancedMesh>(null)
-
-  const figures = useMemo(() => {
-    const cdr = buildFigure({ name: 'cdr', helmet: true })
-    cdr.root.position.set(CDR_POS.x, CDR_POS.y, CDR_POS.z)
-    cdr.root.rotation.y = Math.PI
-    const mike = buildFigure({ name: 'cmp', helmet: true })
-    mike.root.position.set(MIKE_POS.x, MIKE_POS.y + 0.25, MIKE_POS.z)
-    mike.root.rotation.y = 0
-    return { cdr, mike }
-  }, [])
 
   useEffect(() => {
     const mesh = strips.current
@@ -72,8 +61,8 @@ export function Corridor() {
     const c = new Color()
     const remove = registerSystem('act3-strips', STRIP_PRIORITY, (_dt, t) => {
       const hidden = getPlayerBody()?.mode === 'seated'
-      // The 2D slat overlay stands in for the locker door while the player is inside.
-      if (lockers.current) lockers.current.visible = !hidden
+      // After waking only the real cabin shows.
+      if (root.current) root.current.visible = act3State.world === 'dream'
       zs.forEach((z, i) => {
         const k = stripLevel(z, t, act3State.chase, hidden)
         c.copy(DARK).lerp(BRIGHT, k).multiplyScalar(0.25 + 0.75 * k)
@@ -81,20 +70,15 @@ export function Corridor() {
         mesh.setColorAt(i * 2 + 1, c)
       })
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
-      figures.cdr.setPose('standing', t * 0.3)
-      figures.cdr.root.position.y = CDR_POS.y + Math.sin(t * 0.7) * 0.04
-      figures.mike.setPose('seated', t * 0.2)
     })
     return remove
-  }, [figures])
+  }, [])
 
   useEffect(
     () => () => {
       Object.values(geo).forEach((g) => g.dispose())
-      figures.cdr.dispose()
-      figures.mike.dispose()
     },
-    [geo, figures],
+    [geo],
   )
   useEffect(
     () => () => {
@@ -104,17 +88,15 @@ export function Corridor() {
   )
 
   return (
-    <>
+    <group ref={root}>
       <mesh geometry={geo.shell} material={mats.shell} />
       <mesh geometry={geo.ribs} material={mats.solid} />
       <mesh geometry={geo.pipes} material={mats.solid} />
-      <mesh ref={lockers} geometry={geo.lockers} material={mats.solid} />
-      <mesh geometry={geo.hatch} material={mats.solid} />
+      <mesh geometry={geo.lockers} material={mats.solid} />
+      <mesh geometry={geo.doorway} material={mats.solid} />
       <instancedMesh ref={strips} args={[undefined, undefined, SEG_COUNT * 2]} material={mats.strip} frustumCulled={false}>
         <boxGeometry args={[0.1, 0.03, SEG - 0.3]} />
       </instancedMesh>
-      <primitive object={figures.cdr.root} />
-      <primitive object={figures.mike.root} />
-    </>
+    </group>
   )
 }
