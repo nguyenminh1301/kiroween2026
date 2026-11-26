@@ -10,8 +10,7 @@ function setup() {
       opts.onStart?.()
       pending.set(id, done)
     },
-    focusOn: () => log.push('focus'),
-    headOf: (n) => () => ({ x: 0, y: n === 'pad0' ? 1 : 2, z: 0 }),
+    noticeBootprints: () => log.push('prints'),
     setObjective: (k) => log.push(`obj:${k}`),
     showHint: (id) => log.push(`hint:${id}`),
     cheer: (l) => log.push(`cheer:${l}`),
@@ -27,19 +26,17 @@ function setup() {
 }
 
 describe('act 0 beats', () => {
-  it('runs the intro lines, then pad1 with the wave objective', () => {
+  it('runs the two narrator lines, then shows the wave objective, with no camera turn', () => {
     const { beats, log, end, run } = setup()
     run(0.5)
     expect(log).toEqual([])
     run(0.5)
     expect(log).toEqual(['hint:walk', 'say:act0.intro1'])
     end('act0.intro1')
-    expect(log.slice(-2)).toEqual(['say:act0.intro2', 'focus'])
+    expect(log.slice(-1)).toEqual(['say:act0.intro2'])
     end('act0.intro2')
-    // The objective shows when the pad1 line starts, not when it ends.
-    expect(log.slice(-3)).toEqual(['say:act0.pad1', 'focus', 'obj:act0Wave'])
-    end('act0.pad1')
-    expect(log.filter((l) => l === 'obj:act0Wave').length).toBe(1)
+    expect(log.slice(-1)).toEqual(['obj:act0Wave'])
+    expect(log).not.toContain('say:act0.pad1')
     expect(beats.state().waved).toBe(false)
   })
 
@@ -49,7 +46,6 @@ describe('act 0 beats', () => {
     end('act0.intro1')
     beats.wave()
     end('act0.intro2')
-    end('act0.pad1')
     expect(log).not.toContain('obj:act0Wave')
   })
 
@@ -61,21 +57,44 @@ describe('act 0 beats', () => {
     expect(log).not.toContain('say:act0.intro2')
   })
 
-  it('gives act0Board and pad2 once, then only cheers', () => {
+  it('wave gives the board objective once and says nothing by itself', () => {
     const { beats, log } = setup()
     beats.wave()
-    expect(log).toEqual(['cheer:1', 'obj:act0Board', 'say:act0.pad2', 'focus'])
+    expect(log).toEqual(['cheer:1', 'obj:act0Board'])
     beats.wave()
-    expect(log.filter((l) => l === 'say:act0.pad2').length).toBe(1)
     expect(log.filter((l) => l === 'obj:act0Board').length).toBe(1)
     expect(log.filter((l) => l === 'cheer:1').length).toBe(2)
   })
 
-  it('says pad3 once on entering the room', () => {
-    const { beats, log } = setup()
+  it('crew speak only when talked to, and entering the room says nothing', () => {
+    const { beats, log, end } = setup()
     beats.enterRoom()
-    beats.enterRoom()
+    expect(log.some((l) => l.startsWith('say:'))).toBe(false)
+    beats.talk('pad1')
+    beats.talk('pad1')
     expect(log.filter((l) => l === 'say:act0.pad3').length).toBe(1)
+    expect(log).toContain('prints')
+    end('act0.pad3')
+    beats.talk('pad1')
+    expect(log.filter((l) => l === 'say:act0.pad3').length).toBe(2)
+  })
+
+  it('the walkway crew say a different line after the wave', () => {
+    const { beats, log, end } = setup()
+    beats.talk('pad0')
+    expect(log.at(-1)).toBe('say:act0.pad1')
+    end('act0.pad1')
+    beats.wave()
+    beats.talk('pad0')
+    expect(log.at(-1)).toBe('say:act0.pad2')
+  })
+
+  it('can board without talking to anyone', () => {
+    const { beats, log, end } = setup()
+    beats.board()
+    end('act0.board')
+    expect(log.at(-1)).toBe('complete')
+    expect(log.some((l) => l.startsWith('say:act0.pad'))).toBe(false)
   })
 
   it('cheers every 9 s, 7 s after the wave, and stops in the room', () => {

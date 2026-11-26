@@ -34,7 +34,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 
 ## Act 0 test
 
-`e2e/act0.mjs` loads `act0-pad` and checks draw calls and triangles at the start. It waits for the wave objective, looks down over the right railing (target is WAVE), presses E, and checks the objective becomes the boarding line. It walks into the White Room with real W key presses, checks pad3 was said and `extra-bootprints` was seen, aims at the hatch, presses E and waits for `act1-launch`. Screenshots go to `e2e/shots/act0-start.png`, `act0-wave.png` and `act0-room.png`. `npm run e2e` runs it last.
+`e2e/act0.mjs` loads `act0-pad` and checks draw calls and triangles at the start. It waits for the wave objective, looks down over the right railing (target is WAVE), presses E, and checks the objective becomes the boarding line. It walks into the White Room with real W key presses, checks nothing was said and the view never turned, looks at Gunter (verb TALK), presses E, checks the boot print line and `extra-bootprints`, aims at the hatch, presses E and waits for `act1-launch`. Screenshots go to `e2e/shots/act0-start.png`, `act0-wave.png` and `act0-room.png`. `npm run e2e` runs it last.
 
 ## Act 4 test
 

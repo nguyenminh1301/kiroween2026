@@ -11,7 +11,6 @@ import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { gameStore } from '../../engine/store'
 import { focus } from '../../interaction/Focus'
 import { registerInteractable, registerSighting } from '../../interaction/interactables'
-import { headOf } from '../../procgen/anchors'
 import { showHint } from '../../ui/hints'
 import type { Vec3 } from '../../types'
 import { createBeats, type BeatDeps } from './beats'
@@ -73,8 +72,7 @@ export function startAct0(): void {
         })
     },
     setBeat: (n) => radio.setBeat(n),
-    focusOn: (target, seconds) => focus.focusOn(target, seconds),
-    headOf,
+    noticeBootprints: () => gameStore.getState().addAnomalySeen(BOOTPRINT_ANOMALY.id),
     setObjective: (key) => gameStore.getState().setObjective(key ? CHECKLISTS[key] : null),
     showHint: (id) => void showHint(id),
     cheer(level) {
@@ -106,6 +104,19 @@ export function startAct0(): void {
     enabled: () => !beats.state().boarded,
     use: () => beats.board(),
   })
+  const talkTo = (who: 'pad0' | 'pad1', at: Vec3): void => {
+    registerInteractable({
+      id: `act0:talk-${who}`,
+      verb: 'TALK',
+      position: { x: at.x, y: 1.3, z: at.z },
+      radius: 0.5,
+      reach: 2.6,
+      enabled: () => !beats.state().boarded,
+      use: () => beats.talk(who),
+    })
+  }
+  talkTo('pad0', PAD0_POS)
+  talkTo('pad1', PAD1_POS)
   registerSighting({ ...BOOTPRINT_ANOMALY })
 
   addSystem(

@@ -1,6 +1,5 @@
 // The act 0 beat machine. Pure: lines, objectives, camera turns and sounds are injected,
 // so a test can drive it on a fake clock. No Three.js or React imports.
-import type { Vec3 } from '../../types'
 import { cheerPeriod } from './crowdLogic'
 
 export type ObjectiveKey = 'act0Wave' | 'act0Board'
@@ -18,8 +17,8 @@ export interface BeatDeps {
   say(id: string, opts: SayOptions, done: () => void): void
   /** A new beat started: queued lines of earlier beats are dropped. */
   setBeat?(beat: number): void
-  focusOn(target: Vec3 | (() => Vec3), seconds?: number): void
-  headOf(name: string): () => Vec3
+  /** The player talked to the crew member in the White Room: they noticed the extra boot prints. */
+  noticeBootprints(): void
   setObjective(key: ObjectiveKey | null): void
   showHint(id: string): void
   /** Play the cheer and raise the crowd excitement to at least `level`. */
@@ -29,14 +28,14 @@ export interface BeatDeps {
 }
 
 export const START_DELAY = 0.8
-export const CROWD_FOCUS: Vec3 = { x: 110, y: -75, z: -10 }
-export const ROOM_FOCUS: Vec3 = { x: 0, y: 1.3, z: -7 }
 export const PERIODIC_CHEER = 0.7
 
 export interface Beats {
   tick(dt: number): void
   /** The player used WAVE. */
   wave(): void
+  /** The player pressed E on a crew member. */
+  talk(who: 'pad0' | 'pad1'): void
   /** The player is inside the White Room. Call every frame or on change. */
   enterRoom(): void
   /** The player used the hatch. */
@@ -52,6 +51,7 @@ export function createBeats(deps: BeatDeps): Beats {
   let boarded = false
   let cheerLeft = cheerPeriod(false)
   let beat = 0
+  const talkUntil = new Map<string, number>()
   const go = (n: number): void => {
     beat = n
     deps.setBeat?.(n)
@@ -68,14 +68,9 @@ export function createBeats(deps: BeatDeps): Beats {
     started = true
     deps.showHint('walk')
     say('act0.intro1', {}, () =>
-      say('act0.intro2', { onStart: () => deps.focusOn(CROWD_FOCUS) }, () =>
-        say('act0.pad1', {
-          onStart: () => {
-            deps.focusOn(deps.headOf('pad0'))
-            if (!waved) deps.setObjective('act0Wave')
-          },
-        }),
-      ),
+      say('act0.intro2', {}, () => {
+        if (!waved) deps.setObjective('act0Wave')
+      }),
     )
   }
 
@@ -99,13 +94,18 @@ export function createBeats(deps: BeatDeps): Beats {
       go(1)
       cheerLeft = cheerPeriod(true)
       deps.setObjective('act0Board')
-      say('act0.pad2', { onStart: () => deps.focusOn(ROOM_FOCUS) })
+    },
+    talk(who) {
+      if (boarded || (talkUntil.get(who) ?? -1) > clock) return
+      // Block repeat presses while the line plays. A dropped line never calls back, so it also expires.
+      talkUntil.set(who, clock + 12)
+      const id = who === 'pad1' ? 'act0.pad3' : waved ? 'act0.pad2' : 'act0.pad1'
+      say(id, { onStart: who === 'pad1' ? deps.noticeBootprints : undefined }, () => talkUntil.delete(who))
     },
     enterRoom() {
       if (inRoom || boarded) return
       inRoom = true
       go(2)
-      say('act0.pad3', { onStart: () => deps.focusOn(deps.headOf('pad1')) })
     },
     board() {
       if (boarded) return
