@@ -1,6 +1,8 @@
 // What a cabin window shows, painted into a small RGBA buffer that becomes the window's texture.
-// Because the view is the window's own quad, nothing in it (sky, stars, Earth, plasma, sea) can leave the frame.
+// Every texel is looked up by its world direction, so all windows show one outside world. The view is the
+// window's own quad, so nothing in it can leave the frame.
 // Pure pixels: no Three.js, no canvas.
+import { earthDisc, starAt } from './cabin/windows'
 import { drawEarthCloud } from './textures/earthCloud'
 import type { PixelData } from './textures/helpers'
 
@@ -20,8 +22,8 @@ export interface WindowViewSpec {
   w: number
   h: number
   round: boolean
-  /** Earth disc centre as fractions of the window, y down, and radius as a fraction of its width. */
-  earth: { cx: number; cy: number; r: number }
+  /** The direction from the eye through each texel (3 floats, row by row from the top), see cabin/windows.ts. */
+  dirs: Float32Array
   seed: number
 }
 
@@ -46,7 +48,7 @@ function put(buf: Uint8Array, x: number, yTop: number, w: number, h: number, r: 
 
 /** Paints one frame of a window view into `buf` (w * h * 4 bytes). */
 export function paintWindowView(buf: Uint8Array, spec: WindowViewSpec, st: WindowViewState): void {
-  const { w, h, seed } = spec
+  const { w, h, seed, dirs } = spec
   const [sr, sg, sb] = st.sky
   const dark = Math.min(1, Math.max(0, (0.45 * 255 * 3 - (sr + sg + sb)) / (0.3 * 255 * 3)))
   if (st.earth && !earthPixels) earthPixels = drawEarthCloud(3)
@@ -75,9 +77,10 @@ export function paintWindowView(buf: Uint8Array, spec: WindowViewSpec, st: Windo
           b = Math.min(255, b + 30)
         }
       } else if (st.mode === 'sea') {
-        const horizon = 0.5 + Math.sin(st.t * 0.5) * 0.02
-        if (v > horizon) {
-          const depth = (v - horizon) / (1 - horizon)
+        // The horizon is at elevation zero, so it lines up across windows.
+        const elev = dirs[(y * w + x) * 3 + 1] + Math.sin(st.t * 0.5) * 0.01
+        if (elev < 0) {
+          const depth = Math.min(1, -elev * 5)
           r = mix(70, 28, depth)
           g = mix(120, 78, depth)
           b = mix(150, 112, depth)
@@ -88,23 +91,27 @@ export function paintWindowView(buf: Uint8Array, spec: WindowViewSpec, st: Windo
             b = 240
           }
         } else {
-          r = mix(sr, 225, v / horizon * 0.25)
-          g = mix(sg, 232, v / horizon * 0.25)
-          b = mix(sb, 238, v / horizon * 0.25)
+          const haze = Math.max(0, 1 - elev * 6) * 0.25
+          r = mix(sr, 225, haze)
+          g = mix(sg, 232, haze)
+          b = mix(sb, 238, haze)
         }
-      } else if (dark > 0 && hash(x, y, seed) > 0.985) {
-        const s = 150 + hash(y, x, seed + 1) * 105
-        r = mix(r, s, dark)
-        g = mix(g, s, dark)
-        b = mix(b, s, dark)
+      } else if (dark > 0) {
+        const star = starAt({ x: dirs[(y * w + x) * 3], y: dirs[(y * w + x) * 3 + 1], z: dirs[(y * w + x) * 3 + 2] })
+        if (star > 0) {
+          const s = 110 + star * 145
+          r = mix(r, s, dark)
+          g = mix(g, s, dark)
+          b = mix(b, s, dark)
+        }
       }
       if (st.earth && st.mode === 'sky' && earthPixels) {
-        const e = spec.earth
-        // The disc radius is a fraction of the width; y is scaled by the aspect so it stays round.
-        const dx = (u - e.cx) / e.r
-        const dy = ((v - e.cy) * h) / (e.r * w)
-        const d2 = dx * dx + dy * dy
-        if (d2 <= 1) {
+        const i3 = (y * w + x) * 3
+        const disc = earthDisc({ x: dirs[i3], y: dirs[i3 + 1], z: dirs[i3 + 2] })
+        if (disc) {
+          const dx = disc.a
+          const dy = -disc.b
+          const d2 = dx * dx + dy * dy
           const tx = Math.floor((dx * 0.5 + 0.5) * (earthPixels.width - 1))
           const ty = Math.floor((dy * 0.5 + 0.5) * (earthPixels.height - 1))
           const i = (ty * earthPixels.width + tx) * 4

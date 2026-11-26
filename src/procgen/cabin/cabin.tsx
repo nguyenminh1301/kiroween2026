@@ -4,8 +4,10 @@ import {
   Color,
   DataTexture,
   DoubleSide,
-  Euler,
   Group,
+  Matrix4,
+  Quaternion,
+  Vector3,
   MeshBasicMaterial,
   NearestFilter,
   PlaneGeometry,
@@ -17,52 +19,40 @@ import { registerSystem } from '../../engine/frameDriver'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { paintWindowView } from '../windowView'
 import { buildFigure } from '../../procgen/figure'
-import { buildCouches, buildShell, WALL_SLOPE, wallRadius } from './cabinGeo'
+import { buildCouches, buildShell } from './cabinGeo'
 import { COUCH_X, SHELL_SIDES } from './layout'
+import { viewDirections, windowDefs } from './windows'
 import { cabinState } from './cabinState'
 
 const WINDOW_PRIORITY = 650
 
-interface WindowSpec {
-  key: 'hatch' | 'right' | 'left'
-  position: [number, number, number]
-  rotation: Euler
-  w: number
-  h: number
-  round: boolean
-}
-
-function windowSpecs(): WindowSpec[] {
-  const y = 1.2
-  const apothem = wallRadius(y) * Math.cos(Math.PI / SHELL_SIDES) - 0.04
-  return [
-    { key: 'hatch', position: [0, 2.57, 0], rotation: new Euler(Math.PI / 2, 0, 0), w: 0.84, h: 0.84, round: true },
-    { key: 'right', position: [apothem, y, 0], rotation: new Euler(-WALL_SLOPE, -Math.PI / 2, 0, 'YXZ'), w: 0.8, h: 0.6, round: false },
-    { key: 'left', position: [-apothem, y, 0], rotation: new Euler(-WALL_SLOPE, Math.PI / 2, 0, 'YXZ'), w: 0.8, h: 0.6, round: false },
-  ]
-}
-
-const VIEW_W = 64
-
-/** Earth disc per window: centre as fractions of the window (y down), radius as a fraction of its width. */
-const EARTH_SPEC: Record<WindowSpec['key'], { cx: number; cy: number; r: number }> = {
-  hatch: { cx: 0.6, cy: 0.55, r: 0.24 },
-  right: { cx: 0.65, cy: 0.57, r: 0.35 },
-  left: { cx: 0.65, cy: 0.42, r: 0.2 },
-}
+/** Texture width for a window: small windows get fewer texels. */
+const viewWidth = (w: number): number => (w > 0.5 ? 64 : 32)
 
 /**
- * Windows. Each one shows its own small texture (sky, stars, Earth, plasma or sea) on the window quad,
- * so nothing can reach past the frame.
+ * Windows. Each one is a quad flush with the shell. Its texture is painted from one shared outside world by
+ * direction (see windows.ts), so the Earth shows only where it really is, and nothing reaches past the frame.
  */
 function Windows() {
-  const specs = useMemo(windowSpecs, [])
+  const specs = useMemo(windowDefs, [])
+  const poses = useMemo(
+    () =>
+      specs.map((d) => {
+        const m = new Matrix4().makeBasis(
+          new Vector3(d.x.x, d.x.y, d.x.z),
+          new Vector3(d.y.x, d.y.y, d.y.z),
+          new Vector3(d.z.x, d.z.y, d.z.z),
+        )
+        return new Quaternion().setFromRotationMatrix(m)
+      }),
+    [specs],
+  )
   const frameMat = useMemo(() => createMaterial({ color: '#2c2820' }), [])
   const views = useMemo(
     () =>
       specs.map((s, i) => {
-        const w = VIEW_W
-        const h = s.round ? VIEW_W : Math.round((VIEW_W * s.h) / s.w)
+        const w = viewWidth(s.w)
+        const h = s.round ? w : Math.round((w * s.h) / s.w)
         const buf = new Uint8Array(w * h * 4)
         const tex = new DataTexture(buf, w, h, RGBAFormat, UnsignedByteType)
         tex.magFilter = NearestFilter
@@ -70,12 +60,12 @@ function Windows() {
         tex.generateMipmaps = false
         tex.colorSpace = SRGBColorSpace
         const mat = new MeshBasicMaterial({ map: tex, fog: false, side: DoubleSide })
-        return { buf, tex, mat, spec: { w, h, round: s.round, earth: EARTH_SPEC[s.key], seed: 40 + i } }
+        return { buf, tex, mat, spec: { w, h, round: s.round, dirs: viewDirections(s, w, h), seed: 40 + i } }
       }),
     [specs],
   )
   const quads = useMemo(() => specs.map((s) => (s.round ? new CircleGeometry(s.w / 2, 12) : new PlaneGeometry(s.w, s.h))), [specs])
-  const frames = useMemo(() => specs.map((s) => (s.round ? new CircleGeometry(s.w / 2 + 0.08, 12) : new PlaneGeometry(s.w + 0.14, s.h + 0.14))), [specs])
+  const frames = useMemo(() => specs.map((s) => (s.round ? new CircleGeometry(s.w / 2 + 0.06, 12) : new PlaneGeometry(s.w + 0.1, s.h + 0.1))), [specs])
   const eased = useRef(new Color(cabinState.sky))
   const target = useMemo(() => new Color(), [])
 
@@ -119,8 +109,8 @@ function Windows() {
   return (
     <>
       {specs.map((s, i) => (
-        <group key={s.key} position={s.position} rotation={s.rotation}>
-          <mesh geometry={frames[i]} material={frameMat} position={[0, 0, -0.01]} />
+        <group key={s.key} position={[s.center.x, s.center.y, s.center.z]} quaternion={poses[i]}>
+          <mesh geometry={frames[i]} material={frameMat} position={[0, 0, -0.004]} />
           <mesh geometry={quads[i]} material={views[i].mat} />
         </group>
       ))}

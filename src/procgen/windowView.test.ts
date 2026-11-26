@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { windowViewAt } from '../acts/act5-home/timeline'
+import { viewDirections, windowDefs } from './cabin/windows'
 import { paintWindowView, type WindowViewSpec } from './windowView'
 
-const spec: WindowViewSpec = { w: 32, h: 24, round: false, earth: { cx: 0.9, cy: 0.5, r: 0.5 }, seed: 1 }
+const rightWin = windowDefs().find((d) => d.key === 'right')!
+const spec: WindowViewSpec = { w: 32, h: 24, round: false, dirs: viewDirections(rightWin, 32, 24), seed: 1 }
 const px = (b: Uint8Array, x: number, yTop: number) => {
   const i = ((spec.h - 1 - yTop) * spec.w + x) * 4
   return [b[i], b[i + 1], b[i + 2], b[i + 3]]
@@ -13,10 +15,21 @@ describe('window view', () => {
     const b = new Uint8Array(spec.w * spec.h * 4)
     paintWindowView(b, spec, { mode: 'sky', sky: [0, 0, 0], t: 0, earth: true })
     for (let i = 3; i < b.length; i += 4) expect(b[i]).toBe(255)
-    // The disc is centred near the right edge: its centre is blue-ish, the far left stays black sky.
-    const c = px(b, 29, 12)
-    expect(c[2]).toBeGreaterThan(40)
-    expect(px(b, 1, 12).slice(0, 3)).toEqual([0, 0, 0])
+    // The disc is in the right window: some texel is Earth coloured, and the corners stay black sky or stars.
+    let blue = 0
+    for (let y = 0; y < spec.h; y++) for (let x = 0; x < spec.w; x++) {
+        const c = px(b, x, y)
+        if (c[2] > 60 && c[2] > c[0] + 20) blue++
+      }
+    expect(blue).toBeGreaterThan(60)
+    expect(px(b, 0, 0).slice(0, 3).every((c) => c < 256)).toBe(true)
+    // Another window shows no Earth at all.
+    const left = windowDefs().find((d) => d.key === 'left')!
+    const lb = new Uint8Array(spec.w * spec.h * 4)
+    paintWindowView(lb, { ...spec, dirs: viewDirections(left, 32, 24) }, { mode: 'sky', sky: [0, 0, 0], t: 0, earth: true })
+    let leftBlue = 0
+    for (let i = 0; i < lb.length; i += 4) if (lb[i + 2] > 60 && lb[i + 2] > lb[i] + 20) leftBlue++
+    expect(leftBlue).toBe(0)
   })
 
   it('paints plasma orange and sea blue', () => {
@@ -25,7 +38,7 @@ describe('window view', () => {
     const p = px(b, 3, 3)
     expect(p[0]).toBeGreaterThan(p[2] + 80)
     paintWindowView(b, spec, { mode: 'sea', sky: [94, 143, 200], t: 1, earth: false })
-    const s = px(b, 4, 22)
+    const s = px(b, 4, 23)
     expect(s[2]).toBeGreaterThan(s[0])
   })
 

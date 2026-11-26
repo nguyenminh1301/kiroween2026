@@ -6,7 +6,7 @@ Decisions:
 - Escape tower is built in `procgen/escapeTower.ts` from thin bars, merged into two geometries (white, dark).
 - Shake is a pure function in `act1-launch/shake.ts` (envelope, noise, caps) tested for the caps.
 - Plume: pure `plume.ts` gives per-frame length, trench fraction and flicker. `outside.tsx` renders five additive cones plus glow sprites. Steam clouds scale with trench fraction.
-- Windows: one `windowView` pure module maps a window's direction to what it shows. Windows are drawn with a stencil mask cut to each opening. A world-direction sky is shared by all windows.
+- Windows: `procgen/cabin/windows.ts` lays five quads flush on the shell faces and gives every texel its direction from the eye. `windowView.ts` paints by that direction (stars, Earth disc, sea horizon), so all windows share one world. The quad is the clip shape, so nothing leaves the opening. I chose this over a stencil because the render pipeline has no stencil buffer today and the change could not be checked on screen here.
 - Act 2 repairs are three small state machines in `repairs.ts`; the old breaker, pen and flash logic goes. Bedtime lives in `sleepTimer.ts` (fade 2 s, four breathing rhythms, six second notice).
 - UI wrapping is CSS: `max-width: 90vw`, `-webkit-line-clamp: 3`, font size with `clamp()` and `vw`.
 - New lines have no audio file, so they play as subtitles with the speaker filter on silence.
