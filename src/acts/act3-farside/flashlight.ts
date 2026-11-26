@@ -2,7 +2,7 @@
 import type { Box } from '../../engine/collision'
 import type { Vec3 } from '../../types'
 
-export const FLASH_FULL = 14
+export const FLASH_FULL = 30
 
 /** Distance along a ray to the nearest box, or `max` when nothing is hit. Slab test. */
 export function rayBoxDistance(o: Vec3, d: Vec3, boxes: Box[], max: number): number {

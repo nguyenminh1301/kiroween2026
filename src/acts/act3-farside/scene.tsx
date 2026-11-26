@@ -12,7 +12,7 @@ import { collisionBoxes, CDR_POS, MIKE_POS } from './layout'
 import { flashIntensity, rayBoxDistance } from './flashlight'
 import { Creature } from './creature'
 
-const FOG = { color: '#000000', near: 2, far: 13 }
+const FOG = { color: '#000000', near: 4, far: 24 }
 const FLASH_PRIORITY = 650
 const AIM = 4
 const BEAM_MAX = 12
@@ -24,7 +24,7 @@ const figureBox = (p: { x: number; y: number; z: number }) => ({
 /** The flashlight: one spot light riding on the camera, aimed 4 m ahead. */
 function Flashlight() {
   const light = useMemo(() => {
-    const l = new SpotLight('#f3e7d3', 14, 14, Math.PI / 7, 0.55, 1.2)
+    const l = new SpotLight('#f3e7d3', 14, 16, Math.PI / 6, 0.6, 1.2)
     l.target = new Object3D()
     return l
   }, [])
