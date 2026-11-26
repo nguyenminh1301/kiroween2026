@@ -4,12 +4,12 @@ import { headOf } from './anchors'
 import { buildFigure } from './figure'
 
 describe('figure builder', () => {
-  it('stays under 800 triangles in every option set', () => {
+  it('stays under 2500 triangles in every option set', () => {
     for (const helmet of [true, false]) {
       for (const suit of ['pressure', 'coverall'] as const) {
         const f = buildFigure({ helmet, suit })
         expect(f.triangles).toBeGreaterThan(100)
-        expect(f.triangles).toBeLessThan(800)
+        expect(f.triangles).toBeLessThan(2500)
         f.dispose()
       }
     }

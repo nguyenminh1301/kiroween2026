@@ -90,10 +90,10 @@ function triangle(scale: number): BufferGeometry {
 function sleeperBag(x: number, z: number, wallSign: number): BufferGeometry {
   const parts: BufferGeometry[] = [
     // Zipped up to the chest.
-    cbox(0.5, 1.2, 0.5, '#8c8a78', x, 0.75, z),
-    cbox(0.52, 0.06, 0.52, '#6d6a5a', x, 0.35, z),
-    cbox(0.52, 0.06, 0.52, '#6d6a5a', x, 0.9, z),
-    cbox(0.52, 0.05, 0.52, '#5d5a4c', x, 1.33, z),
+    ccyl(0.25, 1.2, '#8c8a78', x, 0.75, z, 'y', 10),
+    ccyl(0.27, 0.06, '#6d6a5a', x, 0.35, z, 'y', 10),
+    ccyl(0.27, 0.06, '#6d6a5a', x, 0.9, z, 'y', 10),
+    ccyl(0.27, 0.1, '#a09d89', x, 1.33, z, 'y', 10),
     cbox(0.03, 1.0, 0.04, '#b9b5a2', x - wallSign * 0.26, 0.85, z),
   ]
   return mergeColored(parts)
