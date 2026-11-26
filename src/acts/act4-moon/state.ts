@@ -1,5 +1,6 @@
 // Mutable act 4 state read by the scene each frame. Plain object, never React state.
 import type { Item, TaskState } from './tasks'
+import { createNeil, type NeilState } from './neil'
 import { createTasks } from './tasks'
 
 export const act4State = {
@@ -20,6 +21,7 @@ export const act4State = {
   blast: -1,
   /** The climb hands at the bottom of the view: shown on the rails, moving with `phase`. */
   climb: { hands: false, phase: 0 },
+  neil: createNeil() as NeilState,
   tasks: createTasks() as TaskState,
   carrying: null as Item | null,
 }
@@ -35,6 +37,7 @@ export function resetAct4State(): void {
   act4State.flagTip = 0
   act4State.blast = -1
   act4State.climb = { hands: false, phase: 0 }
+  act4State.neil = createNeil()
   act4State.tasks = createTasks()
   act4State.carrying = null
 }

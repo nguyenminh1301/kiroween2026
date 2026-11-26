@@ -216,23 +216,41 @@ export function buildAscent(): BufferGeometry {
 }
 
 /**
- * The flag: a vertical pole with a horizontal top bar, and a stiff cloth hanging from the bar.
- * The cloth is 0.9 m by 0.6 m, blue, with a white and blue Earth disc in the middle.
- * Origin at the base of the pole; the bar and cloth run along +x.
+ * The United States flag: a vertical pole with a horizontal rod along the top edge, and a stiff cloth hanging
+ * from the rod. The cloth is 0.9 m by 0.6 m: thirteen red and white stripes, a blue canton with white stars.
+ * Origin at the base of the pole; the rod and cloth run along +x.
  */
 export const FLAG_POLE_HEIGHT = 2
 export const FLAG_CLOTH = { w: 0.9, h: 0.6 }
+export const FLAG_RED = '#b22234'
+export const FLAG_WHITE = '#f4f0e6'
+export const FLAG_BLUE = '#3c3b6e'
+export const FLAG_STRIPES = 13
 export function buildFlag(): BufferGeometry {
   const top = FLAG_POLE_HEIGHT
-  const cx = FLAG_CLOTH.w / 2 + 0.03
-  const cy = top - 0.03 - FLAG_CLOTH.h / 2
-  return mergeColored([
+  const { w, h } = FLAG_CLOTH
+  const x0 = 0.03
+  const yTop = top - 0.03
+  const stripe = h / FLAG_STRIPES
+  const parts: BufferGeometry[] = [
     ccyl(0.025, top, '#d8d8d4', 0, top / 2, 0, 'y', 6),
-    cbox(FLAG_CLOTH.w + 0.06, 0.03, 0.03, '#d8d8d4', cx, top, 0),
-    cbox(FLAG_CLOTH.w, FLAG_CLOTH.h, 0.012, '#2F5F8F', cx, cy, 0),
-    ccyl(0.17, 0.016, '#f2f4f6', cx, cy, 0.004, 'z', 12),
-    ccyl(0.11, 0.02, '#4f7fb5', cx - 0.01, cy, 0.006, 'z', 10),
-  ])
+    // The rod along the top edge keeps the cloth spread.
+    cbox(w + 0.06, 0.03, 0.03, '#d8d8d4', x0 + w / 2, top, 0),
+  ]
+  for (let i = 0; i < FLAG_STRIPES; i++) parts.push(cbox(w, stripe, 0.012, i % 2 ? FLAG_WHITE : FLAG_RED, x0 + w / 2, yTop - stripe * (i + 0.5), 0))
+  const cw = w * 0.4
+  const ch = stripe * 7
+  parts.push(cbox(cw, ch, 0.014, FLAG_BLUE, x0 + cw / 2, yTop - ch / 2, 0.002))
+  // Five rows of stars, alternating five and four.
+  for (let r = 0; r < 5; r++) {
+    const n = r % 2 ? 4 : 5
+    for (let c = 0; c < n; c++) {
+      const sx = x0 + cw * ((r % 2 ? c + 1 : c + 0.5) / 5.0) + (r % 2 ? 0 : 0)
+      const sy = yTop - ch * ((r + 0.6) / 5.2)
+      parts.push(cbox(0.022, 0.022, 0.016, FLAG_WHITE, sx, sy, 0.004))
+    }
+  }
+  return mergeColored(parts)
 }
 
 /** The rolled flag kit, leaning by the ladder. Origin at its centre. */

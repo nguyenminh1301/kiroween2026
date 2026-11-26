@@ -199,6 +199,7 @@ export function FxLayer() {
   const flash = useFx((s) => s.flash)
   const slit = useFx((s) => s.slit)
   const blackout = useFx((s) => s.blackout)
+  const whiteout = useFx((s) => s.whiteout)
   const flashes = useFx((s) => s.flashes)
   const caption = useFx((s) => s.caption)
   const card = useFx((s) => s.card)
@@ -210,6 +211,7 @@ export function FxLayer() {
       {edge > 0 ? <div className="fx-edge" style={{ opacity: edge }} data-testid="edge" /> : null}
       {slit ? <div className="fx-slit" data-testid="slit" /> : null}
       <div className="fx-black" style={{ opacity: blackout }} />
+      {whiteout > 0 ? <div className="fx-white" style={{ opacity: whiteout }} /> : null}
       {flash ? (
         <div className="fx-caught" data-testid="caught">
           <p>{flash}</p>

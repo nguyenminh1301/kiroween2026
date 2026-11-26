@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { poseFor } from './figurePose'
+import { WALK_RATE, poseFor } from './figurePose'
 
 describe('working pose', () => {
   it('loops every 9 s and keeps every angle finite', () => {
@@ -26,5 +26,26 @@ describe('hanging pose', () => {
       expect(Math.abs(p.rootRotZ)).toBeLessThan(0.1)
       for (const r of Object.values(p.bones)) for (const v of r) expect(Number.isFinite(v)).toBe(true)
     }
+  })
+})
+
+describe('surface poses', () => {
+  it('keeps every angle finite and the walk loops with its rate', () => {
+    for (const k of ['walk', 'kneel', 'scoop', 'write', 'camera', 'ladder'] as const) {
+      for (let t = 0; t < 6; t += 0.31) {
+        const p = poseFor(k, t)
+        for (const r of Object.values(p.bones)) for (const v of r) expect(Number.isFinite(v)).toBe(true)
+      }
+    }
+    const a = poseFor('walk', 0.3)
+    const b = poseFor('walk', 0.3 + 1 / WALK_RATE)
+    expect(b.bones.hipL[0]).toBeCloseTo(a.bones.hipL[0], 6)
+  })
+  it('hops: the body leaves the ground in the walk, lowered when kneeling', () => {
+    expect(Math.max(...[0.1, 0.3, 0.5, 0.7].map((t) => poseFor('walk', t).rootY))).toBeGreaterThan(0.05)
+    expect(poseFor('kneel', 1).rootY).toBeLessThan(-0.3)
+  })
+  it('lifts the camera as amount grows', () => {
+    expect(poseFor('camera', 0, 1).bones.shoulderL[0]).toBeLessThan(poseFor('camera', 0, 0).bones.shoulderL[0])
   })
 })

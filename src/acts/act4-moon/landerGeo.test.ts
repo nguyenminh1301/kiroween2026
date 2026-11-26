@@ -1,6 +1,6 @@
 import { Box3, Color } from 'three'
 import { describe, expect, it } from 'vitest'
-import { FLAG_CLOTH, FLAG_POLE_HEIGHT, buildAscent, buildDescentBody, buildFlag, buildLegs } from './landerGeo'
+import { FLAG_BLUE, FLAG_CLOTH, FLAG_RED, FLAG_WHITE, FLAG_POLE_HEIGHT, buildAscent, buildDescentBody, buildFlag, buildLegs } from './landerGeo'
 import { BELL_EXIT_RADIUS, BELL_EXIT_Y, FOOTPAD_DIST, STAGE_TOP } from './layout'
 
 describe('flag', () => {
@@ -16,7 +16,7 @@ describe('flag', () => {
 
   it('hangs the cloth from the top bar, below it', () => {
     expect(FLAG_CLOTH.h).toBeLessThan(FLAG_POLE_HEIGHT / 2)
-    const blue = new Color('#2F5F8F')
+    const blue = new Color(FLAG_BLUE)
     const col = g.attributes.color
     const pos = g.attributes.position
     let blueTop = -Infinity
@@ -28,7 +28,29 @@ describe('flag', () => {
       }
     }
     expect(blueTop).toBeLessThan(FLAG_POLE_HEIGHT)
-    expect(blueTop - blueBottom).toBeCloseTo(FLAG_CLOTH.h, 1)
+    expect(blueTop - blueBottom).toBeCloseTo((FLAG_CLOTH.h / 13) * 7, 1)
+  })
+})
+
+describe('flag stripes and stars', () => {
+  const count = (hex: string): number => {
+    const g = buildFlag()
+    const c = new Color(hex)
+    const col = g.attributes.color
+    let n = 0
+    for (let i = 0; i < col.count; i++) if (Math.abs(col.getX(i) - c.r) < 0.01 && Math.abs(col.getY(i) - c.g) < 0.01 && Math.abs(col.getZ(i) - c.b) < 0.01) n++
+    return n
+  }
+  it('has seven red stripes, six white stripes plus stars on a blue canton', () => {
+    const perBox = 36
+    expect(count(FLAG_RED) / perBox).toBe(7)
+    // Six white stripes and 23 star boxes.
+    expect(count(FLAG_WHITE) / perBox).toBe(6 + 23)
+  })
+  it('keeps the horizontal rod along the top edge', () => {
+    const g = buildFlag()
+    g.computeBoundingBox()
+    expect(g.boundingBox!.max.y).toBeCloseTo(FLAG_POLE_HEIGHT + 0.015, 2)
   })
 })
 

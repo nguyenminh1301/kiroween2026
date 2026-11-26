@@ -129,6 +129,8 @@ export interface DescentHooks {
   say(id: string): void
   dsky(r: DskyReadout): void
   beep(): void
+  /** A real moment of the flight happened in front of the player. */
+  moment(id: string): void
 }
 
 const r = (prog: number, verb: number, noun: number, alarm: number | null): DskyReadout => ({ prog, verb, noun, alarm })
@@ -144,6 +146,7 @@ export function descentEvents(h: DescentHooks): TimelineEvent[] {
         h.dsky(r(63, 16, 68, 1202))
         h.beep()
         h.say('act4.alarm')
+        h.moment('alarm-1202')
       },
     },
     {
@@ -169,5 +172,13 @@ export function descentEvents(h: DescentHooks): TimelineEvent[] {
     },
     { at: 17, run: () => h.say('act4.thirty') },
     { at: 21.5, run: () => h.say('act4.contact') },
+    {
+      at: 22.6,
+      run: () => {
+        h.say('act4.landed')
+        h.say('act4.landedok')
+        h.moment('eagle-landed')
+      },
+    },
   ]
 }

@@ -81,9 +81,9 @@ describe('liftoff', () => {
       ),
     }
     dueEvents(def, 0, 0, 1.4).forEach((e) => e.run())
-    expect(log).toEqual(['say:act4.liftoff:urgent', 'readout:true', 'anomaly:burn-baby-burn'])
+    expect(log).toEqual(['say:act4.liftoff:urgent', 'readout:true', 'anomaly:burn-routine'])
     log.length = 0
     dueEvents(def, 2, 1.4, 14).forEach((e) => e.run())
-    expect(log).toEqual(['say:act4.flagdown', 'readout:false', 'say:act4.columbia', 'end'])
+    expect(log).toEqual(['say:act4.flagdown', 'anomaly:flag-knocked', 'readout:false', 'say:act4.columbia', 'end'])
   })
 })

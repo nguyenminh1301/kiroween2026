@@ -1,5 +1,5 @@
 // Pure pose math for the figure. No Three.js imports. A figure faces +z, so its right side is -x.
-export type PoseKind = 'standing' | 'wave' | 'seated' | 'working' | 'resting' | 'sleeping' | 'hanging'
+export type PoseKind = 'standing' | 'wave' | 'seated' | 'working' | 'resting' | 'sleeping' | 'hanging' | 'walk' | 'kneel' | 'scoop' | 'write' | 'camera' | 'ladder'
 
 export type BoneName =
   | 'spine'
@@ -22,6 +22,9 @@ export interface PoseResult {
   rootRotZ: number
   bones: Record<BoneName, Rot>
 }
+
+/** Steps per second of the walk cycle (one full cycle is two steps). */
+export const WALK_RATE = 0.9
 
 const ZERO: Rot = [0, 0, 0]
 
@@ -105,6 +108,87 @@ export function poseFor(kind: PoseKind, t: number, amount = 1): PoseResult {
       p.bones.elbowR = [0.35 + Math.sin(t * 0.9 + 2) * 0.08, 0, 0]
       p.bones.hipL = [0, 0, -0.04]
       p.bones.hipR = [0, 0, 0.04]
+      break
+    }
+    case 'walk': {
+      // Low-gravity lope: a long stride, a hop on each step, arms swinging against the legs.
+      const ph = t * Math.PI * 2 * WALK_RATE
+      const sw = Math.sin(ph)
+      p.rootY = Math.abs(Math.sin(ph)) * 0.1
+      p.bones.spine = [0.12, 0, 0]
+      p.bones.hipL = [-0.6 * sw, 0, 0.04]
+      p.bones.hipR = [0.6 * sw, 0, -0.04]
+      p.bones.kneeL = [Math.max(0, -sw) * 0.9, 0, 0]
+      p.bones.kneeR = [Math.max(0, sw) * 0.9, 0, 0]
+      p.bones.shoulderL = [0.5 * sw, 0, 0.12]
+      p.bones.shoulderR = [-0.5 * sw, 0, -0.12]
+      p.bones.elbowL = [-0.3, 0, 0]
+      p.bones.elbowR = [-0.3, 0, 0]
+      break
+    }
+    case 'ladder': {
+      // Facing the rungs: hands up on the rails, legs stepping down one after the other.
+      const sw = Math.sin(t * Math.PI * 2 * 1.4)
+      p.bones.spine = [0.1, 0, 0]
+      p.bones.shoulderL = [-2.1 - 0.15 * sw, 0, 0.15]
+      p.bones.shoulderR = [-2.1 + 0.15 * sw, 0, -0.15]
+      p.bones.elbowL = [-0.4, 0, 0]
+      p.bones.elbowR = [-0.4, 0, 0]
+      p.bones.hipL = [-0.7 * Math.max(0, sw), 0, 0.04]
+      p.bones.hipR = [-0.7 * Math.max(0, -sw), 0, -0.04]
+      p.bones.kneeL = [0.8 * Math.max(0, sw), 0, 0]
+      p.bones.kneeR = [0.8 * Math.max(0, -sw), 0, 0]
+      break
+    }
+    case 'kneel': {
+      // On one knee, looking at the rocks, a hand reaching out.
+      p.rootY = -0.5
+      p.bones.spine = [0.55, 0, 0]
+      p.bones.neck = [0.35, Math.sin(t * 0.7) * 0.25, 0]
+      p.bones.hipL = [-1.2, 0, 0.05]
+      p.bones.kneeL = [1.3, 0, 0]
+      p.bones.hipR = [0.1, 0, -0.05]
+      p.bones.kneeR = [1.5, 0, 0]
+      p.bones.shoulderL = [-0.6, 0, 0.1]
+      p.bones.shoulderR = [-1.0 - Math.max(0, Math.sin(t * 1.3)) * 0.4, 0, -0.1]
+      p.bones.elbowL = [-0.4, 0, 0]
+      p.bones.elbowR = [-0.5, 0, 0]
+      break
+    }
+    case 'scoop': {
+      // Bent at the hips, the right arm drawing a scoop through the dust, the left holding a bag.
+      const sc = Math.sin(t * 2.4)
+      p.rootY = -0.2
+      p.bones.spine = [0.75, 0, 0]
+      p.bones.neck = [0.4, 0, 0]
+      p.bones.hipL = [-0.5, 0, 0.1]
+      p.bones.hipR = [-0.5, 0, -0.1]
+      p.bones.kneeL = [0.7, 0, 0]
+      p.bones.kneeR = [0.7, 0, 0]
+      p.bones.shoulderR = [-1.1 + sc * 0.35, 0, -0.1]
+      p.bones.elbowR = [-0.6 + sc * 0.3, 0, 0]
+      p.bones.shoulderL = [-0.9, 0, 0.1]
+      p.bones.elbowL = [-0.5, 0, 0]
+      break
+    }
+    case 'write': {
+      // The left forearm raised with the cuff checklist, the right hand writing on it.
+      p.bones.spine = [0.1, 0, 0]
+      p.bones.neck = [0.5, 0, 0]
+      p.bones.shoulderL = [-0.9, 0, 0.1]
+      p.bones.elbowL = [-1.4, 0, 0]
+      p.bones.shoulderR = [-0.95, 0, -0.1]
+      p.bones.elbowR = [-1.4 + Math.sin(t * 11) * 0.06, 0, 0]
+      break
+    }
+    case 'camera': {
+      // Both hands lift the chest camera to the front of the helmet. `amount` is how far it has come up.
+      const up = a
+      p.bones.neck = [0.05 * up, 0, 0]
+      p.bones.shoulderL = [-0.5 - 0.6 * up, 0, 0.12 * (1 - up)]
+      p.bones.shoulderR = [-0.5 - 0.6 * up, 0, -0.12 * (1 - up)]
+      p.bones.elbowL = [-0.9 - 0.7 * up, 0, 0]
+      p.bones.elbowR = [-0.9 - 0.7 * up, 0, 0]
       break
     }
     case 'resting': {

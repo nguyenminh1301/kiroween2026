@@ -166,11 +166,17 @@ export function liftoffEvents(h: LiftoffHooks): TimelineEvent[] {
       at: FIRE_AT,
       run: () => {
         h.readout(true)
-        h.anomaly('burn-baby-burn')
+        h.anomaly('burn-routine')
       },
     },
     { at: FIRE_AT + READOUT_SECONDS, run: () => h.readout(false) },
-    { at: FIRE_AT + FLAG_TIP_DELAY + 0.6, run: () => h.say('act4.flagdown') },
+    {
+      at: FIRE_AT + FLAG_TIP_DELAY + 0.6,
+      run: () => {
+        h.say('act4.flagdown')
+        h.anomaly('flag-knocked')
+      },
+    },
     { at: 10.5, run: () => h.say('act4.columbia') },
     { at: LIFTOFF_DURATION, run: () => h.end() },
   ]

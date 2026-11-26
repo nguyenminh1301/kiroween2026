@@ -60,6 +60,18 @@ import {
 } from './liftoff'
 import { DOWN_SECONDS, UP_SECONDS, climbDownAt, climbUpAt, type ClimbFrame } from './climb'
 import { limitPosition } from './limits'
+import {
+  NEIL_DOWN_SECONDS,
+  NEIL_FOOT,
+  NEIL_PHOTO,
+  PHOTO_LIFT,
+  WORK_STOPS,
+  neilClimbAt,
+  photoStop,
+  placeNeil,
+  sendNeil,
+  stepNeil,
+} from './neil'
 import { act4State, resetAct4State } from './state'
 import {
   ITEM_FOR,
@@ -86,10 +98,13 @@ import { SITES, groundAt } from './terrain'
 const LOGIC_PRIORITY = 300
 const PHOTO_SECONDS = 5
 const PHOTO_GUARD = 0.5
+/** The flash comes this long after Neil starts to lift the camera. */
+const FLASH_AT = PHOTO_LIFT + 0.2
+const ORBIT_DELAY = 8
 
-type Phase = 'descent' | 'exit' | 'eva' | 'return' | 'climb' | 'liftoff'
+type Phase = 'descent' | 'neil' | 'exit' | 'eva' | 'return' | 'climb' | 'liftoff'
 
-const LINE_FOR_TAKE: Record<Item, string> = { flag: 'act4.plant', scoop: 'act4.takescoop', seismo: 'act4.takeseismo' }
+const LINE_FOR_TAKE: Partial<Record<Item, string>> = { scoop: 'act4.takescoop', seismo: 'act4.takeseismo' }
 const LINE_FOR_DO: Record<TaskId, string> = { flag: 'act4.flag', sample: 'act4.sample', seismo: 'act4.seismo' }
 const KIT_SPOT: Record<Item, { pos: Vec3; r: number }> = {
   flag: { pos: FLAG_KIT, r: RADIUS.flagKit },
@@ -145,6 +160,8 @@ export function startAct4(requested: string): void {
   let farCooldown = 0
   let climbFrom: Vec3 | null = null
   let photo: { close: () => void } | null = null
+  let photoBusy = false
+  let neilT = 0
   let clock = 0
   setAct4Source(() => ({
     phase,
@@ -197,8 +214,9 @@ export function startAct4(requested: string): void {
           say: (id) => say(id),
           dsky: (r) => fxStore.getState().setDsky(r),
           beep: () => audio.play('alarm'),
+          moment: (id) => gameStore.getState().addAnomalySeen(id),
         }),
-        { at: DESCENT_DURATION, run: () => alive && exitHatch() },
+        { at: DESCENT_DURATION, run: () => alive && neilDown() },
       ],
       onTick(t) {
         clock = t
@@ -224,9 +242,43 @@ export function startAct4(requested: string): void {
     }
   }
 
+  /** Neil climbs down first. The camera sits in the hatch and looks down the ladder. About 5 s. */
+  function neilDown(): void {
+    phase = 'neil'
+    neilT = 0
+    clock = 0
+    fxStore.getState().setDsky(null)
+    act4State.cabinView = false
+    act4State.landerY = 0
+    act4State.plume = false
+    act4State.dust = 0
+    act4State.fill = 0
+    audio.setScene({ hum: 0, bed: 'none', breath: breathAllowed('act4-moon', 'surface') })
+    gameStore.getState().setTension('CALM')
+    vitals(0.2, 96)
+    gameStore.getState().setCheckpoint('tasks')
+    gameStore.getState().setMoveMode('seated')
+    updatePlayerBody({ pos: { x: 0, y: 3.75 - 1.65, z: 2.05 }, yaw: Math.PI, pitch: -0.75, mode: 'seated' })
+    act4State.neil.visible = true
+    applyNeilClimb(0)
+  }
+  const applyNeilClimb = (t: number): void => {
+    const n = act4State.neil
+    const fr = neilClimbAt(t)
+    n.x = fr.x
+    n.y = fr.y
+    n.z = fr.z
+    n.yaw = fr.yaw
+    n.anim = fr.anim
+    n.t = fr.t
+  }
+
   /** Crawl backward out of the hatch, climb down nine rungs, drop onto the footpad, step off. About 8 s. */
   function exitHatch(): void {
     phase = 'exit'
+    placeNeil(act4State.neil, NEIL_FOOT.x, NEIL_FOOT.z, 'standing')
+    act4State.neil.yaw = Math.PI
+    act4State.neil.visible = true
     climbT = 0
     clangs = 0
     fxStore.getState().setDsky(null)
@@ -242,6 +294,7 @@ export function startAct4(requested: string): void {
     gameStore.getState().setMoveMode('seated')
     updatePlayerBody({ yaw: 0, pitch: -0.15, mode: 'seated' })
     applyClimb(climbDownAt(0))
+    say('act4.down')
   }
 
   // ---- EVA ----
@@ -268,8 +321,7 @@ export function startAct4(requested: string): void {
       syncTasks()
       void showHint('jump')
     }
-    say('act4.flagtask', { look: FLAG_KIT })
-    say('act4.jobs', { look: SCOOP_SPOT, then: ready_ })
+    say('act4.flagtask', { look: FLAG_KIT, then: ready_ })
   }
 
   const useKit = (item: Item): void => {
@@ -278,7 +330,8 @@ export function startAct4(requested: string): void {
     tasks = next
     audio.play('grab')
     syncTasks()
-    say(LINE_FOR_TAKE[item], item === 'flag' ? { look: sitePos('flag'), secs: 1.5 } : {})
+    if (item === 'flag') focus.focusOn(sitePos('flag'), 1.5)
+    else say(LINE_FOR_TAKE[item]!)
   }
   const useSite = (task: TaskId): void => {
     const r = doTask(tasks, task)
@@ -286,21 +339,44 @@ export function startAct4(requested: string): void {
     tasks = r.state
     audio.play('grab')
     syncTasks()
-    say(LINE_FOR_DO[task], { then: task === 'flag' ? () => say('act4.photo') : undefined })
+    say(LINE_FOR_DO[task])
+    if (task === 'flag') sendNeil(act4State.neil, [photoStop()])
+    if (task === 'seismo') gameStore.getState().addAnomalySeen('seismo-steps')
   }
 
   const usePhoto = (): void => {
     const next = takePhoto(tasks)
     if (!next) return
     tasks = next
-    audio.play('shutter')
-    showPhoto()
+    photoBusy = true
+    syncTasks()
+    // Neil stands a few metres off, faces Buzz and lifts the camera. Then the flash, the click and the print.
+    const n = act4State.neil
+    placeNeil(n, NEIL_PHOTO.x, NEIL_PHOTO.z, 'camera')
+    sendNeil(n, [photoStop()])
+    n.amount = 0
+    n.t = 0
+    say('act4.photo')
+    addTimeout(() => {
+      audio.play('shutter')
+      const fx = fxStore.getState()
+      fx.setWhiteout(1)
+      addTimeout(() => fxStore.getState().setWhiteout(0.5), 0.12)
+      addTimeout(() => fxStore.getState().setWhiteout(0.2), 0.25)
+      addTimeout(() => {
+        fxStore.getState().setWhiteout(0)
+        photoBusy = false
+        showPhoto()
+      }, 0.4)
+    }, FLASH_AT)
   }
 
   /** The white flash, then the print for 5 s, or until E or a click. Then the tasks go on. */
   function showPhoto(): void {
     const fx = fxStore.getState()
     fx.setPhoto({ src: PHOTO.src, caption: PHOTO.caption, alt: PHOTO.alt })
+    // Neil walks off to work while the print shows.
+    sendNeil(act4State.neil, WORK_STOPS, true)
     let open = true
     const close = (): void => {
       if (!open) return
@@ -310,6 +386,8 @@ export function startAct4(requested: string): void {
       fxStore.getState().setPhoto(null)
       photo = null
       syncTasks()
+      say('act4.jobs')
+      addTimeout(() => alive && say('act4.orbit'), ORBIT_DELAY)
     }
     const onKey = (e: KeyboardEvent): void => {
       if (e.code === 'KeyE' && !e.repeat) close()
@@ -336,6 +414,7 @@ export function startAct4(requested: string): void {
     phase = 'return'
     gameStore.getState().setCheckpoint('run')
     gameStore.getState().setObjective({ ...CHECKLISTS.act4Return })
+    sendNeil(act4State.neil, [{ x: NEIL_FOOT.x, z: NEIL_FOOT.z, act: 'standing', dwell: Infinity }])
     say('act4.back')
   }
 
@@ -365,7 +444,7 @@ export function startAct4(requested: string): void {
     verb: 'POSE',
     position: { x: PHOTO_SPOT.x, y: groundAt(PHOTO_SPOT.x, PHOTO_SPOT.z) + 0.25, z: PHOTO_SPOT.z },
     radius: RADIUS.site,
-    enabled: () => ready && phase === 'eva' && photo === null && photoPending(tasks),
+    enabled: () => ready && phase === 'eva' && photo === null && !photoBusy && photoPending(tasks),
     use: usePhoto,
   })
   registerInteractable({
@@ -381,6 +460,7 @@ export function startAct4(requested: string): void {
   function climb(): void {
     if (phase !== 'return') return
     phase = 'climb'
+    act4State.neil.visible = false
     audio.setScene({ hum: 0.25, bed: 'none', breath: breathAllowed('act4-moon', 'lander') })
     climbT = 0
     clangs = 0
@@ -450,6 +530,14 @@ export function startAct4(requested: string): void {
           say('act4.far')
         }
       }
+      if (phase === 'neil') {
+        neilT += dt
+        clock = neilT
+        applyNeilClimb(Math.min(neilT, NEIL_DOWN_SECONDS))
+        if (neilT >= NEIL_DOWN_SECONDS) exitHatch()
+      } else if (act4State.neil.visible) {
+        stepNeil(act4State.neil, Math.min(dt, 0.05))
+      }
       if (phase === 'exit') {
         climbT += dt
         clock = climbT
@@ -475,6 +563,11 @@ export function startAct4(requested: string): void {
   )
 
   // ---- Go ----
+  if (cp !== 'start') {
+    placeNeil(act4State.neil, NEIL_FOOT.x, NEIL_FOOT.z, 'standing')
+    act4State.neil.yaw = Math.PI
+    act4State.neil.visible = true
+  }
   if (cp === 'start') descent()
   else if (cp === 'tasks') eva(false)
   else {

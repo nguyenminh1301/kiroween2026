@@ -1,6 +1,7 @@
 import { PlayerCamera } from '../../engine/PlayerCamera'
 import { Lander } from './lander'
 import { Moon } from './moon'
+import { NeilView } from './neilView'
 
 /** Hard low sun from one side, almost no fill, black sky, no fog. */
 export function Scene() {
@@ -11,6 +12,7 @@ export function Scene() {
       <directionalLight color="#fff1dc" intensity={2.3} position={[40, 24, 60]} />
       <Moon />
       <Lander />
+      <NeilView />
     </>
   )
 }
