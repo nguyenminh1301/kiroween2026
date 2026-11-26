@@ -10,3 +10,4 @@ Decisions
 - Act 2 mini-games: pure logic in `repairs.ts` (breaker panel, keypad). A shared helper `closeUp` releases focus on done, Esc or distance, tested in one unit test.
 - Bedtime: one fade, no breaths. Act ends 4 s after black.
 - Assumption: the unused `act2.comp` and `act2.compdone` lines become `act2.panel` and `act2.site` pairs as listed in the prompt.
+- Decision (task 5): the player sits in the middle couch, eye 0.7 m above the cushion (`SEAT_Y` + 0.7). Neil sits left and Mike right and loop the 9 s `working` pose. Act 2 has no seat, so its start eye stays; no player body is drawn in either act. The Earth radius shrank to 0.1 so the disc fits the right window from the middle seat.

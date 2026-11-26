@@ -1,8 +1,10 @@
 // Things in the rooms: breaker panels, windows, instrument panel, sleepers, bags and rails.
 import { useEffect, useMemo } from 'react'
-import { PlaneGeometry, Shape, ShapeGeometry, type BufferGeometry } from 'three'
+import { PlaneGeometry, Shape, ShapeGeometry, type BufferGeometry, type Mesh } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
 import { buildFigure } from '../../procgen/figure'
+import { driftOffset, driftSpin } from '../../procgen/cabin/drift'
+import { buildProp, type PropKind } from '../../procgen/cabin/props'
 import { createRng } from '../../procgen/rng'
 import { tiledBoxAt } from '../../procgen/tiledBox'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
@@ -116,6 +118,66 @@ function railGeo(cmFar: number): BufferGeometry {
   return mergeColored(parts)
 }
 
+/** Tethered items drifting in the command module: a card, a pencil, a pouch and a camera. */
+const DRIFTERS: { kind: PropKind; x: number; y: number; zOff: number }[] = [
+  { kind: 'card', x: -1.0, y: 1.5, zOff: 0.6 },
+  { kind: 'pencil', x: 1.0, y: 1.9, zOff: 1.1 },
+  { kind: 'pouch', x: -0.9, y: 2.0, zOff: 2.0 },
+  { kind: 'camera', x: 0.95, y: 1.3, zOff: 2.9 },
+]
+
+function Drifters({ cmFar }: { cmFar: number }) {
+  const mat = useMemo(() => createMaterial({ vertexColors: true }), [])
+  const items = useMemo(
+    () =>
+      DRIFTERS.map((d, i) => ({
+        ...d,
+        i,
+        geo: buildProp(d.kind),
+        tether: cbox(0.008, 0.008, 1, '#cfc8b6', 0, 0, 0.5),
+      })),
+    [],
+  )
+  const refs = useMemo(() => items.map(() => ({ item: null as Mesh | null, tether: null as Mesh | null })), [items])
+  useEffect(() => {
+    return registerSystem('act2-drift', PROP_PRIORITY + 1, (_dt, t) => {
+      items.forEach((d, i) => {
+        const o = driftOffset(i + 1, t, 0.3)
+        const sp = driftSpin(i + 1, t)
+        const anchor = { x: Math.sign(d.x) * 1.35, y: d.y, z: cmFar + d.zOff }
+        const m = refs[i].item
+        const tt = refs[i].tether
+        if (!m || !tt) return
+        m.position.set(d.x + o.x, d.y + o.y, cmFar + d.zOff + o.z)
+        m.rotation.set(sp.x, sp.y, sp.z)
+        tt.position.set(anchor.x, anchor.y, anchor.z)
+        tt.lookAt(m.position)
+        tt.scale.set(1, 1, Math.hypot(m.position.x - anchor.x, m.position.y - anchor.y, m.position.z - anchor.z))
+      })
+    })
+  }, [items, refs, cmFar])
+  useEffect(
+    () => () => {
+      items.forEach((d) => {
+        d.geo.dispose()
+        d.tether.dispose()
+      })
+      disposeMaterial(mat)
+    },
+    [items, mat],
+  )
+  return (
+    <>
+      {items.map((d, i) => (
+        <group key={d.i}>
+          <mesh ref={(m) => void (refs[i].item = m)} geometry={d.geo} material={mat} />
+          <mesh ref={(m) => void (refs[i].tether = m)} geometry={d.tether} material={mat} />
+        </group>
+      ))}
+    </>
+  )
+}
+
 export function Props({ cmFar }: { cmFar: number }) {
   const bank = useMemo(breakerBank, [])
   const stars = useMemo(() => [starsGeo(5), starsGeo(6)], [])
@@ -195,6 +257,7 @@ export function Props({ cmFar }: { cmFar: number }) {
       <mesh geometry={mine} material={mats.vc} />
       <mesh geometry={railMesh} material={mats.vc} />
       <RepairProps cmFar={cmFar} />
+      <Drifters cmFar={cmFar} />
       {[-1, 1].map((s, i) => (
         <group key={s} position={[s * 0.62, 1.6, winZ]} rotation={[0, -s * 0.4, 0]}>
           <mesh geometry={triFrame} material={mats.frame} position={[0, 0, 0.0]} />

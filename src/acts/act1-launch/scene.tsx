@@ -9,7 +9,7 @@ import { Console } from '../../procgen/cabin/console'
 import { Outside } from './outside'
 import { act1State } from './state'
 
-const CABIN_FOG = { color: '#4a4232', near: 5, far: 16 }
+const CABIN_FOG = { color: '#7a6a4c', near: 6, far: 20 }
 
 export function Scene() {
   const scene = useThree((s) => s.scene)
@@ -31,8 +31,8 @@ export function Scene() {
   return (
     <>
       <PlayerCamera />
-      <hemisphereLight args={['#d8c9a0', '#3a342a', 1.1]} />
-      <pointLight color="#e9c27a" intensity={3} distance={9} decay={1.2} position={[0, 2.1, 0.4]} />
+      <hemisphereLight args={['#f0dcae', '#6a5c44', 1.7]} />
+      <pointLight color="#f0c680" intensity={4.5} distance={10} decay={1.2} position={[0, 2.1, 0.4]} />
       <directionalLight color="#fff2d8" intensity={0.9} position={[-40, 60, 40]} />
       <group ref={cabin}>
         <Cabin />

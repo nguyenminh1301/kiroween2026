@@ -93,9 +93,9 @@ export function viewDirections(win: WindowDef, tw: number, th: number, eye: Vec3
 
 // The Earth sits off the right side of the spacecraft, a little ahead of the beam: the right window is the only
 // one that looks that way.
-const EARTH_AZIMUTH = (14 * Math.PI) / 180
+const EARTH_AZIMUTH = (11 * Math.PI) / 180
 export const EARTH_DIR: Vec3 = norm({ x: Math.cos(EARTH_AZIMUTH), y: 0.03, z: -Math.sin(EARTH_AZIMUTH) })
-export const EARTH_RADIUS = 0.13
+export const EARTH_RADIUS = 0.1
 const EARTH_RIGHT = norm(cross(EARTH_DIR, { x: 0, y: 1, z: 0 }))
 const EARTH_UP = cross(EARTH_RIGHT, EARTH_DIR)
 

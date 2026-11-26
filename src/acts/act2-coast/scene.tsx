@@ -6,7 +6,7 @@ import { getCmFar, subscribeCmFar } from './state'
 import { Props } from './props'
 import { Shell } from './shell'
 
-const FOG = { color: '#a8a496', near: 7, far: 22 }
+const FOG = { color: '#b8ae98', near: 8, far: 24 }
 
 export function Scene() {
   const scene = useThree((s) => s.scene)
@@ -20,7 +20,7 @@ export function Scene() {
   return (
     <>
       <PlayerCamera />
-      <hemisphereLight args={['#f1eee4', '#8d887a', 1.15]} />
+      <hemisphereLight args={['#fff0d4', '#a39a86', 1.5]} />
       <Shell cmFar={cmFar} />
       <Props cmFar={cmFar} />
     </>

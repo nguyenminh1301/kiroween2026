@@ -23,6 +23,7 @@ import { buildCouches, buildShell } from './cabinGeo'
 import { COUCH_X, SHELL_SIDES } from './layout'
 import { viewDirections, windowDefs } from './windows'
 import { cabinState } from './cabinState'
+import { buildProp } from './props'
 
 const WINDOW_PRIORITY = 650
 
@@ -118,26 +119,52 @@ function Windows() {
   )
 }
 
-/** The two crewmen in the left and center couches, in white suits with helmets. */
+/** Neil (left) and Mike (right) in their couches, looping small actions, in white suits with helmets. */
 function Crew() {
   const group = useRef<Group>(null)
   const figures = useMemo(
     () => [
-      { name: 'cdr', x: COUCH_X[0] },
-      { name: 'cmp', x: COUCH_X[1] },
+      { name: 'cdr', x: COUCH_X[0], phase: 0 },
+      { name: 'cmp', x: COUCH_X[2], phase: 4.5 },
     ].map((c) => ({ ...c, fig: buildFigure({ name: c.name, helmet: true }) })),
     [],
   )
   useEffect(() => {
     figures.forEach(({ fig, x }) => {
-      fig.setPose('seated', 0)
+      fig.setPose('working', 0)
       fig.root.position.set(x, 0, 0.62)
       fig.root.rotation.y = Math.PI
       group.current?.add(fig.root)
     })
-    return () => figures.forEach(({ fig }) => fig.dispose())
+    const remove = registerSystem('act1-crew', WINDOW_PRIORITY + 1, (_dt, t) => {
+      figures.forEach(({ fig, phase }) => fig.setPose('working', t + phase))
+    })
+    return () => {
+      remove()
+      figures.forEach(({ fig }) => fig.dispose())
+    }
   }, [figures])
   return <group ref={group} />
+}
+
+/** Props velcroed in the lap area between the couches. They stay put under thrust. */
+function Props() {
+  const mat = useMemo(() => createMaterial({ vertexColors: true }), [])
+  const geos = useMemo(() => ({ card: buildProp('card'), pencil: buildProp('pencil'), pouch: buildProp('pouch') }), [])
+  useEffect(
+    () => () => {
+      Object.values(geos).forEach((g) => g.dispose())
+      disposeMaterial(mat)
+    },
+    [geos, mat],
+  )
+  return (
+    <>
+      <mesh geometry={geos.card} material={mat} position={[-0.33, 0.6, 0.15]} rotation={[-0.9, 0.2, 0]} />
+      <mesh geometry={geos.pencil} material={mat} position={[-0.3, 0.52, 0.2]} rotation={[0, 0.5, 0]} />
+      <mesh geometry={geos.pouch} material={mat} position={[0.33, 0.55, 0.2]} rotation={[0, -0.3, 0]} />
+    </>
+  )
 }
 
 export function Cabin() {
@@ -149,7 +176,7 @@ export function Cabin() {
     return m
   }, [])
   const couchMat = useMemo(() => createMaterial({ vertexColors: true }), [])
-  const floorMat = useMemo(() => createMaterial({ color: '#3a342a' }), [])
+  const floorMat = useMemo(() => createMaterial({ color: '#6a5c44' }), [])
   useEffect(
     () => () => {
       shell.dispose()
@@ -169,6 +196,7 @@ export function Cabin() {
       </mesh>
       <Windows />
       <Crew />
+      <Props />
     </>
   )
 }

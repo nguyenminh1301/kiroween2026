@@ -1,7 +1,10 @@
 // Fixed positions and sizes in the cabin. Pure data: no Three.js or React imports.
 import type { Vec3 } from '../../types'
 
-export const EYE: Vec3 = { x: 0.62, y: 1.17, z: 0.45 }
+/** Top of the seat cushion. */
+export const SEAT_Y = 0.45
+/** The player sits in the middle couch, eye 0.7 m above the seat. */
+export const EYE: Vec3 = { x: 0, y: SEAT_Y + 0.7, z: 0.45 }
 /** Feet position for the seated body: the eye sits 1.65 m above it. */
 export const BODY_POS: Vec3 = { x: EYE.x, y: EYE.y - 1.65, z: EYE.z }
 export const START_PITCH = 0.18

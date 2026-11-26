@@ -1,5 +1,5 @@
 // Pure pose math for the figure. No Three.js imports. A figure faces +z, so its right side is -x.
-export type PoseKind = 'standing' | 'wave' | 'seated' | 'resting' | 'sleeping'
+export type PoseKind = 'standing' | 'wave' | 'seated' | 'working' | 'resting' | 'sleeping'
 
 export type BoneName =
   | 'spine'
@@ -56,6 +56,7 @@ export function poseFor(kind: PoseKind, t: number, amount = 1): PoseResult {
       }
       break
     }
+    case 'working':
     case 'seated': {
       p.rootY = -0.4
       p.bones.spine = [-0.3, 0, 0]
@@ -68,6 +69,17 @@ export function poseFor(kind: PoseKind, t: number, amount = 1): PoseResult {
       p.bones.elbowL = [-0.5, 0, 0]
       p.bones.elbowR = [-0.5, 0, 0]
       p.bones.neck = [0.3, 0, 0]
+      if (kind === 'working') {
+        // A 9 s loop: look at the panel, reach and tap it twice, look at the window, write on a card.
+        const u = (t % 9) / 9
+        const reach = Math.max(0, Math.sin(Math.PI * Math.min(1, u / 0.4)))
+        const tap = u < 0.4 ? Math.max(0, Math.sin(u * 60)) * 0.08 : 0
+        const write = u > 0.6 && u < 0.95 ? Math.sin(u * 140) * 0.05 : 0
+        p.bones.shoulderR = [-0.9 - reach * 0.55 - tap, 0, -0.1]
+        p.bones.elbowR = [-0.5 - reach * 0.4, 0, 0]
+        p.bones.shoulderL = [-0.9 - (u > 0.6 && u < 0.95 ? 0.1 : 0) + write, 0, 0.1]
+        p.bones.neck = [0.3, u > 0.45 && u < 0.6 ? 0.7 : u < 0.4 ? 0 : -0.15, 0]
+      }
       break
     }
     case 'sleeping': {
