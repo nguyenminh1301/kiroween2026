@@ -5,4 +5,4 @@
 - [x] 3. Rewrite `CREDITS.md`
 - [x] 4. Update `docs/KIRO.md`
 - [x] 5. Rewrite `README.md`
-- [ ] 6. Run the checks and report
+- [x] 6. Run the checks and report
