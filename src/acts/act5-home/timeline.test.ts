@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { LINES } from '../../content/subtitles'
+import { scheduleLines } from '../../audio/lineSchedule'
+import { saidLines } from '../../audio/sayLog'
+import { DROGUE_AT, DROGUE_JERK_AT } from './chutes'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
 import { MAX_OFFSET, MAX_ROT, shakeSample } from '../../engine/shakeNoise'
 import { sortedEvents } from '../../timeline/timeline'
@@ -160,10 +164,10 @@ describe('events', () => {
       'act5.blackout',
       'sky #ffa25a',
       'act5.aria',
-      'act5.airboss',
       'sky #5e8fc8',
       'chute',
       'act5.drogues',
+      'act5.airboss',
       'chute',
       'act5.mains',
       'sky #8fb6dd',
@@ -183,7 +187,7 @@ describe('events', () => {
       'complete',
     ])
     expect(sortedEvents({ duration: 73.5, events: events(r.hooks) }).map((e) => e.at)).toEqual([
-      0.8, 0.9, 9.8, 9.9, 12.3, 16, 16.2, 17.5, 18.6, 18.7, 19.5, 21, 21.8, 28.2, 29, 30.5, 31, 31.1, 38, 38.1, 45.1,
+      0.8, 0.9, 9.8, 9.9, 12.3, 16, 16.2, 17.5, 18.6, 19.5, 21, 21.8, 23, 28.2, 29, 30.5, 31, 31.1, 38, 38.1, 45.1,
       47.4, 47.9, 50, 52, 56.6, 62, 71, 73,
     ])
   })
@@ -223,5 +227,14 @@ describe('helicopter ease', () => {
     const mid = heliPos(52)
     expect(mid.x).toBeCloseTo((HELI_FROM.x + HELI_HOVER.x) / 2)
     expect(HELI_HOVER).toEqual({ x: 9, y: 11, z: 4 })
+  })
+})
+
+describe('radio timing', () => {
+  it('says "Drogues." when the drogues open', () => {
+    const starts = scheduleLines(LINES, saidLines<Hooks>((h) => events(h)), 40)
+    const at = starts.get('act5.drogues')!
+    expect(at).toBeGreaterThanOrEqual(DROGUE_AT)
+    expect(at).toBeLessThanOrEqual(DROGUE_JERK_AT + 0.3)
   })
 })

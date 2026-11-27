@@ -1,4 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { LINES } from '../../content/subtitles'
+import { scheduleLines } from '../../audio/lineSchedule'
+import { saidLines } from '../../audio/sayLog'
+import { neilMayGo } from './neil'
+import type { DescentHooks } from './descent'
 import { DESCENT_DURATION, DESCENT_SHOTS, cabinShotAt, descentEvents, descentFill, dustAt, dustShape, dustLevel, landerHeight, plumeOn } from './descent'
 import { selectShot, sortedEvents, dueEvents } from '../../timeline/timeline'
 
@@ -87,5 +92,16 @@ describe('descent', () => {
     at(22.6)
     expect(log.slice(-4)).toEqual(['say:act4.landed', 'say:act4.landedok', 'moment:eagle-landed', 'print:control'])
     expect(sortedEvents(def).map((e) => e.at)).toEqual([0, 0.5, 4, 8, 9, 11, 11.5, 12.5, 13, 17, 21.5, 22.6])
+  })
+})
+
+describe('landing talk and Neil at the hatch', () => {
+  it('lets Neil start down within 2 s of the last landing line', () => {
+    let go = Infinity
+    const starts = scheduleLines(LINES, saidLines<DescentHooks>(descentEvents), 60, (now, ids) => {
+      if (go === Infinity && now >= DESCENT_DURATION && neilMayGo(ids)) go = now
+    })
+    const last = starts.get('act4.landedok+1')!
+    expect(go - last).toBeLessThanOrEqual(2)
   })
 })

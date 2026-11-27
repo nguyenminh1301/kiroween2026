@@ -225,6 +225,10 @@ try {
   await shot('act4-climb-up')
   await wait(() => window.__los.act4.phase === 'liftoff' && window.__los.act4.time >= 0.5, null, 30000)
   await shot('act4-liftoff-start')
+  // "There goes the flag" plays while the flag falls (0.4 s to 1.2 s after ignition at 3 s).
+  await wait(() => window.__los.store.getState().subtitle?.text === 'There goes the flag.', null, 30000)
+  const flagLineAt = await page.evaluate(() => window.__los.act4.time)
+  check(flagLineAt <= 4.3, `flag line at ${flagLineAt.toFixed(2)} s, expected while the flag falls (by 4.2 s)`)
   await wait(() => window.__los.act4.time >= 4, null, 60000)
   check(await page.evaluate(() => document.querySelector('[data-testid=readout]')?.textContent?.includes('LUMINARY 099')), 'AGC readout panel shows')
   await shot('act4-readout')

@@ -287,10 +287,11 @@ export function events(h: Hooks, tail = 0): TimelineEvent[] {
     { at: 16.2, run: () => h.say('act5.blackout') },
     { at: 17.5, run: () => h.setSky(SKY.burn) },
     { at: 18.6, run: () => h.say('act5.aria') },
-    { at: 18.7, run: () => h.say('act5.airboss') },
     { at: 19.5, run: () => h.setSky(SKY.blue) },
     { at: 21, run: () => h.playSound('chute') },
     { at: 21.8, run: () => h.say('act5.drogues') },
+    // After "Drogues.", so that line is not held back behind it.
+    { at: 23, run: () => h.say('act5.airboss') },
     { at: 28.2, run: () => h.playSound('chute') },
     { at: 29, run: () => h.say('act5.mains') },
     { at: 30.5, run: () => h.setSky(SKY.high) },

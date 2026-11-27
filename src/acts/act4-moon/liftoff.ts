@@ -189,7 +189,8 @@ export function liftoffEvents(h: LiftoffHooks): TimelineEvent[] {
     { at: 0.3, run: () => h.say('act4.liftoff', { urgent: true }) },
     { at: 0.5, run: () => h.print('commander') },
     {
-      at: FIRE_AT + 0.3,
+      // After the flag line, which is said as the flag starts to fall.
+      at: FIRE_AT + FLAG_TIP_DELAY + 0.1,
       run: () => {
         h.say('act4.off')
         h.say('act4.quiet')
@@ -204,7 +205,7 @@ export function liftoffEvents(h: LiftoffHooks): TimelineEvent[] {
     },
     { at: FIRE_AT + READOUT_SECONDS, run: () => h.readout(false) },
     {
-      at: FIRE_AT + FLAG_TIP_DELAY + 0.6,
+      at: FIRE_AT + FLAG_TIP_DELAY,
       run: () => {
         h.say('act4.flagdown')
         h.anomaly('flag-knocked')

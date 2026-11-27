@@ -160,3 +160,9 @@ export function stepNeil(n: NeilState, dt: number): void {
 /** The photo: stands at the spot facing Buzz, the camera comes up over `PHOTO_LIFT` seconds. */
 export const PHOTO_LIFT = 1.2
 export const photoStop = (): NeilStop => ({ x: NEIL_PHOTO.x, z: NEIL_PHOTO.z, act: 'camera', dwell: Infinity, face: { x: (PHOTO_SPOT.x + SITES.flag.x) / 2, z: (PHOTO_SPOT.z + SITES.flag.z) / 2 } })
+
+/**
+ * Neil leaves the hatch once no landing line waits on the radio: he starts down as the last one starts, and climbs
+ * while it plays. `ids` is the playing line first, then the queue.
+ */
+export const neilMayGo = (ids: readonly string[]): boolean => ids.length <= 1

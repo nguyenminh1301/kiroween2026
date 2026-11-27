@@ -71,6 +71,7 @@ import {
   PHOTO_LIFT,
   WORK_STOPS,
   neilClimbAt,
+  neilMayGo,
   photoStop,
   placeNeil,
   sendNeil,
@@ -188,13 +189,16 @@ export function startAct4(requested: string): void {
 
   const say = (id: string, o: { urgent?: boolean; look?: Vec3; secs?: number; then?: () => void } = {}): void => {
     const look = o.look
+    // A follow-up line belongs to the phase that asked for it. An urgent line that drops this one (the liftoff
+    // count) resolves it too, and its follow-up must not queue up behind the liftoff talk.
+    const from = phase
     void radio
       .say(id, {
         urgent: o.urgent,
         onStart: look ? () => focus.focusOn(look, o.secs ?? 1.5) : undefined,
       })
       .then(() => {
-        if (alive) o.then?.()
+        if (alive && phase === from) o.then?.()
       })
   }
   const vitals = (fear: number, hr: number): void => {
@@ -572,8 +576,8 @@ export function startAct4(requested: string): void {
         }
       }
       if (phase === 'neil') {
-        // Neil waits at the hatch until the landing talk on the radio is over.
-        if (!neilGo && radio.ids().length === 0) neilGo = true
+        // Neil waits at the hatch until the last landing line starts on the radio.
+        if (!neilGo && neilMayGo(radio.ids())) neilGo = true
         if (neilGo) {
           neilT += dt
           clock = neilT

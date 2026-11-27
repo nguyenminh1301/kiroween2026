@@ -4,23 +4,16 @@ import { gameStore } from '../engine/store'
 import type { Speaker } from '../types'
 import { deliveryKind, murmurSyllables } from './delivery'
 import { engine } from './engine'
+import { lineSeconds } from './lineSchedule'
 import { playEffect, playTracked } from './play'
-import { groundSeconds, readingSeconds, voicedSeconds } from './lineTiming'
+import { readingSeconds } from './lineTiming'
 import { QUINDAR, quindarFreqs } from './quindar'
 import { createRadioQueue, type LineHandle, type SayOptions } from './radioQueue'
 import { CHIRP } from './recipes'
 import { voKey } from './sampleNames'
 
 function secondsFor(id: string, line: Line, opts: SayOptions, speaker: Speaker): number {
-  const reading = readingSeconds(line)
-  switch (deliveryKind(speaker, line, opts.position !== undefined)) {
-    case 'voiced':
-      return voicedSeconds(reading, engine.buffer(voKey(id))?.duration ?? null)
-    case 'ground':
-      return groundSeconds(reading, QUINDAR.seconds)
-    default:
-      return reading
-  }
+  return lineSeconds(line, opts, speaker, engine.buffer(voKey(id))?.duration ?? null)
 }
 
 function quindar(ctx: AudioContext, dest: AudioNode, at: number, hz: number, stops: Array<() => void>): void {

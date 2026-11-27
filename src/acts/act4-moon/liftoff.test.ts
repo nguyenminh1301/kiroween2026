@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { LINES } from '../../content/subtitles'
+import { scheduleLines } from '../../audio/lineSchedule'
+import { saidLines } from '../../audio/sayLog'
 import { dueEvents, selectShot, shakeAmplitude } from '../../timeline/timeline'
 import {
   FIRE_AT,
+  FLAG_TIP_DELAY,
+  type LiftoffHooks,
   LIFTOFF_DURATION,
   LIFTOFF_SHAKE,
   LIFTOFF_SHOTS,
@@ -114,15 +119,24 @@ describe('liftoff', () => {
     log.length = 0
     dueEvents(def, 3, FIRE_AT, LIFTOFF_DURATION).forEach((e) => e.run())
     expect(log).toEqual([
-      'say:act4.off',
-      'say:act4.quiet',
       'say:act4.flagdown',
       'anomaly:flag-knocked',
+      'say:act4.off',
+      'say:act4.quiet',
       'readout:false',
       'print:rendezvous',
       'preload',
       'say:act4.columbia',
       'end',
     ])
+  })
+})
+
+describe('liftoff radio timing', () => {
+  it('says "There goes the flag" while the flag falls', () => {
+    const starts = scheduleLines(LINES, saidLines<LiftoffHooks>(liftoffEvents), LIFTOFF_DURATION)
+    const at = starts.get('act4.flagdown')!
+    expect(at).toBeGreaterThanOrEqual(FIRE_AT + FLAG_TIP_DELAY)
+    expect(flagTip(at)).toBeLessThan(1)
   })
 })
