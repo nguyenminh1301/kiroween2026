@@ -1,0 +1,9 @@
+# Design: game window
+
+- `src/engine/hostBridge.ts`: pure. Message types `act`, `hunt`, `leave`, `end`, `parseHostMessage(data)` (rejects anything else), `postToHost(msg)` (only when `window.parent !== window`, target origin = own origin). The article imports it, so it must stay free of game code.
+- Game side: `boot` posts `act` on every store act change. The act 3 runtime posts `hunt` when `chasing` flips. `wireFinish` posts `end` instead of navigating when embedded. "Back to the article" posts `leave`.
+- `src/article/windowLayout.ts`: pure `windowLayout(vw, vh)` gives the panel and the 16:9 game box. Panel is 95% of the viewport, game area never under 960x540 unless the viewport itself is smaller (decision: `min(960, vw)`). `useFullPage(width, finePointer)` decides the phone path.
+- `src/article/gameWindow.ts`: builds the dialog, sets `inert` on header, main and footer, locks scroll, tracks `runActive` from messages, in-page confirm (not `window.confirm`, so it can be styled and tested). Close removes the iframe, so every sound and timer in it stops.
+- `src/article/rot.ts`: pure `rotTarget(state)` and `stepRot(level, target, dt)`. Act 3 baseline 0.45, hunt 1, rise fast and fall slow, fade out after act 3 over about 4 s. `rotView.ts` writes `--rot` on `<html>` and the `rot` and `rot-hunt` classes, and drives the glitches. `rot.css` holds the look: colour-mix paper and rules, a fixed stain layer (inline SVG turbulence data URI), a crack layer, image filters, streaks on `.bar::after`, an SVG displacement filter on headlines whose scale the script sets. Reduced motion: no displacement, flicker or glitch.
+- The article page never starts the rot by itself, only messages from its own frame do.
+- The card image is a 640x360 crop of the act 0 screenshot, debug box cropped out.
