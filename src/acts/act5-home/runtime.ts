@@ -14,6 +14,7 @@ import { focus } from '../../interaction/Focus'
 import { cabinState } from '../../procgen/cabin/cabinState'
 import { HELMET_BODY_POS, START_PITCH } from '../../procgen/cabin/layout'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
+import { entrySoundAt } from './entrySound'
 import { act5State, resetAct5State } from './state'
 import { DURATION, events, fadeLevel, heat, heliLevel, oceanLevel, shakeEnvelope, SHOTS, SKY, viewAt, windowViewAt } from './timeline'
 
@@ -34,6 +35,7 @@ export function startAct5(): void {
     s.setFear(0)
     s.setTension('CALM')
     fxStore.getState().setBlackout(0)
+    audio.stopReentry()
   })
 
   addPlayerSystem({ boxes: [], seatForwardYaw: 0 })
@@ -42,6 +44,7 @@ export function startAct5(): void {
   startAudioSession()
   let ocean = 0
   let heli = 0
+  let lastT = 0
   const setAmbience = (): void => audio.setScene({ hum: 0.5, bed: 'ship', breath: false, ocean, heli })
   setAmbience()
   store.setFear(0.2)
@@ -67,6 +70,8 @@ export function startAct5(): void {
       complete: () => completeAct(),
     }),
     onTick(t) {
+      const dt = Math.max(0, t - lastT)
+      lastT = t
       const view = viewAt(t)
       cabinState.view = windowViewAt(t)
       act5State.t = t
@@ -75,6 +80,7 @@ export function startAct5(): void {
       act5State.heat = h
       cabinState.engine = h
       fxStore.getState().setBlackout(fadeLevel(t))
+      audio.setReentry(entrySoundAt(t, view === 'cabin'), dt)
       const outside = view !== 'cabin'
       const o = oceanLevel(t, outside)
       const hl = heliLevel(t, outside)

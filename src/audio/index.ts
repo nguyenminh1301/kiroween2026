@@ -2,6 +2,7 @@ import { ambience } from './ambience'
 import { engine } from './engine'
 import { playEffect } from './play'
 import { radio } from './radio'
+import { reentrySound } from './reentry'
 
 export { startAudioSession } from './session'
 export { radio }
@@ -16,5 +17,7 @@ export const audio = {
   radioQueue: radio.ids,
   play: playEffect,
   setScene: ambience.setScene,
+  setReentry: reentrySound.set,
+  stopReentry: reentrySound.stop,
   stopAll: engine.stopAll,
 }

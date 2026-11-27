@@ -6,7 +6,7 @@ let soundStopped = false
 vi.mock('../../audio', async () => {
   const { cleanupRegistry } = await import('../../engine/cleanupRegistry')
   return {
-    audio: { play: (n: string) => log.push(`play ${n}`), setScene: () => {} },
+    audio: { play: (n: string) => log.push(`play ${n}`), setScene: () => {}, setReentry: () => {}, stopReentry: () => {} },
     radio: {
       say: (id: string) => {
         log.push(`say ${id}`)

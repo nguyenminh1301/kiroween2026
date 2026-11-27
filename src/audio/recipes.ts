@@ -67,3 +67,14 @@ export const BIRD_CHIRPS: Recipe[] = [
   [osc(0, 0.12, 2600, 3800, 0.25), osc(0.16, 0.06, 4200, 3600, 0.2)],
 ]
 export const CHIRP: Recipe = [osc(0, 0.05, 660, undefined, 0.3, 'triangle'), osc(0.06, 0.05, 880, undefined, 0.3, 'triangle')]
+
+/** Re-entry: a burst of heat shield crackle, and a rattle of loose items in the cabin. */
+export const SHIELD_CRACKLE: Recipe = [
+  ...ticks(5, 0.03, (t, i) => noise(t + (i % 2) * 0.01, 0.02, 'highpass', 2500 + i * 400, 0.7, undefined, undefined, 0.002)),
+  osc(0, 0.06, 1800, 700, 0.12, 'square'),
+]
+export const CABIN_RATTLE: Recipe = [
+  osc(0, 0.05, 520, 380, 0.5, 'triangle'),
+  noise(0, 0.03, 'bandpass', 1400, 0.5, undefined, 3),
+  osc(0.07, 0.04, 760, 560, 0.35, 'triangle'),
+]
