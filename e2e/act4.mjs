@@ -120,9 +120,9 @@ try {
   // 2. Neil climbs down first, seen from the hatch. Then the player's ladder: crawl out, nine rungs, a drop, a step off.
   await wait(() => window.__los.act4.phase === 'neil', null, 60000)
   check(await page.evaluate(() => window.__los.act4.neil.visible), 'Neil is shown on the ladder')
-  await wait(() => window.__los.act4.time >= 2.5, null, 60000)
+  // Neil waits at the hatch until the landing talk on the radio is over, then climbs (2.8 s on the rungs).
+  await wait(() => window.__los.act4.neil.anim === 'ladder', null, 120000)
   await shot('act4-neil-ladder')
-  check(await page.evaluate(() => window.__los.act4.neil.anim === 'ladder'), 'Neil climbs the rungs')
   check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('eagle-landed')), 'eagle-landed seen')
   await wait(() => window.__los.act4.phase === 'exit', null, 60000)
   check(await page.evaluate(() => window.__los.player.body.mode === 'seated'), 'seated while climbing down')
