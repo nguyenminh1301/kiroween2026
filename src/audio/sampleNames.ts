@@ -9,11 +9,3 @@ export const SAMPLE_NAMES: readonly string[] = [
   'parachute_open', 'reentry_roar', 'ship_horn', 'ship_hum_loop', 'splash_impact',
   'staging_bang', 'static_burst', 'toggle_switch', 'vent_loop', 'zipper',
 ]
-
-/** Ids of the lines that have a vo file. */
-export function voicedIds(lines: Record<string, { voiced?: boolean }>): string[] {
-  return Object.keys(lines).filter((id) => lines[id].voiced === true)
-}
-
-/** Key used in `loaded()` and the buffer map for a vo file. */
-export const voKey = (id: string): string => `vo/${id}`

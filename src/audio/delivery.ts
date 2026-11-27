@@ -1,13 +1,11 @@
-import type { Line } from '../content/subtitles'
 import type { Speaker } from '../types'
 
-export type DeliveryKind = 'voiced' | 'ground' | 'murmur' | 'los' | 'chirp'
+export type DeliveryKind = 'ground' | 'murmur' | 'los' | 'chirp'
 
 const GROUND: readonly Speaker[] = ['CAPCOM', 'HORNET', 'LAUNCH', 'SWIM']
 
-/** How a line is voiced: voiced file, ground radio, murmur from a position, LOS static, or chirp. */
-export function deliveryKind(speaker: Speaker, line: Pick<Line, 'voiced'>, hasPosition: boolean): DeliveryKind {
-  if (line.voiced === true) return 'voiced'
+/** How a line is voiced: ground radio, murmur from a position, LOS static, or chirp. */
+export function deliveryKind(speaker: Speaker, hasPosition: boolean): DeliveryKind {
   if (GROUND.includes(speaker)) return 'ground'
   if (hasPosition) return 'murmur'
   if (speaker === 'LOS') return 'los'

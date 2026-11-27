@@ -13,8 +13,8 @@ const lines: Record<string, Line> = {
 
 describe('line schedule', () => {
   it('counts ground lines with both tones', () => {
-    expect(lineSeconds(lines.g, {}, 'CAPCOM', null)).toBeCloseTo(2 + 2 * QUINDAR.seconds)
-    expect(lineSeconds(lines.a, {}, 'CDR', null)).toBe(1)
+    expect(lineSeconds(lines.g, {}, 'CAPCOM')).toBeCloseTo(2 + 2 * QUINDAR.seconds)
+    expect(lineSeconds(lines.a, {}, 'CDR')).toBe(1)
   })
   it('starts a queued line after the one before it and the gap', () => {
     const s = scheduleLines(lines, [{ at: 0, id: 'g' }, { at: 0.5, id: 'b' }], 5)

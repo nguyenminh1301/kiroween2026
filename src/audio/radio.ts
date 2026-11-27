@@ -10,10 +10,9 @@ import { readingSeconds } from './lineTiming'
 import { QUINDAR, quindarFreqs } from './quindar'
 import { createRadioQueue, type LineHandle, type SayOptions } from './radioQueue'
 import { CHIRP } from './recipes'
-import { voKey } from './sampleNames'
 
-function secondsFor(id: string, line: Line, opts: SayOptions, speaker: Speaker): number {
-  return lineSeconds(line, opts, speaker, engine.buffer(voKey(id))?.duration ?? null)
+function secondsFor(_id: string, line: Line, opts: SayOptions, speaker: Speaker): number {
+  return lineSeconds(line, opts, speaker)
 }
 
 function quindar(ctx: AudioContext, dest: AudioNode, at: number, hz: number, stops: Array<() => void>): void {
@@ -56,10 +55,10 @@ function noiseSource(ctx: AudioContext, dest: AudioNode, at: number, dur: number
   stops.push(() => s.stop())
 }
 
-function start(id: string, line: Line, opts: SayOptions, speaker: Speaker): LineHandle | null {
+function start(_id: string, line: Line, opts: SayOptions, speaker: Speaker): LineHandle | null {
   const ctx = engine.ctx()
   if (!ctx) return null
-  const kind = deliveryKind(speaker, line, opts.position !== undefined)
+  const kind = deliveryKind(speaker, opts.position !== undefined)
   const stops: Array<() => void> = []
   const stopAll = (): void => {
     for (const s of stops.splice(0)) {
@@ -79,46 +78,6 @@ function start(id: string, line: Line, opts: SayOptions, speaker: Speaker): Line
   }
   const now = ctx.currentTime
   switch (kind) {
-    case 'voiced': {
-      const buf = engine.buffer(voKey(id))
-      const out = engine.output('voice')
-      if (!buf || !out) break
-      let offset = 0
-      let startedAt = now
-      let playing: AudioBufferSourceNode | null = null
-      const gain = ctx.createGain()
-      gain.connect(out.input)
-      const play = (): void => {
-        const s = ctx.createBufferSource()
-        s.buffer = buf
-        s.connect(gain)
-        playing = s
-        s.start(0, offset)
-        startedAt = ctx.currentTime
-        stops.push(() => s.stop())
-      }
-      play()
-      handle.fadeOut = (seconds) => {
-        const t = ctx.currentTime
-        gain.gain.cancelScheduledValues(t)
-        gain.gain.setValueAtTime(gain.gain.value, t)
-        gain.gain.linearRampToValueAtTime(0, t + seconds)
-        try {
-          playing?.stop(t + seconds + 0.02)
-        } catch {
-          /* already stopped */
-        }
-        untrack()
-      }
-      handle.pause = () => {
-        offset = Math.min(buf.duration, offset + (ctx.currentTime - startedAt))
-        stopAll()
-      }
-      handle.resume = () => {
-        if (offset < buf.duration) play()
-      }
-      break
-    }
     case 'ground': {
       const out = engine.output('voice')
       if (!out) break

@@ -1,9 +1,8 @@
 // The only file that creates the AudioContext. Every function is safe to call at any
 // time: with no context (blocked, unsupported, not unlocked yet) it does nothing.
-import { LINES } from '../content/subtitles'
 import { gameStore } from '../engine/store'
 import type { Vec3 } from '../types'
-import { SAMPLE_NAMES, voKey, voicedIds } from './sampleNames'
+import { SAMPLE_NAMES } from './sampleNames'
 import { assetUrl } from './assetUrl'
 
 export type BusName = 'ambience' | 'sfx' | 'voice' | 'body'
@@ -115,7 +114,6 @@ function startLoading(): void {
   if (loadStarted) return
   loadStarted = true
   for (const name of SAMPLE_NAMES) void loadOne(name, assetUrl(`audio/${name}.mp3`))
-  for (const id of voicedIds(LINES)) void loadOne(voKey(id), assetUrl(`audio/vo/${id}.mp3`))
 }
 
 export const engine = {

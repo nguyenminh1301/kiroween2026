@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groundSeconds, readingSeconds, voicedSeconds } from './lineTiming'
+import { groundSeconds, readingSeconds } from './lineTiming'
 
 describe('readingSeconds', () => {
   it('uses seconds when set', () => {
@@ -13,12 +13,7 @@ describe('readingSeconds', () => {
   })
 })
 
-describe('voicedSeconds and groundSeconds', () => {
-  it('voiced is file + 0.3 but at least 60% of reading', () => {
-    expect(voicedSeconds(5, 6)).toBeCloseTo(6.3)
-    expect(voicedSeconds(10, 2)).toBeCloseTo(6)
-    expect(voicedSeconds(5, null)).toBe(5)
-  })
+describe('groundSeconds', () => {
   it('ground adds two tones', () => {
     expect(groundSeconds(2.5, 0.25)).toBe(3)
   })

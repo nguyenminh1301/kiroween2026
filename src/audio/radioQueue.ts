@@ -143,7 +143,7 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
       return new Promise<void>((resolve) => {
         const parts = (line.more ?? []).map((text, i): Item => ({
           id: `${id}+${i + 1}`,
-          line: { ...line, text, more: undefined, moreSeconds: undefined, seconds: line.moreSeconds?.[i], voiced: false },
+          line: { ...line, text, more: undefined, moreSeconds: undefined, seconds: line.moreSeconds?.[i] },
           opts: { ...opts, onStart: undefined },
           beat: opts.beat ?? beat,
           resolve: i === (line.more?.length ?? 0) - 1 ? resolve : () => {},

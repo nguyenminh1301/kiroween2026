@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { LINES, SPEAKER_NAMES } from './subtitles'
@@ -159,14 +159,9 @@ describe('the script', () => {
     expect(SPEAKER_NAMES.SWIM).toBe('SWIM 1')
   })
 
-  it('is subtitles only except the first narrator line, which keeps its recording', () => {
-    const recorded = readdirSync('public/audio/vo')
-    const voiced = Object.keys(LINES).filter((id) => LINES[id].voiced)
-    expect(voiced).toEqual(['act0.intro1'])
-    for (const id of Object.keys(WANT)) {
-      if (id !== 'act0.intro1') expect(recorded.some((f) => f.startsWith(id)), id).toBe(false)
-    }
-    expect(recorded.some((f) => f.startsWith('act0.intro1'))).toBe(true)
+  it('is subtitles only: no line is voiced and no recording folder exists', () => {
+    expect(existsSync('public/audio/vo')).toBe(false)
+    expect(Object.values(LINES).some((l) => 'voiced' in l)).toBe(false)
   })
 
   it('has no line that no flow uses', () => {

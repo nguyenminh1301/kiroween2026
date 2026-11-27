@@ -1,18 +1,16 @@
 // When each radio line really starts, given when it is said: the queue played on a fake clock.
-// Pure: no Web Audio, no Three.js or React imports. Lines with a voice file use `fileSeconds`.
+// Pure: no Web Audio, no Three.js or React imports. 
 import type { Line } from '../content/subtitles'
 import type { Speaker } from '../types'
 import { deliveryKind } from './delivery'
-import { groundSeconds, readingSeconds, voicedSeconds } from './lineTiming'
+import { groundSeconds, readingSeconds } from './lineTiming'
 import { QUINDAR } from './quindar'
 import { createRadioQueue, type SayOptions } from './radioQueue'
 
-/** Seconds a line stays up, as the radio counts them. `fileSeconds` is the voice file length, if there is one. */
-export function lineSeconds(line: Line, opts: SayOptions, speaker: Speaker, fileSeconds: number | null): number {
+/** Seconds a line stays up, as the radio counts them. */
+export function lineSeconds(line: Line, opts: SayOptions, speaker: Speaker): number {
   const reading = readingSeconds(line)
-  switch (deliveryKind(speaker, line, opts.position !== undefined)) {
-    case 'voiced':
-      return voicedSeconds(reading, fileSeconds)
+  switch (deliveryKind(speaker, opts.position !== undefined)) {
     case 'ground':
       return groundSeconds(reading, QUINDAR.seconds)
     default:
@@ -41,7 +39,7 @@ export function scheduleLines(
   let now = 0
   const radio = createRadioQueue({
     lines,
-    seconds: (_id, line, opts, speaker) => lineSeconds(line, opts, speaker, null),
+    seconds: (_id, line, opts, speaker) => lineSeconds(line, opts, speaker),
     start: (id) => {
       if (!starts.has(id)) starts.set(id, now)
       return null
