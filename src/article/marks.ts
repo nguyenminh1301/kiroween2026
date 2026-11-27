@@ -16,19 +16,34 @@ export const MARK_TEXT: Record<Mark, string> = {
   missed: 'Missed in your flight',
 }
 
-/** Fill the mark line of every moment in the page. Leaves the page unchanged when there is no saved run. */
+const SVG_NS = 'http://www.w3.org/2000/svg'
+
+function checkIcon(): SVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg')
+  for (const [k, v] of Object.entries({ width: '12', height: '12', viewBox: '0 0 12 12', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'aria-hidden': 'true' })) svg.setAttribute(k, v)
+  const path = document.createElementNS(SVG_NS, 'path')
+  path.setAttribute('d', 'M2 6.5l2.5 2.5L10 3.5')
+  svg.append(path)
+  return svg
+}
+
+/** Fill the mark of every moment in the page. Leaves the page unchanged when there is no saved run. */
 export function applyMarks(root: ParentNode = document, raw: string | null = readRaw()): void {
   const items = [...root.querySelectorAll<HTMLElement>('[data-moment]')]
   const marks = momentMarks(raw, items.map((el) => el.dataset.moment ?? ''))
   if (!marks) return
+  let seen = 0
   for (const el of items) {
     const mark = marks[el.dataset.moment ?? '']
     const p = el.querySelector<HTMLElement>('.mark')
     if (!p || !mark) continue
-    p.textContent = MARK_TEXT[mark]
+    if (mark === 'seen') seen += 1
+    p.replaceChildren(...(mark === 'seen' ? [checkIcon()] : []), MARK_TEXT[mark])
     p.dataset.state = mark
     p.hidden = false
   }
+  const count = root.querySelector<HTMLElement>('#marks-count')
+  if (count) count.textContent = String(seen)
   const note = root.querySelector<HTMLElement>('#marks-note')
   if (note) note.hidden = false
 }
