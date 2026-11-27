@@ -115,7 +115,8 @@ const RAW_SHOTS: NamedShot[] = [
     to: 12,
     fov: 60,
     far: 9000,
-    cam: (u) => ({ position: v(lerp(-7, -6, u), lerp(1.2, 2.2, u), lerp(9, 7.5, u)), lookAt: v(0.4, 0, 0) }),
+    // Behind and to one side, high over the Earth, drifting forward with the module. It flies toward +x.
+    cam: (u) => ({ position: v(lerp(-15, -11, u), lerp(5.5, 5, u), lerp(17, 15, u)), lookAt: v(lerp(-6, -4, u), -3.5, 0) }),
   },
   {
     // Inside the air now: no stars, deep blue sky, the cover pops and the drogues shoot out.
