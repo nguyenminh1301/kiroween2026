@@ -146,7 +146,7 @@ export function Lander() {
         return g
       })(),
       photoRing: (() => {
-        const g = new RingGeometry(0.5, 0.7, 20)
+        const g = new RingGeometry(0.8, 1.0, 24)
         g.rotateX(-Math.PI / 2)
         return g
       })(),

@@ -63,6 +63,20 @@ try {
     if (!(await page.evaluate((id) => window.__los.interactables().find((i) => i.id === id)?.enabled, id))) return
     await page.keyboard.press('KeyE')
   }
+  /** Stand in the photo mark, look at the flag and press E. */
+  const poseAtFlag = async () => {
+    await unfocused()
+    await wait(() => window.__los.interactables().find((i) => i.id === 'act4:photo')?.enabled, null, 30000)
+    await teleport(1.7, 9.4)
+    await page.evaluate(() => {
+      const b = window.__los.player.body
+      const dx = -1.5 - b.pos.x
+      const dz = 9 - b.pos.z
+      window.__los.player.set({ yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(1.0 - (b.pos.y + 1.65), Math.hypot(dx, dz)) })
+    })
+    await wait(() => window.__los.store.getState().target?.verb === 'POSE', null, 10000)
+    await page.keyboard.press('KeyE')
+  }
   /** Teleport to 4 m short of the point, then walk the rest with real W presses. */
   const walkTo = async (x, z, stop = 1.2) => {
     const b = await pos()
@@ -135,16 +149,12 @@ try {
   await shot('act4-surface')
   await budget('surface')
 
-  // 4. Sample, flag, photo, seismometer, in that order, with real key presses.
+  // 4. Flag, photo, sample, seismometer, in that order, with real key presses.
   await teleport(-0.75, 3.4)
+  await objective('Plant the flag. The photo comes next', 5000)
   await useAt('act4:scoop')
-  await wait(() => window.__los.act4.carrying === 'scoop', null, 30000)
-  await objective('Take the scoop to the sample marker', 5000)
-  check(await page.evaluate(() => !window.__los.interactables().find((i) => i.id === 'act4:flagkit').enabled), 'one item at a time')
-  await walkTo(9, 4.5)
-  await useAt('act4:sample')
-  await wait(() => window.__los.act4.done.includes('sample'), null, 30000)
-  await objective('Surface tasks, any order: Plant the flag. Set up the seismometer', 5000)
+  await page.waitForTimeout(500)
+  check(await page.evaluate(() => window.__los.act4.carrying === null), 'the scoop is locked before the photo')
 
   await teleport(1.7, 4.6)
   await useAt('act4:flagkit')
@@ -157,10 +167,9 @@ try {
   await page.evaluate(() => window.__los.player.set({ pitch: -0.2 }))
   await shot('act4-flag')
 
-  // 5. The photo: walk to the mark, press E, a flash and the print, then close it with E.
-  await objective('Stand by the flag for the photo', 5000)
-  await walkTo(0.2, 9.4, 1.0)
-  await useAt('act4:photo', 'POSE')
+  // 5. The photo: stand in the mark, look at the flag, press E, a flash and the print, then close it with E.
+  await objective('look at the flag and press E for the photo', 5000)
+  await poseAtFlag()
   await page.waitForFunction(() => !!document.querySelector('[data-testid=photo]'), null, { timeout: 30000, polling: 100 })
   await page.waitForTimeout(900)
   await shot('act4-photo')
@@ -172,6 +181,16 @@ try {
   await wait(() => ['walk', 'scoop', 'kneel', 'write', 'camera'].includes(window.__los.act4.neil.anim) && window.__los.act4.neil.anim !== 'camera', null, 15000)
   check(true, 'Neil goes to work after the photo')
   await shot('act4-neil-works')
+
+  await teleport(-0.75, 3.4)
+  await useAt('act4:scoop')
+  await wait(() => window.__los.act4.carrying === 'scoop', null, 30000)
+  await objective('Take the scoop to the sample marker', 5000)
+  check(await page.evaluate(() => !window.__los.interactables().find((i) => i.id === 'act4:seismokit').enabled), 'one item at a time')
+  await walkTo(9, 4.5)
+  await useAt('act4:sample')
+  await wait(() => window.__los.act4.done.includes('sample'), null, 30000)
+  await objective('Surface tasks, any order: Set up the seismometer', 5000)
 
   await teleport(-1.35, 3.3)
   await useAt('act4:seismokit')

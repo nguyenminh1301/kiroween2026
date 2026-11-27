@@ -9,6 +9,7 @@ import {
   takePhoto,
   canDo,
   canTake,
+  isLocked,
   createTasks,
   doTask,
   enabledTargets,
@@ -20,44 +21,54 @@ import {
 } from './tasks'
 
 const orders: TaskId[][] = [
-  ['flag', 'sample', 'seismo'],
-  ['flag', 'seismo', 'sample'],
-  ['sample', 'flag', 'seismo'],
-  ['sample', 'seismo', 'flag'],
-  ['seismo', 'flag', 'sample'],
-  ['seismo', 'sample', 'flag'],
+  ['sample', 'seismo'],
+  ['seismo', 'sample'],
 ]
+
+/** The flag is planted and the photo taken. */
+const afterPhoto = (): TaskState => takePhoto(doTask(take(createTasks(), 'flag')!, 'flag')!.state)!
 
 describe('task rules', () => {
   it('carries one item at a time', () => {
-    const s = take(createTasks(), 'flag')!
+    const s = take(afterPhoto(), 'scoop')!
+    expect(take(s, 'seismo')).toBeNull()
+    expect(canTake(s, 'flag')).toBe(false)
+  })
+
+  it('locks the sample and the seismometer until the photo is taken', () => {
+    const s = createTasks()
+    expect(isLocked(s, 'scoop')).toBe(true)
     expect(take(s, 'scoop')).toBeNull()
-    expect(canTake(s, 'seismo')).toBe(false)
+    expect(take(s, 'seismo')).toBeNull()
+    const planted = doTask(take(s, 'flag')!, 'flag')!.state
+    expect(take(planted, 'scoop')).toBeNull()
+    expect(take(takePhoto(planted)!, 'scoop')).not.toBeNull()
   })
 
   it('needs the right item and refuses a second time', () => {
-    const s = take(createTasks(), 'scoop')!
+    const s = take(afterPhoto(), 'scoop')!
     expect(doTask(s, 'flag')).toBeNull()
-    expect(doTask(createTasks(), 'sample')).toBeNull()
+    expect(doTask(afterPhoto(), 'sample')).toBeNull()
     const r = doTask(s, 'sample')!
     expect(r.state.carrying).toBeNull()
     expect(canTake(r.state, 'scoop')).toBe(false)
     expect(take(r.state, 'scoop')).toBeNull()
   })
 
-  it('finishes after the third task in any of the 6 orders, and only then', () => {
+  it('finishes after the third task in either order, and only then', () => {
     fc.assert(
       fc.property(fc.constantFrom(...orders), (order) => {
-        let s = createTasks()
+        let s = afterPhoto()
+        expect(tasksDone(s)).toBe(false)
         order.forEach((task, i) => {
           s = take(s, ITEM_FOR[task])!
           const r = doTask(s, task)!
-          expect(r.finished).toBe(i === 2)
+          expect(r.finished).toBe(i === 1)
           s = r.state
         })
         expect(tasksDone(s)).toBe(true)
-        expect(allDone(s)).toBe(false)
-        expect(s.last).toBe(order[2])
+        expect(allDone(s)).toBe(true)
+        expect(s.last).toBe(order[1])
       }),
     )
   })
@@ -89,42 +100,34 @@ describe('task rules', () => {
 })
 
 describe('objective text', () => {
-  it('lists the tasks left', () => {
+  it('asks for the flag first, then the photo, then lists what is left', () => {
     const s = createTasks()
-    expect(objectiveText(s)).toBe(
-      'Surface tasks, any order: Plant the flag. Scoop a soil sample. Set up the seismometer',
-    )
-    const one = doTask(take(s, 'flag')!, 'flag')!.state
-    expect(objectiveText(one)).toBe(
-      'Surface tasks, any order: Scoop a soil sample. Set up the seismometer. Stand by the flag for the photo',
-    )
-    expect(enabledTargets(one)).toEqual(['act4:scoop', 'act4:seismokit', 'act4:photo'])
+    expect(objectiveText(s)).toBe('Plant the flag. The photo comes next')
+    expect(enabledTargets(s)).toEqual(['act4:flagkit'])
+    const planted = doTask(take(s, 'flag')!, 'flag')!.state
+    expect(photoPending(planted)).toBe(true)
+    expect(objectiveText(planted)).toBe('Stand in the mark, look at the flag and press E for the photo')
+    expect(enabledTargets(planted)).toEqual(['act4:photo'])
+    const posed = takePhoto(planted)!
+    expect(objectiveText(posed)).toBe('Surface tasks, any order: Scoop a soil sample. Set up the seismometer')
+    expect(enabledTargets(posed)).toEqual(['act4:scoop', 'act4:seismokit'])
   })
 
   it('shows the carried item text and its marker', () => {
     expect(objectiveText(take(createTasks(), 'flag')!)).toBe('Carry the flag to its marker and plant it')
-    expect(objectiveText(take(createTasks(), 'scoop')!)).toBe('Take the scoop to the sample marker')
-    const s = take(createTasks(), 'seismo')!
+    expect(objectiveText(take(afterPhoto(), 'scoop')!)).toBe('Take the scoop to the sample marker')
+    const s = take(afterPhoto(), 'seismo')!
     expect(objectiveText(s)).toBe('Carry the seismometer to its marker')
     expect(enabledTargets(s)).toEqual(['act4:seismo'])
   })
 
-  it('asks for the photo after the flag, and is null when the photo is taken', () => {
+  it('takes the photo once, and the strip is empty when all is done', () => {
     let s = createTasks()
     expect(takePhoto(s)).toBeNull()
-    for (const t of TASK_IDS) s = doTask(take(s, ITEM_FOR[t])!, t)!.state
-    expect(photoPending(s)).toBe(true)
-    expect(objectiveText(s)).toBe('Stand at the mark by the flag for the photo')
-    expect(enabledTargets(s)).toEqual(['act4:photo'])
-    s = takePhoto(s)!
-    expect(allDone(s)).toBe(true)
+    s = afterPhoto()
     expect(takePhoto(s)).toBeNull()
+    for (const t of ['sample', 'seismo'] as const) s = doTask(take(s, ITEM_FOR[t])!, t)!.state
+    expect(allDone(s)).toBe(true)
     expect(objectiveText(s)).toBeNull()
-  })
-
-  it('lists the photo among the tasks while others are left', () => {
-    const s = doTask(take(createTasks(), 'flag')!, 'flag')!.state
-    expect(objectiveText(s)).toContain('Stand by the flag for the photo')
-    expect(enabledTargets(s)).toContain('act4:photo')
   })
 })

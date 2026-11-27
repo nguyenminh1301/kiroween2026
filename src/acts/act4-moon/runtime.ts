@@ -3,6 +3,7 @@
 import { audio, radio, startAudioSession } from '../../audio'
 import { breathAllowed } from '../../audio/scene'
 import { CHECKLISTS } from '../../content/checklists'
+import { HINTS } from '../../content/hints'
 import { HUD, PHOTO } from '../../content/hud'
 import { completeAct, preloadNextAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
@@ -39,6 +40,7 @@ import {
   LADDER_SPOT,
   RADIUS,
   PHOTO_SPOT,
+  photoAim,
   SCOOP_SPOT,
   SEAT_POS,
   SEISMO_KIT,
@@ -77,12 +79,13 @@ import { act4State, resetAct4State } from './state'
 import {
   ITEM_FOR,
   KIT_ID,
+  TASK_FOR,
   SITE_ID,
   TASK_IDS,
   PHOTO_ID,
   allDone,
   canDo,
-  canTake,
+  isLocked,
   photoPending,
   takePhoto,
   createTasks,
@@ -332,6 +335,14 @@ export function startAct4(requested: string): void {
   }
 
   const useKit = (item: Item): void => {
+    if (isLocked(tasks, item)) {
+      const h = { id: 'locked', key: HINTS.locked.key, text: HINTS.locked.text }
+      fxStore.getState().setHint(h)
+      addTimeout(() => {
+        if (fxStore.getState().hint === h) fxStore.getState().setHint(null)
+      }, 5)
+      return
+    }
     const next = take(tasks, item)
     if (!next) return
     tasks = next
@@ -347,7 +358,10 @@ export function startAct4(requested: string): void {
     audio.play('grab')
     syncTasks()
     say(LINE_FOR_DO[task])
-    if (task === 'flag') sendNeil(act4State.neil, [photoStop()])
+    if (task === 'flag') {
+      sendNeil(act4State.neil, [photoStop()])
+      void showHint('photo')
+    }
     if (task === 'seismo') gameStore.getState().addAnomalySeen('seismo-steps')
   }
 
@@ -431,7 +445,7 @@ export function startAct4(requested: string): void {
       verb: 'GRAB',
       position: { ...KIT_SPOT[item].pos },
       radius: KIT_SPOT[item].r,
-      enabled: () => ready && phase === 'eva' && canTake(tasks, item),
+      enabled: () => ready && phase === 'eva' && tasks.carrying === null && !tasks.done[TASK_FOR[item]],
       use: () => useKit(item),
     })
   }
@@ -451,6 +465,7 @@ export function startAct4(requested: string): void {
     verb: 'POSE',
     position: { x: PHOTO_SPOT.x, y: groundAt(PHOTO_SPOT.x, PHOTO_SPOT.z) + 0.25, z: PHOTO_SPOT.z },
     radius: RADIUS.site,
+    aim: photoAim,
     enabled: () => ready && phase === 'eva' && photo === null && !photoBusy && photoPending(tasks),
     use: usePhoto,
   })

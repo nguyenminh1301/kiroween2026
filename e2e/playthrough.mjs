@@ -83,6 +83,20 @@ try {
     if (!(await page.evaluate((id) => window.__los.interactables().find((i) => i.id === id)?.enabled, id))) return
     await page.keyboard.press('KeyE')
   }
+  /** Stand in the photo mark, look at the flag and press E. */
+  const poseAtFlag = async () => {
+    await unfocused()
+    await wait(() => window.__los.interactables().find((i) => i.id === 'act4:photo')?.enabled, null, 30000)
+    await teleport4(1.7, 9.4)
+    await page.evaluate(() => {
+      const b = window.__los.player.body
+      const dx = -1.5 - b.pos.x
+      const dz = 9 - b.pos.z
+      window.__los.player.set({ yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(1.0 - (b.pos.y + 1.65), Math.hypot(dx, dz)) })
+    })
+    await wait(() => window.__los.store.getState().target?.verb === 'POSE', null, 10000)
+    await page.keyboard.press('KeyE')
+  }
   const z = async () => (await pos()).z
   const push = async (yaw, settle) => {
     await unfocused()
@@ -310,12 +324,6 @@ try {
   await wait(() => window.__los.act4.phase === 'exit', null, 60000)
   await objective('Surface tasks, any order', 120000)
   await shot('playthrough-act4')
-  await teleport4(-0.75, 3.4)
-  await useAt('act4:scoop', 'GRAB')
-  await wait(() => window.__los.act4.carrying === 'scoop', null, 30000)
-  await walkTo(9, 4.5)
-  await useAt('act4:sample', 'GRAB')
-  await wait(() => window.__los.act4.done.includes('sample'), null, 30000)
   await objective('Plant the flag', 5000)
   await teleport4(1.7, 4.6)
   await useAt('act4:flagkit', 'GRAB')
@@ -323,12 +331,17 @@ try {
   await walkTo(-1.5, 9)
   await useAt('act4:spot', 'GRAB')
   await wait(() => window.__los.act4.done.includes('flag'), null, 30000)
-  await walkTo(0.2, 9.4, 1.0)
-  await useAt('act4:photo', 'POSE')
+  await poseAtFlag()
   await wait(() => window.__los.act4.photo, null, 30000)
   await page.waitForTimeout(800)
   await page.keyboard.press('KeyE')
   await wait(() => !window.__los.act4.photo, null, 10000)
+  await teleport4(-0.75, 3.4)
+  await useAt('act4:scoop', 'GRAB')
+  await wait(() => window.__los.act4.carrying === 'scoop', null, 30000)
+  await walkTo(9, 4.5)
+  await useAt('act4:sample', 'GRAB')
+  await wait(() => window.__los.act4.done.includes('sample'), null, 30000)
   await teleport4(-1.35, 3.3)
   await useAt('act4:seismokit', 'GRAB')
   await wait(() => window.__los.act4.carrying === 'seismo', null, 30000)

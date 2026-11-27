@@ -19,5 +19,7 @@ export const HINTS: Record<string, HintDef> = {
   sleep: { key: 'C', text: 'Hold to close your eyes and sleep.' },
   gauge: { key: 'A D', text: 'Turn the knob with A and D or the mouse wheel. Hold the needle in the green band.' },
   idle: { key: 'E', text: 'Still there? The paper at the top right says what to do next.' },
+  photo: { key: 'E', text: 'Stand in the orange mark, look at the flag and press E.', always: true },
+  locked: { key: 'E', text: 'Not yet. Plant the flag and take the photo first.', always: true },
   jump: { key: 'SPACE', text: "Jump. Gravity here is a sixth of Earth's." },
 }

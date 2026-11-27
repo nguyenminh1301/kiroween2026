@@ -1,7 +1,7 @@
 // Neil on the surface: the climb down the ladder, a walking route between work spots and the photo pose.
 // Pure: no Three.js or React imports. Figure convention: yaw 0 faces +z, so a heading is atan2(dx, dz).
 import { LADDER_FOOT, PAD_TOP, PHOTO_SPOT, PORCH, RUNGS, ladderZ, rungY } from './layout'
-import { groundAt } from './terrain'
+import { SITES, groundAt } from './terrain'
 
 export type NeilAnim = 'standing' | 'walk' | 'kneel' | 'scoop' | 'write' | 'camera' | 'ladder'
 
@@ -40,7 +40,7 @@ export const NEIL_DOWN_SECONDS = 5.2
 /** At the foot of the ladder, where he waits for Buzz. */
 export const NEIL_FOOT = { x: -1.3, z: 5.2 } as const
 /** A few metres in front of the photo spot, facing it. */
-export const NEIL_PHOTO = { x: 0.6, z: 13.2 } as const
+export const NEIL_PHOTO = { x: 0.1, z: 13.4 } as const
 
 export const headingTo = (fx: number, fz: number, tx: number, tz: number): number => Math.atan2(tx - fx, tz - fz)
 
@@ -159,4 +159,4 @@ export function stepNeil(n: NeilState, dt: number): void {
 
 /** The photo: stands at the spot facing Buzz, the camera comes up over `PHOTO_LIFT` seconds. */
 export const PHOTO_LIFT = 1.2
-export const photoStop = (): NeilStop => ({ x: NEIL_PHOTO.x, z: NEIL_PHOTO.z, act: 'camera', dwell: Infinity, face: { x: PHOTO_SPOT.x, z: PHOTO_SPOT.z } })
+export const photoStop = (): NeilStop => ({ x: NEIL_PHOTO.x, z: NEIL_PHOTO.z, act: 'camera', dwell: Infinity, face: { x: (PHOTO_SPOT.x + SITES.flag.x) / 2, z: (PHOTO_SPOT.z + SITES.flag.z) / 2 } })

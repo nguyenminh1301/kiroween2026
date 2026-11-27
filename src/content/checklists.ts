@@ -39,8 +39,8 @@ export const ACT4_TEXT = {
   carryFlag: 'Carry the flag to its marker and plant it',
   carryScoop: 'Take the scoop to the sample marker',
   carrySeismo: 'Carry the seismometer to its marker',
-  photo: 'Stand at the mark by the flag for the photo',
-  photoShort: 'Stand by the flag for the photo',
+  flagFirst: 'Plant the flag. The photo comes next',
+  photo: 'Stand in the mark, look at the flag and press E for the photo',
 } as const
 
 /** Act 2 repair strip text. */

@@ -49,7 +49,10 @@ export function takePhoto(s: TaskState): TaskState | null {
   return photoPending(s) ? { ...s, photoDone: true } : null
 }
 
-export const canTake = (s: TaskState, item: Item): boolean => s.carrying === null && !s.done[TASK_FOR[item]]
+/** The soil sample and the seismometer wait until the flag photo is taken. */
+export const isLocked = (s: TaskState, item: Item): boolean => item !== 'flag' && !s.photoDone
+export const canTake = (s: TaskState, item: Item): boolean =>
+  s.carrying === null && !s.done[TASK_FOR[item]] && !isLocked(s, item)
 export const canDo = (s: TaskState, task: TaskId): boolean => s.carrying === ITEM_FOR[task] && !s.done[task]
 
 /** Pick up an item. Returns the new state, or null when the rules refuse. */
@@ -79,14 +82,14 @@ const CARRY_TEXT: Record<Item, string> = {
 /** Strip text for the current state, or null when nothing is left. */
 export function objectiveText(s: TaskState): string | null {
   if (s.carrying) return CARRY_TEXT[s.carrying]
+  if (!s.photoDone) return s.done.flag ? ACT4_TEXT.photo : ACT4_TEXT.flagFirst
   const left = remaining(s)
-  const photo = photoPending(s)
-  if (!left.length) return photo ? ACT4_TEXT.photo : null
-  return ACT4_TEXT.prefix + [...left.map((t) => LABEL[t]), ...(photo ? [ACT4_TEXT.photoShort] : [])].join('. ')
+  return left.length ? ACT4_TEXT.prefix + left.map((t) => LABEL[t]).join('. ') : null
 }
 
 /** Interactable ids that are enabled now, for the markers. */
 export function enabledTargets(s: TaskState): string[] {
   if (s.carrying) return [SITE_ID[TASK_FOR[s.carrying]]]
-  return [...remaining(s).map((t) => KIT_ID[ITEM_FOR[t]]), ...(photoPending(s) ? [PHOTO_ID] : [])]
+  if (!s.photoDone) return s.done.flag ? [PHOTO_ID] : [KIT_ID.flag]
+  return remaining(s).map((t) => KIT_ID[ITEM_FOR[t]])
 }

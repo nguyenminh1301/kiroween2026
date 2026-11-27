@@ -41,7 +41,22 @@ export const FLAG_KIT: Vec3 = { x: 0.65, y: 0.9, z: 3.6 }
 export const SCOOP_SPOT: Vec3 = { x: -0.75, y: 1.7, z: 2.2 }
 export const SEISMO_KIT: Vec3 = { x: -1.35, y: 1.7, z: 1.95 }
 /** The marked spot next to the planted flag where Neil takes the photo. */
-export const PHOTO_SPOT = { x: 0.2, z: 9.4 } as const
+export const PHOTO_SPOT = { x: 1.7, z: 9.4 } as const
+/** Buzz is inside the mark when his eye is within this distance of its centre, on the ground plane. */
+export const PHOTO_RING = 1.0
+
+/** True when the eye is inside the photo mark and the view ray passes within 1.3 m of the flag top. */
+export function photoAim(eye: Vec3, dir: Vec3): boolean {
+  if (Math.hypot(eye.x - PHOTO_SPOT.x, eye.z - PHOTO_SPOT.z) > PHOTO_RING) return false
+  const f = SITES.flag
+  const c = { x: f.x, y: groundAt(f.x, f.z) + 1.0, z: f.z }
+  const len = Math.hypot(dir.x, dir.y, dir.z)
+  if (!(len > 0)) return false
+  const ox = c.x - eye.x, oy = c.y - eye.y, oz = c.z - eye.z
+  const t = (ox * dir.x + oy * dir.y + oz * dir.z) / len
+  if (t <= 0) return false
+  return ox * ox + oy * oy + oz * oz - t * t <= 1.3 * 1.3
+}
 export const ROOF: Vec3 = { x: 1.35, y: 3.05, z: 1.35 }
 /** The seated body during descent and liftoff, inside the module. */
 export const SEAT_POS: Vec3 = { x: 0, y: 3.3, z: 0 }
