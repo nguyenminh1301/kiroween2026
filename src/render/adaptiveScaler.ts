@@ -3,7 +3,8 @@ import { gameStore } from '../engine/store'
 import { onRenderHold, holdRender } from '../engine/renderHold'
 import { UP_BLOCK_MS, nextLevel } from './adaptiveDecision'
 import { DEFAULT_LEVEL, levelCount, lowestLevelAtLeast } from './levelTable'
-import { pictureRange, type Picture } from './pictureRange'
+import type { Picture } from '../engine/settings'
+import { pictureRange } from './pictureRange'
 
 export const MAX_SAMPLES = 600
 export const DECISION_MS = 500

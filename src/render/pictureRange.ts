@@ -1,8 +1,7 @@
+import { PICTURES, type Picture } from '../engine/settings'
 import { LEVEL_TABLE, lowestLevelAtLeast } from './levelTable'
 
-export type Picture = 'sharp' | 'balanced' | 'retro'
-
-export const PICTURES: readonly Picture[] = ['sharp', 'balanced', 'retro']
+export { PICTURES, type Picture }
 
 export interface PictureRange {
   /** Level the picture starts at. */

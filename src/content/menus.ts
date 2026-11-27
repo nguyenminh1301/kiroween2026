@@ -18,6 +18,8 @@ export const MENUS = {
     subtitleSize: 'Subtitle size',
     reducedMotion: 'Reduced motion',
     prints: 'Photo prints',
+    picture: 'Picture',
+    pictureOptions: { sharp: 'Sharp', balanced: 'Balanced', retro: 'Retro' },
     back: 'Back',
   },
   pause: {

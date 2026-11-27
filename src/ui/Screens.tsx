@@ -3,7 +3,7 @@ import { audio } from '../audio'
 import { ACT_TITLES, FORM_LINE, MENUS } from '../content/menus'
 import { ACT_ORDER } from '../engine/actOrder'
 import { resumeGame } from '../engine/inputRuntime'
-import { SETTINGS_RANGES } from '../engine/settings'
+import { PICTURES, SETTINGS_RANGES, clampPicture } from '../engine/settings'
 import { gameStore } from '../engine/store'
 import { leaveToArticle, pickChapter, restartCheckpoint, startRun } from '../app/session'
 import { useGame } from './hooks'
@@ -93,6 +93,20 @@ export function SettingsForm({ onBack, backLabel = MENUS.settings.back }: { onBa
           {SIZES.map((v) => (
             <option key={v} value={v}>
               {Math.round(v * 100)}%
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="setting-row">
+        <span>{m.picture}</span>
+        <select
+          name="picture"
+          value={settings.picture}
+          onChange={(e) => set({ picture: clampPicture(e.target.value, settings.picture) })}
+        >
+          {PICTURES.map((p) => (
+            <option key={p} value={p}>
+              {m.pictureOptions[p]}
             </option>
           ))}
         </select>

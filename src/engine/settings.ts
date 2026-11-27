@@ -1,6 +1,10 @@
 import type { ActId } from '../types'
 import { ACT_ORDER } from './actOrder'
 
+export type Picture = 'sharp' | 'balanced' | 'retro'
+
+export const PICTURES: readonly Picture[] = ['sharp', 'balanced', 'retro']
+
 export interface Settings {
   sensitivity: number
   volume: number
@@ -8,6 +12,8 @@ export interface Settings {
   reducedMotion: boolean
   /** Show the small prints of real NASA photos in the corner. */
   prints: boolean
+  /** Internal resolution of the 3D view: Sharp, Balanced or Retro. */
+  picture: Picture
 }
 
 export type NumericSettingKey = 'sensitivity' | 'volume' | 'subtitleScale'
@@ -18,6 +24,7 @@ export const DEFAULT_SETTINGS: Settings = {
   subtitleScale: 1,
   reducedMotion: false,
   prints: true,
+  picture: 'sharp',
 }
 
 export const SETTINGS_DEFAULTS = DEFAULT_SETTINGS
@@ -40,6 +47,11 @@ export function clampReducedMotion(value: unknown, previous: boolean): boolean {
   return typeof value === 'boolean' ? value : previous
 }
 
+/** An unknown picture value keeps `previous`. */
+export function clampPicture(value: unknown, previous: Picture): Picture {
+  return PICTURES.find((p) => p === value) ?? previous
+}
+
 /** Apply a partial update on top of `current`, clamping each field. */
 export function applySettings(current: Settings, partial: Partial<Settings>): Settings {
   return {
@@ -48,6 +60,7 @@ export function applySettings(current: Settings, partial: Partial<Settings>): Se
     subtitleScale: clampSetting('subtitleScale', partial.subtitleScale, current.subtitleScale),
     reducedMotion: clampReducedMotion(partial.reducedMotion, current.reducedMotion),
     prints: typeof partial.prints === 'boolean' ? partial.prints : current.prints,
+    picture: clampPicture(partial.picture, current.picture),
   }
 }
 
@@ -92,6 +105,7 @@ function sanitizeSettings(raw: unknown): Settings {
     reducedMotion:
       typeof o.reducedMotion === 'boolean' ? o.reducedMotion : DEFAULT_SETTINGS.reducedMotion,
     prints: typeof o.prints === 'boolean' ? o.prints : DEFAULT_SETTINGS.prints,
+    picture: clampPicture(o.picture, DEFAULT_SETTINGS.picture),
   }
 }
 

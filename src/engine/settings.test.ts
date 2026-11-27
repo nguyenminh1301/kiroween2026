@@ -43,6 +43,7 @@ const validSettings: fc.Arbitrary<Settings> = fc.record({
   subtitleScale: inRange('subtitleScale'),
   reducedMotion: fc.boolean(),
   prints: fc.boolean(),
+  picture: fc.constantFrom('sharp', 'balanced', 'retro'),
 })
 
 const validSaved: fc.Arbitrary<SavedShape> = fc
@@ -63,6 +64,7 @@ describe('settings defaults', () => {
       subtitleScale: 1,
       reducedMotion: false,
       prints: true,
+      picture: 'sharp',
     })
     expect(SETTINGS_RANGES.sensitivity).toEqual([0.2, 3])
     expect(SETTINGS_RANGES.volume).toEqual([0, 1])
@@ -176,9 +178,19 @@ describe('settings parsing', () => {
       unlockedActs: ['act2-coast', 'nope'],
     })
     expect(parseSaved(raw)).toEqual({
-      settings: { sensitivity: 1, volume: 0.5, subtitleScale: 1, reducedMotion: true, prints: true },
+      settings: { sensitivity: 1, volume: 0.5, subtitleScale: 1, reducedMotion: true, prints: true, picture: 'sharp' },
       unlockedActs: ['act0-pad', 'act2-coast'],
     })
+  })
+})
+
+describe('picture setting', () => {
+  it('keeps a known value, ignores an unknown one, and survives a save and load', () => {
+    expect(applySettings(DEFAULT_SETTINGS, { picture: 'retro' }).picture).toBe('retro')
+    expect(applySettings(DEFAULT_SETTINGS, { picture: 'ultra' as never }).picture).toBe('sharp')
+    const saved = serializeSaved({ settings: { ...DEFAULT_SETTINGS, picture: 'balanced' }, unlockedActs: ['act0-pad'] })
+    expect(parseSaved(saved).settings.picture).toBe('balanced')
+    expect(parseSaved(JSON.stringify({ settings: { picture: 5 } })).settings.picture).toBe('sharp')
   })
 })
 

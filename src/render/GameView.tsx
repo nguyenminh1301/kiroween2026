@@ -6,13 +6,13 @@ import { dprFor } from './gameView'
 import { lookupLevel } from './levelTable'
 import { attachRenderer, recordFrame, resetFrameStats } from './renderStats'
 import { snapPatch } from './snapPatch'
-import { useGameRect, useLevel } from './useGameView'
+import { useGameRect, useLevel, usePicture } from './useGameView'
 
 /** Letterboxed 16:9 container. Children are the R3F Canvas. Provides the dpr. */
 export function GameView({ children }: { children: (dpr: number) => ReactNode }) {
   const rect = useGameRect()
   const level = useLevel()
-  const picture = 'sharp' as const
+  const picture = usePicture()
   // The view in real pixels picks the start level. A resize or a zoom change comes through the rect or the dpr.
   const viewPx = Math.round(rect.width * (window.devicePixelRatio || 1))
   useEffect(() => adaptiveScaler.configure(picture, viewPx), [picture, viewPx])
