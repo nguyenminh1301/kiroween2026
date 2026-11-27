@@ -8,7 +8,15 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   base: './',
-  build: { manifest: true },
+  build: {
+    manifest: true,
+    rollupOptions: {
+      input: {
+        index: fileURLToPath(new URL('./index.html', import.meta.url)),
+        play: fileURLToPath(new URL('./play.html', import.meta.url)),
+      },
+    },
+  },
   test: {
     environment: 'node',
     passWithNoTests: true,

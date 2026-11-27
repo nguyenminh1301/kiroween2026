@@ -1,0 +1,5 @@
+{
+  "index.html": { "file": "assets/article.js", "isEntry": true },
+  "play.html": { "file": "assets/play.js", "isEntry": true, "imports": ["_vendor.js"] },
+  "_vendor.js": { "file": "assets/vendor.js" }
+}

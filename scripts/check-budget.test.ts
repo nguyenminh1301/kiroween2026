@@ -10,7 +10,7 @@ const small = { entry: 1000, dynamic: 400, total: 5000 }
 
 describe('checkBudget', () => {
   it('uses 5 MB, 4 MB and 25 MB by default', () => {
-    expect(DEFAULT_LIMITS).toEqual({ entry: 5 * 1048576, dynamic: 4 * 1048576, total: 25 * 1048576 })
+    expect(DEFAULT_LIMITS).toEqual({ entry: 5 * 1048576, dynamic: 4 * 1048576, total: 25 * 1048576, article: 300 * 1024 })
     expect(checkBudget(dist('pass')).failures).toEqual([])
   })
 
@@ -26,6 +26,16 @@ describe('checkBudget', () => {
     const r = checkBudget(dist('entry-over'), { ...small, entry: 250 })
     expect(r.failures).toHaveLength(1)
     expect(r.failures[0]).toContain('entry chunk')
+  })
+
+  it('measures the article page and the game page on their own', () => {
+    const ok = checkBudget(dist('two-pages'), { ...small, article: 150 })
+    expect(ok.failures).toEqual([])
+    expect(ok.article?.size).toBe(100)
+    expect(ok.entry?.size).toBe(600)
+    const bad = checkBudget(dist('two-pages'), { ...small, article: 50 })
+    expect(bad.failures).toHaveLength(1)
+    expect(bad.failures[0]).toContain('article page')
   })
 
   it('fails when a dynamic chunk is too big', () => {
