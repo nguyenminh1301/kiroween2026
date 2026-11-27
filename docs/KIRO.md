@@ -19,7 +19,7 @@ Kiro wrote all of the code in `src/`, `scripts/` and `e2e/`. The work was planne
 | `working.md` | always | No sub-agents, tasks in order, optional tasks skipped, short specs, short reports |
 | `writing.md` | files in `src/content/**` | Player-facing text: no dashes, banned words, line length, radio style, sources for real facts, crew names |
 
-`working.md` was added after the render phase and committed with the render spec (`4afde1a`). The render spec had grown to over 1,400 lines, with 43 property-test tasks, and the run used sub-agents heavily. `working.md` caps a spec at about 8 top-level tasks and 6 property tests and forbids sub-agents. The specs written after it are between 65 and 215 lines each.
+`working.md` was added after the render phase and committed with the render spec (`4afde1a`). The render spec had grown to over 1,400 lines, with 43 property-test tasks, and the run used sub-agents heavily. `working.md` caps a spec at about 8 top-level tasks and 6 property tests and forbids sub-agents. The specs written after it are short.
 
 ## Specs (`.kiro/specs/`)
 
@@ -38,19 +38,24 @@ Each spec has `requirements.md` (EARS form), `design.md` and `tasks.md`. In the 
 | `act3-farside` | Chapter 4: the corridor, noise meter, held breath, lockers, the hunting creature, checkpoints, the chase | 10 |
 | `act4-moon` | Chapter 5: the descent with the 1202 alarm, low gravity, the three surface tasks, the run to the ladder, liftoff | 9 |
 | `act5-home` | Chapter 6: re-entry, blackout, chutes, splashdown, recovery, then the Archive | 7 |
-| `polish` | A live backdrop behind the menus, visual fixes against the reference shots, idle hints, reduced motion, stable e2e scripts | 9 |
+| `polish` | A live backdrop behind the menus, visual fixes, idle hints, reduced motion, stable e2e scripts | 9 |
 | `play-fixes` | Play fixes from the full play review: scripted looks capped at 1.5 s so dialogue no longer freezes the view, pointer lock kept through chapter cards with a click to continue prompt, radio lines tagged with a beat so stale lines drop, push off from any handrail in reach, the creature stops 3.5 m away in the flashlight, an error boundary with the no-WebGL message, a quieter idle hint | Not in the repo |
 | `look-fixes` | Look fixes from the same review: rounded suited figures with helmet bubble and visor, the Saturn V stack behind the White Room, cabin windows that paint their own view, flat pad ground and a narrow TLI plume, a wider act 3 flashlight with rust plates, locker view and dark slats, small carried items in act 4, a lunar module with foil panels and ladder rails, a smaller broken foam ring in act 5 | Not in the repo |
+| `playtest-acts-0-2` | First round of notes, acts 0 to 2 (see below) | 8 |
+| `act3-nightmare` | First round of notes, act 3 as Buzz's dream | 8 |
 | `playtest-2-acts-0-2` | Second round of notes, acts 0 to 2 (see below) | 8 |
 | `playtest-2-dream` | Second round of notes, the act 3 dream | 7 |
 | `playtest-2-moon-home` | Second round of notes, acts 4 and 5 and the Archive | 9 |
 | `playtest-3-acts-0-2` | Third round of notes, acts 0 to 2 (see below) | 3 |
 | `playtest-3-dream` | Third round of notes, the act 3 dream | 5 |
 | `playtest-3-moon-home` | Third round of notes, acts 4 and 5 | 3 |
-| `playtest-4-fixes` | Fourth round of notes: panel at 1.1 m, re-entry sound that follows the glow, thinner parachute lines, subtitle reveal in place | 4 |
-| `real-script` | Fourth round of notes: the Apollo 11 air to ground script and small prints of real NASA photos | see spec |
+| `playtest-4-fixes` | Fourth round of notes: panel at 1.1 m, re-entry sound that follows the glow, thinner parachute lines, subtitle reveal in place, the whole console in the cabin view, late lines in act 5 and act 4 | 6 |
+| `real-script` | Fourth round of notes: the Apollo 11 air to ground script and small prints of real NASA photos, then a fix for the print drawn huge when it leaves | 5 |
 | `game-window` | Fourth round of notes: the game in a window on the article, and the page that rots during act 3 | 4 |
 | `apollo-article-site` | Third round of notes, the site: an article page and a game page without a title menu | 5 |
+| `article-redesign` | The article page rebuilt from a design file | 5 |
+| `sharp-view` | A sharper picture: a fixed adaptive scaler, new resolution levels and the Picture setting | 4 |
+| `submission-docs` | Credits and docs cleaned up for the submission, recorded narration removed | 6 |
 
 The `play-fixes` and `look-fixes` spec folders are not in the repo, so their task counts are not shown here. The table rows come from the commits.
 
@@ -68,7 +73,7 @@ Phases 1 to 5 ran in the Kiro IDE in Spec mode. The author approved the requirem
 
 From phase 6 on, Kiro CLI ran in non-interactive mode. It used a custom agent with no sub-agent tool and with all other tools trusted. In this mode Kiro wrote the spec, committed it and carried out every task without an approval step.
 
-Each phase was reviewed in a fresh clone. The review ran the tests, lint, build, budget check, copy check and the e2e chain, and compared the e2e screenshots with the reference shots in `docs/reference/shots/`. Fixes went back to Kiro as new prompts.
+Each phase was reviewed in a fresh clone. The review ran the tests, lint, build, budget check, copy check and the e2e chain, and looked at the e2e screenshots. Fixes went back to Kiro as new prompts.
 
 ## The first round of the player's notes: three prompts
 
@@ -97,17 +102,27 @@ A third set of notes was answered by four prompts, each run by Kiro CLI in non-i
 3. **Acts 4 and 5** (`playtest-3-moon-home`). The flag photo needs the player in the mark, looking at the flag, and comes first; a re-entry shot rebuilt from additive layers; reefed then open drogues and three mains in a triangle on their own lines.
 4. **The site** (`apollo-article-site`). The site opens on a long article about the flight (real names, NASA photos and sources, no game code, under 300 KB of script and style). The game moved to `play.html` with no title menu: one card, "Use headphones. Click to begin.", and an Esc menu with chapters, settings and a link back to the article. The Archive became the article section "What really happened", with marks read from the saved run. The e2e scripts start from `play.html`, and a new script covers the article.
 
-## The fourth round of the player's notes: three prompts
+## The fourth round of the player's notes: three prompts and two fixes
 
 A fourth set of notes was answered by three prompts, each run by Kiro CLI in non-interactive mode, one task at a time in one chat, with a short spec committed first.
 
-1. **Fixes** (`playtest-4-fixes`). The panel moved to 1.1 m from the eye, the re-entry sound follows the glow curve, the parachute lines got thin and the drogues short banded cones, and subtitles lay out the whole line before they reveal it.
+1. **Fixes** (`playtest-4-fixes`). The panel moved to 1.1 m from the eye, the re-entry sound follows the glow curve, the parachute lines got thin and the drogues short banded cones, and subtitles lay out the whole line before they reveal it. Two tasks were added after a view check (`playtest-4-fixes` tasks 5 and 6): the cabin view in acts 1 and 5 now shows the whole main console (a test with the real field of view, eye, pitch, yaw and the crew, and act 5 starts looking forward), and three late lines were moved (the flag line during the fall, "Drogues." at the opening, Neil leaving the hatch within 2 s of the last landing line).
 2. **The real script** (`real-script`). The dialogue and narration follow the Apollo 11 air to ground transcripts (NASA, public domain), with two new speakers. Small prints of real NASA photos slide in at the moments they belong to. The chapter cards, objective strips and archive text follow the new lines.
 3. **The game window** (`game-window`). The game moved from a page of its own into a window over the article. The closing block of the article is now a game card with a still of the pad. The window keeps the pointer lock and sound of `play.html`, asks before Close during a run, never closes on Esc, and falls back to the full page on phones. The game talks to the page with typed `postMessage` messages (a small module with a unit test). While the act 3 dream runs the article decays, worse while the creature hunts, and recovers when Buzz wakes. It is built from CSS, an SVG filter and SVG textures, and keeps only the colour change under reduced motion. The Sources list now names every photo the game shows. A new e2e script, `e2e/window.mjs`, covers both buttons, the size, the rot class during a debug hunt, Close, Esc and the end of a run.
+
+**The photo print fix** (`real-script` task 5). The small photo prints were drawn huge and flashed when they left, because the print used the class `leaving`, which the screen fade also uses. The print now uses `print-leaving`. The fix has a unit test and a sampled act 5 e2e check (`46db127`).
 
 ## The article redesign: one prompt
 
 The owner found the article page too plain and had a new design made, kept in `docs/design/article-design.dc.html`. One prompt, run by Kiro CLI in non-interactive mode, turned that design file into the production page (spec `article-redesign`, four tasks). Kiro rebuilt `index.html` and `src/article/article.css` as plain static HTML and CSS with no inline styles, kept the section ids so the game still returns to `#what-really-happened`, and kept the Seen and Missed marks coming from the saved run instead of the design's fixed list. It also added a "Your flight: N of 8 moments seen" line, new fonts (Newsreader and Libre Franklin), and an article e2e that takes screenshots at 375, 768, 1280 and 1920 px. The game did not change, so only the article checks were run.
+
+## A sharper picture: one prompt
+
+The 3D view looked blurry in the game window on a wide screen. One prompt, run by Kiro CLI in non-interactive mode, fixed it with a short spec (`sharp-view`, four tasks, commits `5f7ffa8` to `358d43a`). The adaptive scaler dropped a level after 2 s of slow frames and almost never climbed back. It now climbs at the display's own frame rate, drops only after 3 s of slow frames, and ignores loads, act changes, chapter cards and camera cuts. The level table gained 1920x1080, 1280x720 and 960x540, the start level follows the size of the game view, and the snap grid and dither follow the internal resolution. A new Picture setting (Sharp, Balanced, Retro) in the Esc menu sets the range. Tests cover the decision, the table, the ranges and the setting, and the render e2e checks the Sharp default.
+
+## Credits and docs for the submission: one prompt
+
+The last prompt (`submission-docs`, six tasks) was run by Kiro CLI in non-interactive mode. It removed the recorded narration in `public/audio/vo/`, so every line, including `act0.intro1`, is a subtitle, and with it the `voiced` code path and its tests. It removed the screenshot folder under `docs/` and every mention of it. It rewrote `CREDITS.md` with one row per sound file, the NASA photos, the transcript source, the fonts and the libraries, rewrote this file and `README.md`, and ran the checks.
 
 ## What went wrong and how it was fixed
 
@@ -118,7 +133,7 @@ The owner found the article page too plain and had a new design made, kept in `d
 
 ## Testing
 
-**Unit and property tests.** Vitest runs 379 tests in 79 files. 31 of those files use fast-check, with 92 property checks. The main properties:
+**Unit and property tests.** Vitest runs 662 tests in 122 files. 38 of those files use fast-check, with 101 property checks. The main properties:
 
 - Movement: horizontal speed never exceeds the set speed, opposing keys cancel, pitch stays within ±90°.
 - Collision: resolving leaves no overlap, leaves a free capsule unchanged, and is idempotent.
@@ -130,8 +145,4 @@ The owner found the article page too plain and had a new design made, kept in `d
 - Targeting and seeded random numbers: the nearest enabled item in reach is picked, and the generator is deterministic and in [0, 1).
 - Act 4 tasks: the creature comes out after the third task in all six orders, and only then.
 
-**E2E.** Plain Node scripts in `e2e/` drive headless Chromium with SwiftShader through Playwright, against a running dev server. They control the game through `window.__los` and wait on game state. `npm run e2e` chains 18 scripts in 19 runs: smoke, engine, render, audio, ui, one per act, walking, pointer lock, rails, no WebGL, act switching, idle hints, and a full playthrough that runs twice, the second time with every audio request blocked. Each act script plays its act to the next one with real key presses. The full chain takes about 20 minutes on SwiftShader.
-
-## Assets that existed before this repo
-
-The 40 recorded sound files and 3 narrator voice files in `public/audio/`, and the reference screenshots in `docs/reference/`, come from an earlier build of this game by the same author. They were copied in as finished files (`3113147`, see `CREDITS.md`). Everything else was made in this repo: geometry, textures, animation, UI, text and code.
+**E2E.** Plain Node scripts in `e2e/` drive headless Chromium with SwiftShader through Playwright, against a running dev server. They control the game through `window.__los` and wait on game state. `npm run e2e` chains 20 scripts in 21 runs: smoke, article, window, engine, render, audio, ui, act0, walk, lock, act1, act2, rails, act3, act4, act5, nowebgl, switch, idle, and a full playthrough that runs twice, the second time with every audio request blocked. Each act script plays its act to the next one with real key presses. `e2e/url.mjs` is a helper and is not in the chain. The full chain takes about 20 minutes on SwiftShader.
