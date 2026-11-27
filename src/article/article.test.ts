@@ -46,7 +46,7 @@ describe('article page', () => {
       if (i === 0) expect(tag).not.toContain('loading="lazy"')
       else expect(tag).toContain('loading="lazy"')
     })
-    expect([...html.matchAll(/<a href="https:\/\/images\.nasa\.gov\/details\/[^"]+">NASA<\/a>/g)]).toHaveLength(10)
+    expect([...html.matchAll(/<a href="https:\/\/images\.nasa\.gov\/details\/[^"]+">NASA<\/a>/g)]).toHaveLength(9)
   })
 
   it('lists the eight moments in order with a hidden mark and a source link each', () => {
@@ -61,8 +61,8 @@ describe('article page', () => {
   })
 
   it('has both play buttons, the footer link, the closing line and no game code', () => {
-    expect([...html.matchAll(/class="play[^"]*" href="\.\/play\.html"/g)]).toHaveLength(2)
-    expect(html).toContain('class="footer-play" href="./play.html"')
+    expect([...html.matchAll(/class="play[^"]*" href="\.\/play\.html" data-open-game/g)]).toHaveLength(2)
+    expect(html).toContain('class="footer-play" href="./play.html" data-open-game')
     expect(html).toContain('is a short first person horror game set aboard Apollo 11.')
     expect(html).toContain('The crew in the game are fictional characters.')
     expect(html).toContain('<script type="module" src="/src/article/main.ts">')

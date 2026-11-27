@@ -1,3 +1,4 @@
+import { hostMessage, postToHost } from '../engine/hostBridge'
 import { isDebugUrl } from '../engine/inputRuntime'
 import { startPersistence } from '../engine/persistence'
 import { importAct } from '../acts/registry'
@@ -17,6 +18,9 @@ export function boot(): void {
   installDebug()
   startInteraction()
   wireFinish()
+  gameStore.subscribe((s, prev) => {
+    if (s.act !== prev.act) postToHost(hostMessage.act(s.act))
+  })
   startIdleHint()
   setCompleteHandler((_from, next) => {
     if (next) void playAct(next)

@@ -1,5 +1,6 @@
 // Act 3 start-up: walking body, flashlight ambience, lockers, cage, carrying, the creature, noise and beats.
 // Everything goes through cleanup helpers, so unloading removes it. No Three.js or React imports.
+import { hostMessage, postToHost } from '../../engine/hostBridge'
 import { audio, radio, startAudioSession } from '../../audio'
 import { breathAllowed } from '../../audio/scene'
 import { CHECKLISTS } from '../../content/checklists'
@@ -423,6 +424,7 @@ export function startAct3(requested: string): void {
       // Loud steps only while it chases.
       if (nowChasing !== chasing) {
         chasing = nowChasing
+        postToHost(hostMessage.hunt(chasing))
         if (!act3State.silent) audio.setScene({ hum: 1, bed: 'engine', steps: chasing ? 0.9 : 0, breath: breathAllowed('act3-farside', 'dream') })
       }
 

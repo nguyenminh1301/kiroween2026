@@ -1,4 +1,5 @@
 // Starting, restarting and leaving a run, and the chapter card.
+import { hostMessage, isEmbedded, postToHost } from '../engine/hostBridge'
 import { requestLock } from '../engine/inputRuntime'
 import { gameStore, type Screen } from '../engine/store'
 import type { ActId } from '../types'
@@ -37,6 +38,11 @@ export function leaveToArticle(hash = ''): void {
   loader.unload()
   const s = gameStore.getState()
   s.setPaused(false)
+  // Inside the article's game window the article does the rest.
+  if (isEmbedded()) {
+    postToHost(hash === ARTICLE_END_HASH ? hostMessage.end() : hostMessage.leave())
+    return
+  }
   window.location.assign(articleUrl(hash))
 }
 

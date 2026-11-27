@@ -1,0 +1,136 @@
+/* The game window over the article. */
+html.gw-open {
+  overflow: hidden;
+  padding-right: var(--gw-scrollbar, 0);
+  scroll-behavior: auto;
+}
+.gw {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 8, 8, 0.78);
+}
+.gw-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  border: 1px solid #000;
+  outline: 1px solid rgba(251, 249, 244, 0.25);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+}
+.gw-bar {
+  flex: 0 0 var(--gw-bar, 36px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 8px 0 14px;
+  background: var(--paper);
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.gw-title {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.gw-act {
+  color: var(--grey);
+  text-transform: uppercase;
+}
+.gw-act::before {
+  content: '/';
+  margin-right: 14px;
+  color: var(--rule);
+}
+.gw-spacer {
+  flex: 1;
+}
+.gw-btn {
+  height: 26px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  cursor: pointer;
+}
+.gw-btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+.gw-btn:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+.gw-close:hover {
+  background: var(--red);
+  border-color: var(--red);
+}
+.gw-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+.gw-frame {
+  display: block;
+  border: 0;
+  background: #000;
+}
+.gw-confirm {
+  position: absolute;
+  inset: var(--gw-bar, 36px) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+}
+.gw-confirm[hidden] {
+  display: none;
+}
+.gw-confirm-card {
+  max-width: 420px;
+  padding: 24px 28px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  font-family: var(--sans);
+}
+.gw-confirm-card p {
+  margin: 0 0 8px;
+}
+.gw-confirm-title {
+  font-weight: 700;
+}
+.gw-confirm-body {
+  margin-bottom: 18px !important;
+  font-size: 14px;
+  color: var(--grey-dark);
+}
+.gw-confirm-card .gw-btn {
+  margin-right: 10px;
+  height: 32px;
+}
+.gw-note {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 100;
+  margin: 0;
+  padding: 12px 18px;
+  max-width: 90vw;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans);
+  font-size: 14px;
+}
