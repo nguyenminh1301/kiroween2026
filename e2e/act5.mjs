@@ -69,8 +69,37 @@ try {
   await wait(() => (window.__los.timeline() ?? 999) >= 73, null, 60000)
   check((await printText()).includes('S69-40753'), 'quarantine walk print shows after the narrator')
   await shot('act5-t72s')
+  // Sample the walk print every frame while it slides out and the trailer print takes over. It must stay at its own
+  // size (never wider than its slot) and no full screen overlay (the leaving fade, the photo flash) may appear.
+  await page.evaluate(() => {
+    const out = (window.__printSamples = [])
+    const tick = () => {
+      const e = document.querySelector('.print')
+      const slot = document.querySelector('.print-slot')
+      if (e && slot) {
+        const r = e.getBoundingClientRect()
+        out.push({
+          w: r.width,
+          slot: slot.getBoundingClientRect().width,
+          out: e.className.includes('leaving'),
+          overlay: !!document.querySelector('.leaving, .fx-photo-flash, .fx-print'),
+        })
+      }
+      window.__printRaf = requestAnimationFrame(tick)
+    }
+    tick()
+  })
   await wait(() => (window.__los.timeline() ?? 999) >= 82, null, 60000)
   check((await printText()).includes('KSC-69PC-484'), 'quarantine trailer print shows')
+  const samples = await page.evaluate(() => {
+    cancelAnimationFrame(window.__printRaf)
+    return window.__printSamples
+  })
+  const slides = samples.filter((x) => x.out)
+  check(slides.length >= 3, `the print was sampled ${slides.length} times while sliding out, expected at least 3`)
+  const widest = Math.max(...samples.map((x) => x.w / x.slot))
+  check(widest <= 1.2, `a print grew to ${widest.toFixed(2)} times its slot width while sliding out`)
+  check(!samples.some((x) => x.overlay), 'a full screen overlay appeared while a print was sliding out')
   await wait(() => window.__los.store.getState().screen === 'leaving', null, 30000)
   await page.waitForTimeout(500)
   await shot('act5-t81s')

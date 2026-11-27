@@ -6,6 +6,7 @@ import { markLockWasHeld, resumeGame } from '../engine/inputRuntime'
 import type { PlayerBody } from '../engine/playerBody'
 import { getPlayerBody, launchPlayer, updatePlayerBody } from '../engine/playerRuntime'
 import { gameStore } from '../engine/store'
+import { fxStore } from '../engine/fx'
 import { getDirector, type DirectorSnapshot } from '../director/snapshot'
 import { getInteractables } from '../interaction/interactables'
 import { focus } from '../interaction/Focus'
@@ -61,6 +62,8 @@ export interface LosDebug {
   /** Act 4 only: phase, timeline time, carried item, tasks done and the photo. Null in other acts. */
   readonly act3: Act3Info | null
   readonly act4: Act4Info | null
+  /** The overlay store: the print, photo, card and other overlays on screen. */
+  fx: typeof fxStore
   /** Number of registered frame systems. */
   systemCount(): number
   /** Game time in seconds. It stands still while paused. */
@@ -121,6 +124,7 @@ export function installDebug(win: Window = window): void {
     get act4() {
       return getAct4Info()
     },
+    fx: fxStore,
     systemCount: () => frameDriver.systemCount(),
     gameTime: () => frameDriver.getGameTime(),
     shake: () => {

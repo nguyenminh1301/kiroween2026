@@ -917,7 +917,7 @@
   pointer-events: none;
   user-select: none;
 }
-.print.leaving {
+.print.print-leaving {
   animation: print-out 0.6s ease-in both;
 }
 .print.hidden,
@@ -954,6 +954,6 @@
   to { transform: translateX(120%) rotate(6deg); opacity: 0; }
 }
 .reduced .print,
-.reduced .print.leaving {
+.reduced .print.print-leaving {
   animation-duration: 0.01s;
 }

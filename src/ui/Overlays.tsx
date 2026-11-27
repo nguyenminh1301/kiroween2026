@@ -130,7 +130,7 @@ function PrintSlot() {
   const paused = useGame((s) => s.paused)
   if (!print) return null
   const off = hidden || printHidden({ gauge: false, photo: false, bite: false, card: false, choice, tension })
-  const cls = ['print', print.leaving ? 'leaving' : '', paused ? 'paused' : ''].filter(Boolean).join(' ')
+  const cls = ['print', print.leaving ? 'print-leaving' : '', paused ? 'paused' : ''].filter(Boolean).join(' ')
   return (
     <div className={`print-slot${off ? ' hidden' : ''}`} data-testid="print" aria-hidden="true">
       <figure className={cls} key={print.key}>

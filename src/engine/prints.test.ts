@@ -71,3 +71,14 @@ describe('showPrint', () => {
     expect(fxStore.getState().print?.leaving).toBe(true)
   })
 })
+
+describe('print slide out class', () => {
+  it('does not reuse the class of the screen fade, which covers the whole view', async () => {
+    const { readFileSync } = await import('node:fs')
+    const tsx = readFileSync('src/ui/Overlays.tsx', 'utf8')
+    expect(tsx).not.toMatch(/\? 'leaving'/)
+    const css = readFileSync('src/ui/ui.css', 'utf8')
+    expect(css).toMatch(/\.print\.print-leaving\s*\{/)
+    expect(css).not.toMatch(/\.print\.leaving/)
+  })
+})
