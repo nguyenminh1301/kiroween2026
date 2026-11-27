@@ -270,7 +270,7 @@ try {
   await teleport3(0.3, -30.6)
   await useAt('act3:cmp', 'TAKE')
   await wait(() => window.__los.act3.phase === 'lunge', null, 30000)
-  await page.waitForTimeout(700)
+  await page.waitForTimeout(500)
   await shot('playthrough-act3-lunge')
   await wait(() => window.__los.act3.phase === 'choice', null, 90000)
   await shot('playthrough-act3-choice')

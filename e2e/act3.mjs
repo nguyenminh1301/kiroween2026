@@ -82,8 +82,15 @@ try {
   const mon = (await dir()).monster.pos
   await teleport(mon.x - 0.4, mon.z, Math.PI / 2)
   await wait(() => window.__los.act3.phase === 'caught', null, 30000)
-  await page.waitForTimeout(450)
-  await shot('act3-swallow')
+  // The swallow takes 1.5 s: the lit face (0 to 0.7 s), the open head (0.7 to 1.2 s), the teeth closing (1.2 to 1.5 s).
+  await page.waitForTimeout(500)
+  await shot('act3-swallow-face')
+  await page.waitForTimeout(500)
+  await shot('act3-swallow-open')
+  check((await page.locator('[data-testid="bite"]').count()) === 0, 'no teeth over the view before the lunge')
+  const sawBite = await page.waitForSelector('[data-testid="bite"]', { timeout: 5000 }).then(() => true, () => false)
+  check(sawBite, 'the teeth close over the view at the end of the swallow')
+  await shot('act3-swallow-bite')
   await wait(() => window.__los.act3.phase === 'explore' && window.__los.store.getState().checkpoint === 'wp0', null, 60000)
   await frames()
 
@@ -177,7 +184,7 @@ try {
   await teleport(0.3, -30.6)
   await useAt('act3:cmp', 'TAKE')
   await wait(() => window.__los.act3.phase === 'lunge', null, 30000)
-  await page.waitForTimeout(450)
+  await page.waitForTimeout(500)
   await shot('act3-lunge')
   await wait(() => window.__los.act3.phase === 'wakeUp' || window.__los.act3.phase === 'choice', null, 30000)
   await page.waitForTimeout(1600)

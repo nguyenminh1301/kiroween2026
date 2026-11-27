@@ -1,14 +1,18 @@
 // The act 3 creature view: the astronaut model, driven by the monster state and, at the end, the lunge.
 import { useEffect, useMemo } from 'react'
-import { BackSide, Mesh } from 'three'
+import { BackSide, Mesh, Vector3 } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
 import { getPlayerBody } from '../../engine/playerRuntime'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { buildAstronaut, poseAstronaut } from '../../procgen/astronaut'
-import { lungeDistance, lungeFrame } from '../../procgen/lunge'
+import { eyePosition } from '../../engine/playerBody'
+import { viewDirection } from '../../interaction/targeting'
+import { lungeFrame } from '../../procgen/lunge'
+import { CREATURE_SCALE } from './creatureFit'
 import { CAGED } from './layout'
 
 const AMBUSH_POS = { x: 0, z: CAGED.cdr.z - 0.5 }
+const FACE = new Vector3()
 import { act3State } from './state'
 
 const CREATURE_PRIORITY = 710
@@ -37,21 +41,26 @@ export function Creature() {
       bones.root.visible = vis
       if (!vis) return
       if (lunge !== null) {
-        // The swallow: suddenly in front of the camera, the head splits open, then the jaws slam shut.
+        // The swallow: the face, lit, right in front of the camera; then the head splits open; then the lunge.
         const body = getPlayerBody()
         const f = lungeFrame(lunge)
-        const ex = body?.pos.x ?? AMBUSH_POS.x
-        const ez = body?.pos.z ?? AMBUSH_POS.z + 2
+        bones.root.scale.setScalar(1)
         const yaw = body?.yaw ?? 0
-        const d = lungeDistance(f.reach)
-        bones.root.position.set(ex - Math.sin(yaw) * d, -0.75, ez - Math.cos(yaw) * d)
-        bones.root.rotation.y = Math.atan2(ex - bones.root.position.x, ez - bones.root.position.z)
+        const eye = body ? eyePosition(body) : { x: AMBUSH_POS.x, y: 1.85, z: AMBUSH_POS.z + 2 }
+        const dir = viewDirection(yaw, body?.pitch ?? 0)
+        bones.root.position.set(0, 0, 0)
+        bones.root.rotation.y = yaw
         poseAstronaut(bones, 'freeze', t, 0, { lunge })
+        bones.root.updateMatrixWorld(true)
+        // Put the middle of the visor on the view line, `dist` metres from the eye.
+        bones.head.localToWorld(FACE.set(0, 0.1, 0.17))
+        bones.root.position.set(eye.x + dir.x * f.dist - FACE.x, eye.y + dir.y * f.dist - FACE.y, eye.z + dir.z * f.dist - FACE.z)
         return
       }
       if (!m) return
       const moving = m.anim !== 'freeze'
       phase += dt * (m.anim === 'crawl' ? 7 : m.mode === 'hunt' ? 4.2 : 2.6) * (moving ? 1 : 0)
+      bones.root.scale.setScalar(CREATURE_SCALE)
       bones.root.position.set(m.pos.x, act3State.creatureY, m.pos.z)
       bones.root.rotation.y = m.heading + Math.PI
       poseAstronaut(bones, m.anim, t, phase, { x: m.pos.x, z: m.pos.z, heading: m.heading + Math.PI, sound: act3State.sound })

@@ -5,7 +5,7 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Group, Mesh, SphereGeometry, type Material } from 'three'
 import { cbox, mergeColored } from './coloredGeo'
 import { anglesFor, headToward, snapTime } from './astronautPose'
-import { lungeFrame, lungeDistance, type LungeFrame } from './lunge'
+import { lungeFrame, type LungeFrame } from './lunge'
 
 export const ASTRONAUT_MAX_TRIANGLES = 3000
 const SUIT = '#cfc8b4'
@@ -184,10 +184,12 @@ export function poseAstronaut(b: Astronaut, anim: 'walk' | 'freeze' | 'crawl', t
 }
 
 function poseLunge(b: Astronaut, f: LungeFrame): void {
-  // Crouched and bent at the start, standing and reaching at the end.
-  b.spine.rotation.x = 0.9 - f.rise * 0.9 + f.reach * 0.6
-  b.neck.rotation.x = -0.2 + f.reach * 0.3
-  b.head.rotation.set(0, 0, 0)
+  // Crouched at the start, then leaning in at the camera with the face turned square on to it.
+  const spine = 0.5 * (1 - f.rise) + 0.2
+  const neck = -0.2
+  b.spine.rotation.x = spine
+  b.neck.rotation.x = neck
+  b.head.rotation.set(-(spine + neck), 0, 0)
   b.leg.forEach(([h, k, a]) => {
     h.rotation.x = -1.1 * (1 - f.rise)
     k.rotation.x = 1.5 * (1 - f.rise)
@@ -198,8 +200,6 @@ function poseLunge(b: Astronaut, f: LungeFrame): void {
     e.rotation.x = 0.3
     w.rotation.x = -0.2
   })
-  b.jaw.rotation.x = f.jaw * 1.25
-  b.head.scale.setScalar(1 + f.jaw * 1.4 + f.reach * 0.8)
+  b.jaw.rotation.x = f.jaw * 1.3
+  b.head.scale.setScalar(f.headScale)
 }
-
-export { lungeDistance }

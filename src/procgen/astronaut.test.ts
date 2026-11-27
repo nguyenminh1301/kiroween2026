@@ -19,9 +19,13 @@ describe('astronaut model', () => {
   it('opens the jaw and grows the head in the lunge', () => {
     poseAstronaut(a, 'freeze', 0, 0, { lunge: 0 })
     expect(a.jaw.rotation.x).toBeLessThan(0.05)
-    poseAstronaut(a, 'freeze', 0, 0, { lunge: 0.59 })
+    poseAstronaut(a, 'freeze', 0, 0, { lunge: 1.19 })
     expect(a.jaw.rotation.x).toBeGreaterThan(1)
     expect(a.head.scale.x).toBeGreaterThan(2)
+    poseAstronaut(a, 'freeze', 0, 0, { lunge: 0.5 })
+    expect(a.jaw.rotation.x).toBe(0)
+    // Face square on to the camera while it is held: the body and head tilts cancel.
+    expect(a.spine.rotation.x + a.neck.rotation.x + a.head.rotation.x).toBeCloseTo(0, 6)
     poseAstronaut(a, 'walk', 0, 0)
     expect(a.jaw.rotation.x).toBe(0)
     expect(a.head.scale.x).toBe(1)

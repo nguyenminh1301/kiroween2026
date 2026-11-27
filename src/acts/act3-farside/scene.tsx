@@ -56,6 +56,7 @@ function Flashlight() {
 const DREAM_AMBIENT = new Color('#4a1c14')
 const CABIN_AMBIENT = new Color('#a89a86')
 const REAL_AMBIENT = new Color('#fff0d4')
+const LUNGE_AMBIENT = new Color('#f0d8bc')
 
 /** The ambient glow: red in the corridor, a little stronger inside a locker so the corridor shows through the
  *  slats, plain warm in the cabin, and dim warm light after waking. */
@@ -65,7 +66,11 @@ function Ambient() {
     () =>
       registerSystem('act3-ambient', FLASH_PRIORITY + 1, () => {
         const body = getPlayerBody()
-        if (act3State.world === 'real') {
+        if (act3State.lunge !== null && act3State.world === 'dream') {
+          // The swallow: its face is lit, so the player can read it.
+          light.color.copy(LUNGE_AMBIENT)
+          light.intensity = 4
+        } else if (act3State.world === 'real') {
           // The normal cabin, lights on: bright and warm, like act 2.
           light.color.copy(REAL_AMBIENT)
           light.intensity = 3

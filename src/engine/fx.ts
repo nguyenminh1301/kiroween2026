@@ -65,6 +65,14 @@ export interface ReadoutView {
   lines: string[]
 }
 
+/** The teeth of the swallow closing over the view. */
+export interface Bite {
+  /** 0 teeth off screen, 1 closed in the middle. */
+  close: number
+  /** Red flash strength, 0 to 1. */
+  flash: number
+}
+
 export interface FxState {
   meter: NoiseMeter | null
   /** Screen edge darkness, 0 to 1. */
@@ -74,6 +82,9 @@ export interface FxState {
   /** Inside a sleeping bag: fabric all round and a slit about a fifth of the screen high. */
   slit: boolean
   setSlit: (v: boolean) => void
+  /** The upper and lower teeth of the swallow, or null. */
+  bite: Bite | null
+  setBite: (b: Bite | null) => void
   setMeter: (m: NoiseMeter | null) => void
   setEdge: (v: number) => void
   setFlash: (s: string | null) => void
@@ -103,7 +114,7 @@ export interface FxState {
   clearFx: () => void
 }
 
-const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, slit: false, blackout: 0, whiteout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, photo: null as PhotoView | null, readout: null as ReadoutView | null }
+const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, slit: false, bite: null as Bite | null, blackout: 0, whiteout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, photo: null as PhotoView | null, readout: null as ReadoutView | null }
 
 export const fxStore = createStore<FxState>()((set) => ({
   ...EMPTY,
@@ -111,6 +122,7 @@ export const fxStore = createStore<FxState>()((set) => ({
   setEdge: (v) => set({ edge: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
   setFlash: (flash) => set({ flash }),
   setSlit: (slit) => set({ slit }),
+  setBite: (bite) => set({ bite: bite ? { close: Math.min(1, Math.max(0, bite.close)), flash: Math.min(1, Math.max(0, bite.flash)) } : null }),
   setPhoto: (photo) => set({ photo }),
   setReadout: (readout) => set({ readout }),
   setBlackout: (v) => set({ blackout: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),

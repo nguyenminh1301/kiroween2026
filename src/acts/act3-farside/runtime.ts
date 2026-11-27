@@ -101,6 +101,7 @@ export function startAct3(requested: string): void {
     fxStore.getState().setFlash(null)
     fxStore.getState().setBlackout(0)
     fxStore.getState().setSlit(false)
+    fxStore.getState().setBite(null)
   })
 
   const allBoxes = collisionBoxes(false)
@@ -358,11 +359,16 @@ export function startAct3(requested: string): void {
         updatePlayerBody({ vel: { x: 0, y: 0, z: 0 } })
       }
 
-      // The swallow: the mouth slams shut over the view, then black with no fade.
+      // The swallow: the teeth close over the view from the top and bottom, then black with no fade.
       if (act3State.lunge !== null) {
         act3State.lunge = beats.lungeTime()
         const t = beats.lungeTime()
-        if (t !== null) fxStore.getState().setBlackout(lungeFrame(t).cover)
+        const fx = fxStore.getState()
+        if (t !== null) {
+          const f = lungeFrame(t)
+          fx.setBlackout(f.cover)
+          fx.setBite(f.bite > 0 && f.cover === 0 ? { close: f.bite, flash: f.flash } : null)
+        } else if (fx.bite) fx.setBite(null)
       }
 
       // Noise and breath.

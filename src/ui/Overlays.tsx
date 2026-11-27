@@ -168,6 +168,7 @@ export function FxLayer() {
   const edge = useFx((s) => s.edge)
   const flash = useFx((s) => s.flash)
   const slit = useFx((s) => s.slit)
+  const bite = useFx((s) => s.bite)
   const blackout = useFx((s) => s.blackout)
   const whiteout = useFx((s) => s.whiteout)
   const flashes = useFx((s) => s.flashes)
@@ -180,6 +181,7 @@ export function FxLayer() {
     <>
       {edge > 0 ? <div className="fx-edge" style={{ opacity: edge }} data-testid="edge" /> : null}
       {slit ? <div className="fx-slit" data-testid="slit" /> : null}
+      {bite ? <Bite close={bite.close} flash={bite.flash} /> : null}
       <div className="fx-black" style={{ opacity: blackout }} />
       {whiteout > 0 ? <div className="fx-white" style={{ opacity: whiteout }} /> : null}
       {flash ? (
@@ -294,6 +296,38 @@ export function ChoicePrompt() {
           {DREAM_CHOICES[k]}
         </button>
       ))}
+    </div>
+  )
+}
+
+/** Tooth heights along the jaw, in a fixed uneven order. */
+const TEETH = [16, 22, 13, 25, 18, 12, 24, 15, 21, 14, 26, 17, 12, 23]
+
+function Jaw({ bottom }: { bottom: boolean }) {
+  const w = 100 / TEETH.length
+  return (
+    <svg className={bottom ? 'fx-jaw fx-jaw-bottom' : 'fx-jaw fx-jaw-top'} viewBox="0 0 100 50" preserveAspectRatio="none" aria-hidden="true">
+      <rect x="0" y="-2" width="100" height="32" fill="#2a0508" />
+      {TEETH.map((len, i) => (
+        <polygon
+          key={i}
+          points={`${i * w},29 ${(i + 1) * w},29 ${(i + 0.5) * w},${29 + len}`}
+          fill="#d8cfae"
+          stroke="#4a3a2a"
+          strokeWidth="0.3"
+        />
+      ))}
+    </svg>
+  )
+}
+
+/** The teeth of the swallow: the upper row comes down and the lower row up, and meet in the middle. */
+function Bite({ close, flash }: { close: number; flash: number }) {
+  return (
+    <div className="fx-bite" data-testid="bite" style={{ '--close': close } as CSSProperties}>
+      <Jaw bottom={false} />
+      <Jaw bottom />
+      <div className="fx-bite-red" style={{ opacity: flash * 0.55 }} />
     </div>
   )
 }

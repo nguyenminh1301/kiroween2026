@@ -45,7 +45,7 @@ export function anglesFor(anim: 'walk' | 'freeze' | 'crawl', phase: number): Ang
     // Forward walk: the torso leans forward, elbows and knees bend forward and back, and each arm swings
     // against the leg on its side. The creature's front is +z, so a positive hip angle swings the leg back.
     return {
-      spine: 0.14,
+      spine: 0.45,
       neckX: -0.1,
       arm: [
         [-s * 0.35, -0.7, 0.3],
@@ -58,7 +58,7 @@ export function anglesFor(anim: 'walk' | 'freeze' | 'crawl', phase: number): Ang
     }
   }
   return {
-    spine: -0.1,
+    spine: 0.45,
     neckX: 0.1,
     arm: [
       [0.05, 0.5, -0.3],
