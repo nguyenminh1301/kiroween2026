@@ -154,7 +154,7 @@ try {
   // Act 1.
   stage = 'act1'
   await actReady('act1-launch')
-  await objective('numbers on the card', 400000)
+  await objective('burn numbers from the card', 400000)
   await shot('playthrough-act1')
   for (let i = 0; i < 3; i++) {
     await useAt('act1:dsky', 'KEY IN')

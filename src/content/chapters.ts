@@ -4,23 +4,20 @@ import type { ActId } from '../types'
 export const CHAPTER_INTROS: Partial<Record<ActId, string[]>> = {
   'act1-launch': [
     'July 16, 1969. Launch Complex 39A.',
-    'Three men strapped in on top of a Saturn V. Liftoff is set for 9:32 in the morning.',
+    'The crew has been lying on their backs for two and a half hours. Liftoff is at 9:32.',
   ],
   'act2-coast': [
-    'July 18, 1969. Day three, halfway to the Moon.',
-    'Columbia and Eagle fly docked nose to nose. The crew is getting ready to sleep.',
-    'Eagle has been showing a fault all day.',
+    'July 18, 1969. Day three.',
+    'Halfway to the Moon, Neil and Buzz open the tunnel and check Eagle for the first time.',
+    'Then one more night before lunar orbit.',
   ],
   'act3-farside': [
     'July 19, 1969. Lunar orbit.',
-    'Every two hours the ship passes behind the Moon. For forty-five minutes Houston cannot hear them.',
+    "Each time Columbia passes behind the Moon, Houston can't hear them. About 48 minutes every orbit.",
   ],
-  'act4-moon': [
-    'July 20, 1969.',
-    'Eagle undocks with two men aboard and goes down to the Sea of Tranquility. Mike stays in orbit.',
-  ],
+  'act4-moon': ['July 20, 1969.', 'Eagle undocks with Neil and Buzz aboard. Mike stays with Columbia.'],
   'act5-home': [
     'July 24, 1969.',
-    'Columbia fired its engine behind the Moon and headed home. Three days later, the Pacific is coming up fast.',
+    'Columbia is coming home at 11 kilometres a second. The Pacific is ahead.',
   ],
 }

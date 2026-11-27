@@ -9,7 +9,7 @@ export const CHECKLISTS: Record<string, Objective> = {
     keys: 'E',
     markers: ['act0:hatch'],
   },
-  act1Key: { text: 'Key in the numbers on the card: press the computer three times', keys: 'E', markers: ['act1:dsky'] },
+  act1Key: { text: 'Load the burn numbers from the card: press the computer three times', keys: 'E', markers: ['act1:dsky'] },
   act2Back: { text: 'Float back up the tunnel to the command module', keys: 'E' },
   act2Sleep: { text: 'Get into your sleeping bag', keys: 'E', markers: ['act2:bag'] },
   act2Eyes: { text: 'Hold C to close your eyes and sleep', keys: 'C' },
