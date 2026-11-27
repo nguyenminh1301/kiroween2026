@@ -88,14 +88,15 @@ try {
   await page.screenshot({ path: join(shotDir, 'article-marks.png') })
   await page.evaluate(() => localStorage.clear())
 
-  // The three play links open the game on the begin card.
+  // The three play links open the game window over the article, on the begin card.
   for (const sel of ['.bar .play', '.game .play', '.footer-play']) {
     await page.goto(articleUrl())
     await page.locator(sel).click()
-    await page.waitForURL(/\/play\.html/, { timeout: 30000 })
+    await page.waitForSelector('.gw iframe', { timeout: 30000 })
     if (sel === '.bar .play') {
-      await page.waitForSelector('[data-screen="begin"]', { timeout: 30000 })
-      check((await page.locator('[data-screen="begin"]').textContent()).includes('Click to begin'), 'game opens on the begin card')
+      const frame = page.frameLocator('.gw iframe')
+      await frame.locator('[data-screen="begin"]').waitFor({ timeout: 60000 })
+      check((await frame.locator('[data-screen="begin"]').textContent()).includes('Click to begin'), 'game opens on the begin card')
     }
   }
   await page.close()

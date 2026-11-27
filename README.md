@@ -2,7 +2,7 @@
 
 LOSS OF SIGNAL is a first-person horror game with a PS1 look, set on the Apollo 11 flight in July 1969. You play Buzz Aldren, the Lunar Module Pilot, from the launch pad to splashdown. A run takes about 12 minutes. It plays in a desktop browser with a mouse and keyboard. It is an entry for Kiroween 2026.
 
-**Read and play:** PLAY_URL. The site opens on a long article about the flight of Apollo 11. The button "Play as an astronaut" opens the game (`play.html`).
+**Read and play:** PLAY_URL. The site opens on a long article about the flight of Apollo 11. The button "Play as an astronaut" (in the top bar and on the game card at the end) opens the game in a window over the article. While the Far side dream runs, the article behind the window decays, and it recovers when Buzz wakes. On a phone, or on its own, the game is at `play.html`.
 
 ## Controls
 
@@ -85,7 +85,7 @@ npm run dev -- --port 5180 --strictPort
 GAME_URL='http://localhost:5180/?debug' npm run e2e
 ```
 
-`GAME_URL` only gives the origin and the query. The game scripts open `play.html` on that origin and `e2e/article.mjs` opens the article. Set `CHROMIUM_PATH` if Playwright's own Chromium is not installed. Screenshots go to `e2e/shots/`. The full chain takes about 20 minutes. See `e2e/README.md` for what each script checks.
+`GAME_URL` only gives the origin and the query. The game scripts open `play.html` on that origin, `e2e/article.mjs` opens the article and `e2e/window.mjs` plays through the game window (it needs the dev server, because it imports an engine module to end the run). Set `CHROMIUM_PATH` if Playwright's own Chromium is not installed. Screenshots go to `e2e/shots/`. The full chain takes about 20 minutes. See `e2e/README.md` for what each script checks.
 
 ### Deploy
 

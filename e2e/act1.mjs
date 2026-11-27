@@ -84,7 +84,6 @@ try {
   await shot('act1-jettison')
   await budget('jettison shot')
   await page.waitForFunction(() => window.__los.timeline() !== null, null, { timeout: 60000 })
-  await atTime(30)
   await objective('burn numbers from the card')
   check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   for (let i = 0; i < 3; i++) {

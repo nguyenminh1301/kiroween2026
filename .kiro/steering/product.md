@@ -4,13 +4,24 @@ inclusion: always
 
 # Product: LOSS OF SIGNAL
 
-The site has two pages. `index.html` is a long, plain article about the flight of Apollo 11 (real names, NASA photos, sources, no game code). `play.html` is the game: a first-person, PS1-style horror game for desktop browsers, set on the Apollo 11 flight. Kiroween 2026 entry, Costume Contest category: the interface must feel haunted and polished, and every spooky element must serve how the game plays. Both "Play as an astronaut" buttons in the article open `play.html`. A run takes about 12 minutes over six chapters. A chapter card (title and date over black) bridges each one.
+The site has two pages. `index.html` is a long, plain article about the flight of Apollo 11 (real names, NASA photos, sources, no game code). `play.html` is the game: a first-person, PS1-style horror game for desktop browsers, set on the Apollo 11 flight. Kiroween 2026 entry, Costume Contest category: the interface must feel haunted and polished, and every spooky element must serve how the game plays. Both "Play as an astronaut" buttons in the article (the top bar and the game card at the end) open the game in a window over the article, which loads `play.html` in an iframe. `play.html` also works on its own. A run takes about 12 minutes over six chapters. A chapter card (title and date over black) bridges each one.
 
 ## Pages and menus
 - The article ends with the section "What really happened" and "Sources". It shows "Seen in your flight" or "Missed in your flight" on each of the eight real moments if this browser has played a run.
 - The game has no title menu. `play.html` shows one card, "Use headphones. Click to begin.", and one click starts act 0 (and unlocks sound and pointer lock).
 - The Esc menu holds Resume, Restart checkpoint, Chapters (same unlock rule), Settings (sensitivity, volume, subtitle size, reduced motion) and Back to the article.
-- When act 5 ends, the picture fades to black and the article opens at "What really happened". There is no in-game Archive screen.
+- When act 5 ends, the picture fades to black, the game window closes and the article scrolls to "What really happened" with its marks refreshed. Played alone, `play.html` opens the article at that section instead. There is no in-game Archive screen.
+- "Back to the article" in the Esc menu closes the window (or leaves `play.html` when it runs alone).
+
+## The game window and the rotting page
+- The window is a framed panel in the article's style: thin black frame, a narrow title bar with "LOSS OF SIGNAL" and the act name on the left, "Full screen" and "Close" on the right. It is at least 90% of the viewport and the game area is 16:9, never under 960 by 540 on a desktop. The article behind it is dimmed, inert and does not scroll.
+- Close asks first when a run is in progress. Esc is the game's pause key and never closes the window. On phones (under 900 px or touch only) the button opens `play.html` full screen with a note that the game needs a keyboard and mouse.
+- The game tells the page what happens with typed `postMessage` messages (`src/engine/hostBridge.ts`): act changes, the act 3 dream starting and ending, the hunt starting and ending, leaving and the end of the run. The page accepts them only from its own frame.
+- While the act 3 dream runs, the article behind the window decays (red stained paper, cracked and smeared headlines and rules, dark photos, streaks from the top bar, small text glitches). It gets worse while the creature hunts and eases off after. When Buzz wakes, it returns to normal in a few seconds. With reduced motion only the colour change stays. The article opened alone never shows it.
+
+## Real material
+- The dialogue and narration follow the Apollo 11 air to ground transcripts (NASA, public domain) in `src/content/subtitles.ts`, with the speakers LMP and SWIM added. Lines over 90 characters are split into parts.
+- Small prints of real NASA photos slide in at the moments they belong to (`src/content/prints.ts`, setting "Photo prints"), plus the flag photo AS11-40-5875 in act 4. Every photo the game shows is named in the article Sources and in `CREDITS.md`.
 
 ## Cast
 Player is Buzz Aldren, Lunar Module Pilot. Neil Armstead (commander, CDR). Mike Collier (command module pilot, CMP). Gunter Went leads the pad crew. Houston is CAPCOM. Faces never show: helmets on, or visors down in close shots.

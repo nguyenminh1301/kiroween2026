@@ -47,6 +47,9 @@ Each spec has `requirements.md` (EARS form), `design.md` and `tasks.md`. In the 
 | `playtest-3-acts-0-2` | Third round of notes, acts 0 to 2 (see below) | 3 |
 | `playtest-3-dream` | Third round of notes, the act 3 dream | 5 |
 | `playtest-3-moon-home` | Third round of notes, acts 4 and 5 | 3 |
+| `playtest-4-fixes` | Fourth round of notes: panel at 1.1 m, re-entry sound that follows the glow, thinner parachute lines, subtitle reveal in place | 4 |
+| `real-script` | Fourth round of notes: the Apollo 11 air to ground script and small prints of real NASA photos | see spec |
+| `game-window` | Fourth round of notes: the game in a window on the article, and the page that rots during act 3 | 4 |
 | `apollo-article-site` | Third round of notes, the site: an article page and a game page without a title menu | 5 |
 
 The `play-fixes` and `look-fixes` spec folders are not in the repo, so their task counts are not shown here. The table rows come from the commits.
@@ -93,6 +96,14 @@ A third set of notes was answered by four prompts, each run by Kiro CLI in non-i
 2. **The dream** (`playtest-3-dream`). No bar in the doorway and collision on every prop, a window onto the hanging crew at the first junction, the door corner hiding spot removed, a wider bag slit, a creature that fits the corridor, a 1.5 s swallow, a glowing cage door and a carry marker.
 3. **Acts 4 and 5** (`playtest-3-moon-home`). The flag photo needs the player in the mark, looking at the flag, and comes first; a re-entry shot rebuilt from additive layers; reefed then open drogues and three mains in a triangle on their own lines.
 4. **The site** (`apollo-article-site`). The site opens on a long article about the flight (real names, NASA photos and sources, no game code, under 300 KB of script and style). The game moved to `play.html` with no title menu: one card, "Use headphones. Click to begin.", and an Esc menu with chapters, settings and a link back to the article. The Archive became the article section "What really happened", with marks read from the saved run. The e2e scripts start from `play.html`, and a new script covers the article.
+
+## The fourth round of the player's notes: three prompts
+
+A fourth set of notes was answered by three prompts, each run by Kiro CLI in non-interactive mode, one task at a time in one chat, with a short spec committed first.
+
+1. **Fixes** (`playtest-4-fixes`). The panel moved to 1.1 m from the eye, the re-entry sound follows the glow curve, the parachute lines got thin and the drogues short banded cones, and subtitles lay out the whole line before they reveal it.
+2. **The real script** (`real-script`). The dialogue and narration follow the Apollo 11 air to ground transcripts (NASA, public domain), with two new speakers. Small prints of real NASA photos slide in at the moments they belong to. The chapter cards, objective strips and archive text follow the new lines.
+3. **The game window** (`game-window`). The game moved from a page of its own into a window over the article. The closing block of the article is now a game card with a still of the pad. The window keeps the pointer lock and sound of `play.html`, asks before Close during a run, never closes on Esc, and falls back to the full page on phones. The game talks to the page with typed `postMessage` messages (a small module with a unit test). While the act 3 dream runs the article decays, worse while the creature hunts, and recovers when Buzz wakes. It is built from CSS, an SVG filter and SVG textures, and keeps only the colour change under reduced motion. The Sources list now names every photo the game shows. A new e2e script, `e2e/window.mjs`, covers both buttons, the size, the rot class during a debug hunt, Close, Esc and the end of a run.
 
 ## The article redesign: one prompt
 
