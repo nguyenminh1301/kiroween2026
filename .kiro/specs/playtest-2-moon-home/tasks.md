@@ -7,5 +7,5 @@
 - [x] 5. Bigger parachutes (req 5)
 - [x] 6. Dialogue of acts 4 and 5 (req 6)
 - [x] 7. Archive: What really happened (req 7)
-- [ ] 8. Steering (req 8)
+- [x] 8. Steering (req 8)
 - [ ] 9. Final check and write-up (req 9)
