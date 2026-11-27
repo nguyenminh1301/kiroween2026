@@ -62,8 +62,8 @@ Loaded from Google Fonts in `play.html` (game) and `index.html` (article).
 | IBM Plex Mono | OFL-1.1 |
 | Courier Prime | OFL-1.1 |
 | Special Elite | Apache-2.0 |
-| Libre Caslon Text | OFL-1.1 |
-| Source Serif 4 | OFL-1.1 |
+| Newsreader | OFL-1.1 |
+| Libre Franklin | OFL-1.1 |
 
 ## Apollo Guidance Computer source
 
