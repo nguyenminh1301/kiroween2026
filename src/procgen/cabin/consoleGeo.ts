@@ -15,6 +15,7 @@ import { createRng } from '../../procgen/rng'
 import {
   DSKY_POS,
   O2_POS,
+  CONSOLE_SCALE,
   PANEL_CENTER_Y,
   PANEL_CENTER_Z,
   PANEL_COUNT,
@@ -33,13 +34,15 @@ export function panelAngle(i: number): number {
   return (i - MIDDLE) * PANEL_STEP
 }
 
-/** World transform of panel `i`: translate, then yaw toward the couches, then tilt back. */
+/** World transform of panel `i`: translate, then yaw toward the couches, then tilt back, then scale to world size. */
 export function panelMatrix(i: number): Matrix4 {
   const a = panelAngle(i)
-  const pivotZ = PANEL_CENTER_Z + PANEL_RADIUS
-  const pos = new Vector3(PANEL_RADIUS * Math.sin(a), PANEL_CENTER_Y, pivotZ - PANEL_RADIUS * Math.cos(a))
+  const r = PANEL_RADIUS * CONSOLE_SCALE
+  const pivotZ = PANEL_CENTER_Z + r
+  const pos = new Vector3(r * Math.sin(a), PANEL_CENTER_Y, pivotZ - r * Math.cos(a))
   const q = new Matrix4().makeRotationFromEuler(new Euler(-PANEL_TILT, -a, 0, 'YXZ'))
-  return new Matrix4().makeTranslation(pos.x, pos.y, pos.z).multiply(q)
+  const s = new Matrix4().makeScale(CONSOLE_SCALE, CONSOLE_SCALE, CONSOLE_SCALE)
+  return new Matrix4().makeTranslation(pos.x, pos.y, pos.z).multiply(q).multiply(s)
 }
 
 export function panelEuler(i: number): Euler {

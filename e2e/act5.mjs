@@ -45,11 +45,11 @@ try {
   })
   check(start.tension === 'UNEASE' && start.hr === 100 && Math.abs(start.fear - 0.2) < 0.01, `start state ${JSON.stringify(start)}`)
 
-  // Screenshots at the re-entry peak and fade, the reefed and open drogues, the reefed and open mains, then every 9 s. A budget check on each.
+  // Cabin views at the start of each cabin moment (2, 13, 27 s) and during blackout (17 s). Screenshots at the re-entry peak and fade, the reefed and open drogues, the reefed and open mains, then every 9 s. A budget check on each.
   const sawLines = new Set()
   let maxCalls = 0
   let maxTris = 0
-  for (const mark of [8.5, 11.5, 22.8, 25, 29.8, 34, 36.5, 45, 49, 54, 63]) {
+  for (const mark of [2, 8.5, 11.5, 13, 17, 22.8, 27, 25, 29.8, 34, 36.5, 45, 49, 54, 63]) {
     await wait((m) => (window.__los.timeline() ?? 999) >= m, mark, 120000)
     const s = await page.evaluate(() => ({ calls: window.__los.stats.calls, tris: window.__los.stats.triangles }))
     maxCalls = Math.max(maxCalls, s.calls)

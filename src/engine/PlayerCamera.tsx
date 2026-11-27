@@ -11,15 +11,16 @@ import { getCameraShaker } from './cameraShake'
 export const CAMERA_PRIORITY = 600
 
 /**
- * Puts the R3F camera on the player's eye, or on the active Timeline's Shot, plus
+ * Puts the R3F camera on the player's eye (with `fov` when given), or on the active Timeline's Shot, plus
  * shake. Registers one frame system; it never calls useFrame.
  */
-export function PlayerCamera({ far }: { far?: number } = {}) {
+export function PlayerCamera({ far, fov: eyeFov }: { far?: number; fov?: number } = {}) {
   const camera = useThree((s) => s.camera)
 
   useEffect(() => {
     const cam = camera as PerspectiveCamera
-    const baseFov = cam.fov
+    const restoreFov = cam.fov
+    const baseFov = eyeFov ?? cam.fov
     const baseFar = far ?? cam.far
     const restoreFar = cam.far
     if (cam.far !== baseFar) {
@@ -66,11 +67,11 @@ export function PlayerCamera({ far }: { far?: number } = {}) {
     })
     return () => {
       remove()
-      cam.fov = baseFov
+      cam.fov = restoreFov
       cam.far = restoreFar
       cam.updateProjectionMatrix()
     }
-  }, [camera, far])
+  }, [camera, far, eyeFov])
 
   return null
 }

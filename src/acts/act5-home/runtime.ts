@@ -27,9 +27,7 @@ export function startAct5(): void {
   const store = gameStore.getState()
   store.setMoveMode('seated')
   focus.setBodyAccess({ get: getPlayerBody, set: setPlayerBody })
-  let alive = true
   cleanupRegistry.register(() => {
-    alive = false
     focus.setBodyAccess(null)
     setPlayerBody(null)
     const s = gameStore.getState()
@@ -59,8 +57,8 @@ export function startAct5(): void {
     duration: DURATION + tail,
     shots: SHOTS,
     events: events({
-      say(id, opts) {
-        void radio.say(id, { onStart: opts?.focus ? () => alive && focus.focusOn(opts.focus!, 1.5) : undefined })
+      say(id) {
+        void radio.say(id)
       },
       playSound: (n) => audio.play(n),
       setSky: (c) => {

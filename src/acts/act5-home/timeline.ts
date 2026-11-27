@@ -248,13 +248,12 @@ export function heliLevel(t: number, outside: boolean): number {
 }
 
 export const SKY = { glow: '#ff7a2a', burn: '#ffa25a', blue: '#5e8fc8', high: '#8fb6dd', space: '#000000' }
-export const CDR_HEAD: Vec3 = { x: -0.65, y: 1.15, z: 0.62 }
-export const CMP_HEAD: Vec3 = { x: 0, y: 1.15, z: 0.62 }
 
 export type SoundName = 'reentry' | 'static' | 'chute' | 'splash' | 'horn'
 
 export interface Hooks {
-  say(id: string, opts?: { focus?: Vec3 }): void
+  /** The cabin view stays forward on every line: no line turns it to a crewman. */
+  say(id: string): void
   playSound(name: SoundName): void
   setSky(color: string): void
   hideEarth(): void
@@ -272,7 +271,7 @@ export interface Hooks {
  */
 export function events(h: Hooks, tail = 0): TimelineEvent[] {
   return [
-    { at: 0.8, run: () => h.say('act5.cleared', { focus: CDR_HEAD }) },
+    { at: 0.8, run: () => h.say('act5.cleared') },
     { at: 0.9, run: () => h.say('act5.gear') },
     {
       at: 12.3,
@@ -283,17 +282,17 @@ export function events(h: Hooks, tail = 0): TimelineEvent[] {
       },
     },
     { at: 9.8, run: () => h.say('act5.hill') },
-    { at: 9.9, run: () => h.say('act5.later', { focus: CDR_HEAD }) },
+    { at: 9.9, run: () => h.say('act5.later') },
     { at: 16, run: () => h.playSound('static') },
-    { at: 16.2, run: () => h.say('act5.blackout', { focus: CMP_HEAD }) },
+    { at: 16.2, run: () => h.say('act5.blackout') },
     { at: 17.5, run: () => h.setSky(SKY.burn) },
     { at: 18.6, run: () => h.say('act5.aria') },
     { at: 18.7, run: () => h.say('act5.airboss') },
     { at: 19.5, run: () => h.setSky(SKY.blue) },
     { at: 21, run: () => h.playSound('chute') },
-    { at: 21.8, run: () => h.say('act5.drogues', { focus: CDR_HEAD }) },
+    { at: 21.8, run: () => h.say('act5.drogues') },
     { at: 28.2, run: () => h.playSound('chute') },
-    { at: 29, run: () => h.say('act5.mains', { focus: CDR_HEAD }) },
+    { at: 29, run: () => h.say('act5.mains') },
     { at: 30.5, run: () => h.setSky(SKY.high) },
     { at: 31, run: () => h.say('act5.hornet') },
     { at: 31.1, run: () => h.say('act5.hornetack') },
@@ -306,7 +305,7 @@ export function events(h: Hooks, tail = 0): TimelineEvent[] {
         h.say('act5.splash')
       },
     },
-    { at: SPLASH_AT + 2.4, run: () => h.say('act5.okay', { focus: CMP_HEAD }) },
+    { at: SPLASH_AT + 2.4, run: () => h.say('act5.okay') },
     {
       at: 50,
       run: () => h.moment('hornet'),

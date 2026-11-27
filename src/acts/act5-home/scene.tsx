@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import type { Group } from 'three'
 import { registerSystem } from '../../engine/frameDriver'
 import { PlayerCamera } from '../../engine/PlayerCamera'
+import { CABIN_FOV } from '../../procgen/cabin/layout'
 import { Cabin } from '../../procgen/cabin/cabin'
 import { Console } from '../../procgen/cabin/console'
 import { applyFog, clearFog } from '../../render/fog'
@@ -37,7 +38,7 @@ export function Scene() {
 
   return (
     <>
-      <PlayerCamera />
+      <PlayerCamera fov={CABIN_FOV} />
       <hemisphereLight args={['#d8c9a0', '#3a342a', 1.1]} />
       <pointLight color="#e9c27a" intensity={3} distance={9} decay={1.2} position={[0, 2.1, 0.4]} />
       <directionalLight color="#fff2d8" intensity={0.9} position={[-40, 60, 40]} />
