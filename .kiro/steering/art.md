@@ -4,7 +4,7 @@ inclusion: always
 
 # Art
 
-PS1 look: low-poly geometry, low-res nearest-filtered textures, vertex snapping, ordered dither, fog, low internal resolution scaled up. Textures are generated in code on canvas and cached. All geometry is built in code, no external models. Target look: `docs/reference/shots/` (see its README). The green stats box in them is a debug overlay.
+PS1 look: low-poly geometry, low-res nearest-filtered textures, vertex snapping, ordered dither, fog, low internal resolution scaled up. Textures are generated in code on canvas and cached. All geometry is built in code, no external models.
 
 ## Palette per act
 - act0-pad: dawn sky #9DB7C9, rocket white #F2EBDD, dawn peach #F2C38D, gantry red #8E3B22

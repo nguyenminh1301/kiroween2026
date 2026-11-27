@@ -50,7 +50,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 
 ## Act 5 and the full playthrough
 
-`e2e/act5.mjs` loads act 5, saves `e2e/shots/act5-tNNs.png` every 9 s (compare with `docs/reference/shots/ref-act5-*.png`), checks the voiced `act5.end`, the fade and the Archive count, then quits to title mid-timeline and checks nothing is left playing.
+`e2e/act5.mjs` loads act 5, saves `e2e/shots/act5-tNNs.png` every 9 s, checks the `act5.end` line, the fade and the Archive count, then quits to title mid-timeline and checks nothing is left playing.
 
 `e2e/playthrough.mjs` runs last. It goes to the title screen, presses Start and plays every act with the act scripts' steps, saving `e2e/shots/playthrough-<act>.png`, then checks the Archive shows 6 / 6 and the title screen has the Archive button. It takes about 8 minutes on SwiftShader.
 

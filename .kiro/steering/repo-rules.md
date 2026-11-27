@@ -10,7 +10,6 @@ inclusion: always
 4. Do not modify, rename or re-encode files in `public/audio/`.
 5. `window.__los` is the debug contract, set only when the URL has `?debug`. Never rename it.
 6. Text under `src/content/` uses no em dash, en dash or ` -- `, plain short words, and passes `npm run check-copy`.
-7. Do not modify files in `docs/reference/`.
 8. Every third-party asset gets a row in `CREDITS.md`. Only CC0, public domain or OFL assets.
 9. Crew names in the game are Neil Armstead, Mike Collier and Buzz Aldren. Never use the real astronauts' names in game text.
 10. Commit the spec folder `.kiro/specs/<name>/` together with the first task's commit, and commit it again whenever requirements, design or tasks change.
