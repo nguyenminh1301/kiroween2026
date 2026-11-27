@@ -43,7 +43,6 @@ try {
 
   // Screenshots every 9 s of timeline time, and a budget check on each.
   const sawLines = new Set()
-  let sawEndVoice = false
   let maxCalls = 0
   let maxTris = 0
   for (let mark = 9; mark <= 63; mark += 9) {
@@ -56,13 +55,9 @@ try {
   check(maxCalls < 150, `draw calls ${maxCalls}, expected under 150`)
   check(maxTris < 150000, `triangles ${maxTris}, expected under 150000`)
 
-  // The voiced ending, then the fade.
+  // The narrator's ending line (subtitle only), then the fade.
   await wait(() => (window.__los.timeline() ?? 999) >= 62.2, null, 60000)
-  sawEndVoice = await page.evaluate(
-    () => window.__los.audio.loaded().includes('vo/act5.end') || window.__los.store.getState().subtitle?.text?.startsWith('Three men came home'),
-  )
-  check(sawEndVoice, 'voiced line act5.end is loaded or showing')
-  await wait(() => window.__los.store.getState().subtitle?.text?.startsWith('Three men came home'), null, 30000)
+  await wait(() => window.__los.store.getState().subtitle?.text?.startsWith('July 24, 1969'), null, 30000)
   sawLines.add('act5.end')
   await wait(() => (window.__los.timeline() ?? 999) >= 70.8, null, 60000)
   await shot('act5-t72s')
@@ -70,8 +65,9 @@ try {
   await page.waitForTimeout(500)
   await shot('act5-t81s')
   const count = await page.evaluate(() => document.querySelector('[data-testid=archive-count]')?.textContent ?? '')
-  check(/You noticed: \d \/ 6\./.test(count), `archive count text: ${count}`)
+  check(/Seen: \d \/ 8\./.test(count), `archive count text: ${count}`)
   check(await page.evaluate(() => window.__los.store.getState().finished), 'finished flag set')
+  check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('hornet')), 'hornet seen')
 
   // Quit to title mid-timeline: nothing more fires and every sound stops.
   await page.evaluate(() => {

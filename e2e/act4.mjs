@@ -100,7 +100,15 @@ try {
   await shot('act4-descent-20s')
   check((await info()).landerY < 2, 'lander nearly down at 20 s')
 
-  // 2. The ladder down: crawl out, nine rungs, a drop, a step off. Mouse look still works.
+  check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('alarm-1202')), 'alarm-1202 seen in the descent')
+
+  // 2. Neil climbs down first, seen from the hatch. Then the player's ladder: crawl out, nine rungs, a drop, a step off.
+  await wait(() => window.__los.act4.phase === 'neil', null, 60000)
+  check(await page.evaluate(() => window.__los.act4.neil.visible), 'Neil is shown on the ladder')
+  await wait(() => window.__los.act4.time >= 2.5, null, 60000)
+  await shot('act4-neil-ladder')
+  check(await page.evaluate(() => window.__los.act4.neil.anim === 'ladder'), 'Neil climbs the rungs')
+  check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('eagle-landed')), 'eagle-landed seen')
   await wait(() => window.__los.act4.phase === 'exit', null, 60000)
   check(await page.evaluate(() => window.__los.player.body.mode === 'seated'), 'seated while climbing down')
   await wait(() => window.__los.act4.time >= 2.6, null, 60000)
@@ -161,12 +169,17 @@ try {
   await page.keyboard.press('KeyE')
   await page.waitForFunction(() => !document.querySelector('[data-testid=photo]'), null, { timeout: 5000, polling: 100 })
   check(true, 'E closes the photo')
+  await wait(() => ['walk', 'scoop', 'kneel', 'write', 'camera'].includes(window.__los.act4.neil.anim) && window.__los.act4.neil.anim !== 'camera', null, 15000)
+  check(true, 'Neil goes to work after the photo')
+  await shot('act4-neil-works')
 
   await teleport(-1.35, 3.3)
   await useAt('act4:seismokit')
   await wait(() => window.__los.act4.carrying === 'seismo', null, 30000)
   await walkTo(-8, -5)
   await useAt('act4:seismo')
+  await wait(() => window.__los.store.getState().anomaliesSeen.includes('seismo-steps'), null, 15000)
+  check(true, 'seismo-steps seen')
 
   // 6. Back to the ladder.
   await wait(() => window.__los.act4.phase === 'return', null, 60000)
@@ -197,13 +210,16 @@ try {
   await shot('act4-readout')
   await wait(() => window.__los.act4.time >= 4.4, null, 60000)
   check(await page.evaluate(() => document.querySelector('[data-testid=readout]')?.textContent?.includes('BURN_BABY_BURN--MASTER_IGNITION_ROUTINE')), 'routine name typed in the panel')
-  check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('burn-baby-burn')), 'burn-baby-burn noticed')
+  check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('burn-routine')), 'burn-routine seen')
   await budget('liftoff')
   await wait(() => window.__los.act4.time >= 5.9, null, 60000)
   check(await page.evaluate(() => !document.querySelector('[data-testid=readout]')), 'readout gone after 4 s')
   await shot('act4-liftoff-5s')
   await wait(() => window.__los.act4.time >= 9.5, null, 60000)
   await shot('act4-liftoff')
+  check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('flag-knocked')), 'flag-knocked seen')
+  await wait(() => window.__los.act4.time >= 13.4, null, 60000)
+  check(await page.evaluate(() => Number(document.querySelector('.fx-black')?.style.opacity ?? 0) > 0.5), 'fading to black at the end of the shot')
   await wait(() => window.__los.loader.state.getState().act === 'act5-home' || window.__los.loader.state.getState().status === 'loading', null, 120000)
   check(true, 'act 5 loading')
 

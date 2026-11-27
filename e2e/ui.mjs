@@ -141,12 +141,14 @@ try {
 
   // Archive.
   await g.evaluate(() => {
-    window.__los.store.setState({ anomaliesSeen: ['burn-baby-burn', 'test-box'] })
+    window.__los.store.setState({ anomaliesSeen: ['burn-routine', 'test-box'] })
     window.__los.ui.go('archive')
   })
   await g.waitForSelector('[data-screen="archive"]')
-  check((await text(g, '[data-testid="archive-count"]')).includes('1 / 2'), 'archive counts 1 of 2')
-  check((await g.locator('[data-anomaly]').count()) === 2, 'archive lists two items')
+  check((await text(g, '[data-testid="archive-count"]')).includes('1 / 8'), 'archive counts 1 of 8')
+  check((await g.locator('[data-moment]').count()) === 8, 'archive lists eight moments')
+  check((await g.locator('.moment.seen').count()) === 1, 'one moment is marked seen')
+  check(lower(await text(g, '[data-screen="archive"]')).includes('what really happened'), 'archive title')
   await shot(g, 'archive')
 } catch (e) {
   errors.push(`script: ${e instanceof Error ? e.message : e}`)

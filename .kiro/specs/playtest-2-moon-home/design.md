@@ -14,3 +14,11 @@
 - Act 5 shake is clamped by the launch cap helper. Ocean ambience peaks at 0.25 after splashdown.
 - Chutes: all three mains are placed at 30 m lines, 26 m apart, 25 m across. The camera pulls back with them.
 - No recording exists for acts 4 and 5 except `act5.end.mp3`, which is removed as asked.
+
+## Notes from the work
+- Neil uses the suited figure from `procgen/figure` with new poses (walk, kneel, scoop, write, camera, ladder). The act 3 creature model is not used outside the dream.
+- Neil walks a ping-pong route so no leg of it crosses the descent stage; a unit test checks this.
+- The flash is a new white overlay (`fx.whiteout`), separate from the black fade.
+- The act 1 shake noise moved to `engine/shakeNoise.ts` so act 5 uses the same cap without importing act 1.
+- Two bugs found in item 9's e2e run, each with a failing check first: act 2 close-ups shut on the next frame when opened from more than 1.8 m (use reach is 2.5 m; a unit test now guards the order), and the act 3 answers ignored mouse clicks because the UI root sets `pointer-events: none` (the act 3 e2e now reports the top element).
+- E2E fixes for scripts that had gone stale after earlier specs: act 2 subtitle texts and the grown tunnel end, the idle check allowing the `peek` patrol mode, the act 3 hover done with the mouse, longer waits for the slow SwiftShader page.

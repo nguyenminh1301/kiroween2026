@@ -8,4 +8,4 @@
 - [x] 6. Dialogue of acts 4 and 5 (req 6)
 - [x] 7. Archive: What really happened (req 7)
 - [x] 8. Steering (req 8)
-- [ ] 9. Final check and write-up (req 9)
+- [x] 9. Final check and write-up (req 9)

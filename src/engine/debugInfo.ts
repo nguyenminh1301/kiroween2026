@@ -45,6 +45,8 @@ export interface Act4Info {
   done: string[]
   /** True while the flag photo is on screen. */
   photo: boolean
+  /** Neil on the surface: shown, what he does, and where. */
+  neil: { visible: boolean; anim: string; x: number; z: number }
 }
 
 let act4Source: (() => Act4Info) | null = null

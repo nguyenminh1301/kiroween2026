@@ -73,7 +73,7 @@ try {
       // The creature must still be patrolling, and must not have caught a player who stands still.
       const d1 = await page.evaluate(() => JSON.parse(JSON.stringify(window.__los.director)))
       check(d1.state.phase !== 'caught', `act 3 idle: phase ${d1.state.phase}, expected not caught`)
-      check(['patrol', 'search', 'alert', 'hunt'].includes(d1.monster.mode), `act 3 idle: creature mode ${d1.monster.mode}`)
+      check(['patrol', 'peek', 'search', 'alert', 'hunt'].includes(d1.monster.mode), `act 3 idle: creature mode ${d1.monster.mode}`)
       const p1 = d1.monster.pos
       await wait((p) => {
         const m = window.__los.director.monster.pos

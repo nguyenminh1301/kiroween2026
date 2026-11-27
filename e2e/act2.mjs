@@ -26,8 +26,13 @@ try {
   const shot = (name) => page.screenshot({ path: join(shotDir, `${name}.png`) })
   const objective = (text, timeout = 60000) =>
     page.waitForFunction((t) => window.__los.store.getState().objective?.text?.includes(t), text, { timeout, polling: 100 })
-  const subtitle = (text, timeout = 30000) =>
-    page.waitForFunction((t) => (window.__los.store.getState().subtitle?.text ?? '').includes(t), text, { timeout, polling: 100 })
+  // Every subtitle shown is kept in the page, so a short line is not missed while the script is busy.
+  const subtitle = (text, timeout = 90000) =>
+    page.waitForFunction(
+      (t) => (window.__subs ?? []).some((x) => x.includes(t)) || (window.__los.store.getState().subtitle?.text ?? '').includes(t),
+      text,
+      { timeout, polling: 100 },
+    )
   const unfocused = () => page.waitForFunction(() => !window.__los.focus(), null, { timeout: 30000, polling: 100 })
   const z = () => page.evaluate(() => window.__los.player.body.pos.z)
   const budget = async (label) => {
@@ -72,6 +77,13 @@ try {
   await page.goto(url)
   await page.waitForFunction(() => window.__los, null, { timeout: 30000 })
   await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 30000 })
+  await page.evaluate(() => {
+    window.__subs = []
+    window.__los.store.subscribe((st) => {
+      const t = st.subtitle?.text
+      if (t && window.__subs.at(-1) !== t) window.__subs.push(t)
+    })
+  })
   await page.evaluate(() => window.__los.loader.loadAct('act2-coast'))
   await page.waitForFunction(
     () => window.__los.loader.state.getState().act === 'act2-coast' && window.__los.player.body,
@@ -80,7 +92,7 @@ try {
   )
   await objective('Repairs left')
   check(await page.evaluate(() => window.__los.player.body.mode === 'zeroG'), 'zero-g body')
-  await subtitle('Three small items')
+  await subtitle('housekeeping items')
   await page.waitForTimeout(1200)
   await shot('act2-start')
   await budget('start')
@@ -94,9 +106,18 @@ try {
   await page.waitForSelector('[data-testid="gauge"]', { timeout: 10000 })
   await shot('act2-gauge')
   const reading = () => page.evaluate(() => parseFloat(document.querySelector('[data-testid="gauge"] text:last-of-type')?.textContent ?? '0'))
-  await page.keyboard.down('KeyD')
-  for (let i = 0; i < 400 && (await reading()) < 4.6; i++) await page.waitForTimeout(30)
-  await page.keyboard.up('KeyD')
+  // Short taps of D and A until the needle sits in the band: a slow page must not overshoot it.
+  for (let i = 0; i < 300 && (await page.evaluate(() => !!document.querySelector('[data-testid="gauge"]'))); i++) {
+    await hold()
+    const r = await reading()
+    if (r < 4.85 || r > 5.15) {
+      const key = r < 4.85 ? 'KeyD' : 'KeyA'
+      await page.keyboard.down(key)
+      await page.waitForTimeout(Math.abs(r - 5) > 0.6 ? 150 : 40)
+      await page.keyboard.up(key)
+    }
+    await page.waitForTimeout(150)
+  }
   await page.waitForFunction(() => !document.querySelector('[data-testid="gauge"]'), null, { timeout: 30000, polling: 100 })
   await subtitle('five point zero')
   check(!(await enabled('act2:gauge')), 'gauge is done')
@@ -105,7 +126,7 @@ try {
   for (let i = 0; i < 100 && (await z()) > 0.6; i++) await push(0)
   check(pushes >= 1, `at least one real push, got ${pushes}`)
   if ((await z()) > 0.6) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: 0.5 } }))
-  await subtitle('hiss is the oxygen line')
+  await subtitle('Hear that rattle')
 
   // Oxygen line: hammer from the pouch, three taps on the joint.
   check(!(await enabled('act2:joint')), 'joint needs the hammer')
@@ -119,7 +140,7 @@ try {
     await useAt('act2:joint', 'TAP')
     await page.waitForTimeout(300)
   }
-  await subtitle('Oxygen flow looks steady')
+  await subtitle('Oxygen flow is steady')
   check(!(await enabled('act2:joint')), 'joint is done after three taps')
 
   // Lander: breaker panel and landing site keypad.
@@ -154,8 +175,9 @@ try {
 
   // Back: the tunnel is longer, so it takes more pushes.
   const before = pushes
-  for (let i = 0; i < 100 && (await z()) < 1.6; i++) await push(Math.PI)
-  await page.waitForFunction(() => window.__los.player.body.pos.z > 1.6, null, { timeout: 30000 })
+  // The command module end of the tunnel is at z = 3.0 once the tunnel has grown.
+  for (let i = 0; i < 100 && (await z()) < 3.2; i++) await push(Math.PI)
+  await page.waitForFunction(() => window.__los.player.body.pos.z > 3.1, null, { timeout: 30000 })
   check(pushes - before >= 3, `the way back took ${pushes - before} pushes, expected at least 3`)
   await subtitle('You were gone a while')
   await page.waitForTimeout(1500)

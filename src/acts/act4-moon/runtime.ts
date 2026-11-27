@@ -98,6 +98,8 @@ import { SITES, groundAt } from './terrain'
 
 const LOGIC_PRIORITY = 300
 const PHOTO_SECONDS = 5
+/** Where Buzz watches Neil climb down: above the porch, looking down the ladder. */
+const NEIL_WATCH = { y: 4.4, z: 2.35, pitch: -1.0 } as const
 const PHOTO_GUARD = 0.5
 /** The flash comes this long after Neil starts to lift the camera. */
 const FLASH_AT = PHOTO_LIFT + 0.2
@@ -171,6 +173,7 @@ export function startAct4(requested: string): void {
     carrying: tasks.carrying,
     done: TASK_IDS.filter((t) => tasks.done[t]),
     photo: photo !== null,
+    neil: { visible: act4State.neil.visible, anim: act4State.neil.anim, x: act4State.neil.x, z: act4State.neil.z },
   }))
 
   const say = (id: string, o: { urgent?: boolean; look?: Vec3; secs?: number; then?: () => void } = {}): void => {
@@ -261,7 +264,7 @@ export function startAct4(requested: string): void {
     vitals(0.2, 96)
     gameStore.getState().setCheckpoint('tasks')
     gameStore.getState().setMoveMode('seated')
-    updatePlayerBody({ pos: { x: 0, y: 3.75 - 1.65, z: 2.05 }, yaw: Math.PI, pitch: -0.75, mode: 'seated' })
+    updatePlayerBody({ pos: { x: 0, y: NEIL_WATCH.y - 1.65, z: NEIL_WATCH.z }, yaw: Math.PI, pitch: NEIL_WATCH.pitch, mode: 'seated' })
     act4State.neil.visible = true
     applyNeilClimb(0)
   }

@@ -30,7 +30,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 
 ## UI test
 
-`e2e/ui.mjs` takes the origin from `GAME_URL`. Without `?debug` it clicks Continue and Click to start, checks the title, the six chapter buttons, and that a volume of 0.5 survives a reload. With `?debug` it checks Start, the chapter card for act 1 (and none for act 3 at `wp1`), the sandbox switch, objective and `test-box` anomaly, the pause menu and the Archive. Screenshots go to `e2e/shots/ui-*.png`. `npm run e2e` runs it last.
+`e2e/ui.mjs` takes the origin from `GAME_URL`. Without `?debug` it clicks Continue and Click to start, checks the title, the six chapter buttons, and that a volume of 0.5 survives a reload. With `?debug` it checks Start, the chapter card for act 1 (and none for act 3 at `wp1`), the sandbox switch, objective and `test-box` sighting, the pause menu and the Archive (eight moments, one seen). Screenshots go to `e2e/shots/ui-*.png`. `npm run e2e` runs it last.
 
 ## Act 0 test
 
@@ -46,7 +46,7 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 
 ## Act 4 test
 
-`e2e/act4.mjs` loads `act4-moon` at `start` and takes shots at 3 s, 9 s and 20 s of the descent. It waits for the surface and `act4Tasks`, does the sample, the flag and the seismometer with real W and E presses, waits for the creature and the `act4Run` objective, jumps with SPACE, climbs the ladder and checks `burn-baby-burn` and the load of `act5-home`. It then loads `run`, stands still and checks it is caught and restarted at `run`. Screenshots go to `e2e/shots/act4-*.png`. `npm run e2e` runs it last.
+`e2e/act4.mjs` loads `act4-moon` at `start` and takes shots at 3 s, 9 s and 20 s of the descent (two of them are cabin shots). It checks the 1202 alarm and the landing line are seen, watches Neil climb down first, then the player's ladder, waits for the surface and `act4Tasks`, does the sample, the flag, the photo (a flash, then the print) and the seismometer with real W and E presses, checks Neil goes to work after the photo, climbs the ladder, checks the burn routine panel, the flag falling and the fade to black before the load of `act5-home`. It then loads `run` and checks the ladder spot. Screenshots go to `e2e/shots/act4-*.png`. `npm run e2e` runs it.
 
 ## Act 5 and the full playthrough
 

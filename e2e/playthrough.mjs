@@ -1,5 +1,5 @@
 // The full-game check: title screen, Start, every act in order with the same steps as the act
-// scripts (teleports only where those scripts teleport), then the Archive with all six noticed.
+// scripts (teleports only where those scripts teleport), then the Archive with every moment seen.
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,7 +9,7 @@ const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
-const ALL = ['impostor-capcom', 'burn-baby-burn']
+const ALL = ['escape-tower', 'loss-of-signal', 'alarm-1202', 'eagle-landed', 'seismo-steps', 'flag-knocked', 'burn-routine', 'hornet']
 const errors = []
 const check = (ok, msg) => {
   if (!ok) errors.push(`check failed: ${msg}`)
@@ -139,7 +139,7 @@ try {
   // Act 1.
   stage = 'act1'
   await actReady('act1-launch')
-  await objective('numbers on the card')
+  await objective('numbers on the card', 400000)
   await shot('playthrough-act1')
   for (let i = 0; i < 3; i++) {
     await useAt('act1:dsky', 'KEY IN')
@@ -157,9 +157,18 @@ try {
   await useAt('act2:gauge', 'ADJUST')
   await page.waitForSelector('[data-testid="gauge"]', { timeout: 10000 })
   const reading = () => page.evaluate(() => parseFloat(document.querySelector('[data-testid="gauge"] text:last-of-type')?.textContent ?? '0'))
-  await page.keyboard.down('KeyD')
-  for (let i = 0; i < 400 && (await reading()) < 4.6; i++) await page.waitForTimeout(30)
-  await page.keyboard.up('KeyD')
+  // Short taps of D and A until the needle sits in the band: a slow page must not overshoot it.
+  for (let i = 0; i < 300 && (await page.evaluate(() => !!document.querySelector('[data-testid="gauge"]'))); i++) {
+    await hold()
+    const r = await reading()
+    if (r < 4.85 || r > 5.15) {
+      const key = r < 4.85 ? 'KeyD' : 'KeyA'
+      await page.keyboard.down(key)
+      await page.waitForTimeout(Math.abs(r - 5) > 0.6 ? 150 : 40)
+      await page.keyboard.up(key)
+    }
+    await page.waitForTimeout(150)
+  }
   await page.waitForFunction(() => !document.querySelector('[data-testid="gauge"]'), null, { timeout: 30000, polling: 100 })
   // Oxygen line.
   for (let i = 0; i < 100 && (await z()) > 0.6; i++) await push(0)
@@ -250,8 +259,8 @@ try {
   await go3(-6, -13.5)
   await frames()
   await go3(-6, -14.6)
-  await wait(() => window.__los.store.getState().anomaliesSeen.includes('impostor-capcom'), null, 30000)
-  check(await seen('impostor-capcom'), 'impostor-capcom noticed')
+  await wait(() => window.__los.store.getState().anomaliesSeen.includes('loss-of-signal'), null, 30000)
+  check(await seen('loss-of-signal'), 'loss-of-signal seen')
   await subtitle('how many crew aboard', 30000)
   // The approach and the cage.
   await go3(0, -26.5)
@@ -346,8 +355,8 @@ try {
   await teleport4(0, 5.2)
   await useAt('act4:ladder', 'CLIMB')
   await wait(() => window.__los.act4?.phase === 'liftoff' && window.__los.act4.time >= 3.2, null, 60000)
-  await wait(() => window.__los.store.getState().anomaliesSeen.includes('burn-baby-burn'), null, 30000).catch(() => {})
-  check(await seen('burn-baby-burn'), 'burn-baby-burn noticed during liftoff')
+  await wait(() => window.__los.store.getState().anomaliesSeen.includes('burn-routine'), null, 30000).catch(() => {})
+  check(await seen('burn-routine'), 'burn-routine seen during liftoff')
 
   // Act 5, then the Archive.
   stage = 'act5'
@@ -359,12 +368,12 @@ try {
   await page.waitForTimeout(500)
   await shot('playthrough-archive')
   const got = await page.evaluate(() => window.__los.store.getState().anomaliesSeen)
-  for (const id of ALL) check(got.includes(id), `${id} noticed in the full run`)
+  for (const id of ALL) check(got.includes(id), `${id} seen in the full run`)
   const count = await page.evaluate(() => document.querySelector('[data-testid=archive-count]')?.textContent ?? '')
-  check(count.includes('You noticed: 2 / 2.'), `archive count: ${count}`)
+  check(count.includes('Seen: 8 / 8.'), `archive count: ${count}`)
   const told = await page.evaluate(() => document.querySelector('[data-testid=archive-told]')?.textContent ?? '')
   check(told.includes('You told them:'), `archive choice line: ${told}`)
-  check(await page.evaluate(() => document.querySelectorAll('.anomaly.noticed').length) === 2, 'two noticed rows')
+  check(await page.evaluate(() => document.querySelectorAll('.moment.seen').length) === 8, 'eight seen rows')
   check(await page.evaluate(() => window.__los.store.getState().finished), 'act 5 saved as finished')
   const blocker = await page.evaluate(() => {
     const btn = [...document.querySelectorAll('[data-screen="archive"] button')].pop()

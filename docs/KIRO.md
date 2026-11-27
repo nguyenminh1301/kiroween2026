@@ -41,6 +41,9 @@ Each spec has `requirements.md` (EARS form), `design.md` and `tasks.md`. In the 
 | `polish` | A live backdrop behind the menus, visual fixes against the reference shots, idle hints, reduced motion, stable e2e scripts | 9 |
 | `play-fixes` | Play fixes from the full play review: scripted looks capped at 1.5 s so dialogue no longer freezes the view, pointer lock kept through chapter cards with a click to continue prompt, radio lines tagged with a beat so stale lines drop, push off from any handrail in reach, the creature stops 3.5 m away in the flashlight, an error boundary with the no-WebGL message, a quieter idle hint | Not in the repo |
 | `look-fixes` | Look fixes from the same review: rounded suited figures with helmet bubble and visor, the Saturn V stack behind the White Room, cabin windows that paint their own view, flat pad ground and a narrow TLI plume, a wider act 3 flashlight with rust plates, locker view and dark slats, small carried items in act 4, a lunar module with foil panels and ladder rails, a smaller broken foam ring in act 5 | Not in the repo |
+| `playtest-2-acts-0-2` | Second round of notes, acts 0 to 2 (see below) | 8 |
+| `playtest-2-dream` | Second round of notes, the act 3 dream | 7 |
+| `playtest-2-moon-home` | Second round of notes, acts 4 and 5 and the Archive | 9 |
 
 The `play-fixes` and `look-fixes` spec folders are not in the repo, so their task counts are not shown here. The table rows come from the commits.
 
@@ -60,7 +63,7 @@ From phase 6 on, Kiro CLI ran in non-interactive mode. It used a custom agent wi
 
 Each phase was reviewed in a fresh clone. The review ran the tests, lint, build, budget check, copy check and the e2e chain, and compared the e2e screenshots with the reference shots in `docs/reference/shots/`. Fixes went back to Kiro as new prompts.
 
-## The last round: three prompts from the player's notes
+## The first round of the player's notes: three prompts
 
 After the first full build, a player played the whole game and sent notes. Three prompts answered them, each run by Kiro CLI in non-interactive mode, one task at a time in one chat.
 
@@ -69,6 +72,14 @@ After the first full build, a player played the whole game and sent notes. Three
 3. **Acts 4 and 5.** Act 4 lost its creature: the horror ended with the dream, so the Moon is calm. New in act 4: a first-person ladder climb (down in 8 s, up in 5 s), the flag photo (Neil takes the real NASA picture AS11-40-5875, shown as a framed print and credited in `CREDITS.md` and the Archive), a Moon that reaches the horizon (a 200 m detailed area, rings out to 2.5 km that fall off with the Moon's curve, and an 80 m soft walking limit), and a rebuilt lander (engine bells, dish footpads and probes, an ascent stage that lifts off on its own flame while the descent stage stays as the pad, and a green AGC readout for `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE`). Act 5 now ends re-entry inside the air (no stars after the burn, deep to light blue sky, a cloud layer), with a full parachute sequence, a sharper USS Hornet, three escorts, a raft with swimmers and a Sea King 66 whose downwash ruffles the sea.
 
 The caption of the photo uses the real astronaut's name because it quotes a NASA credit line. Game text and dialogue keep the changed crew names.
+
+## The second round of the player's notes: three prompts
+
+The player played again and sent a second set of notes. Three more prompts answered them, each run by Kiro CLI in non-interactive mode, one task at a time in one chat, with a short spec committed first (`playtest-2-acts-0-2`, `playtest-2-dream`, `playtest-2-moon-home`). The story rule for all three: the creature exists only in the act 3 dream, and nothing outside it hints at it or at a fourth person.
+
+1. **Acts 0 to 2.** The breathing loop only on the Moon and in the dream, new dialogue, an opening hatch that leads into act 1, a 150 second launch with the real beats, a cabin eye at helmet height with small props, a slowly turning spacecraft, a breaker panel and a keypad in act 2, and bedtime by holding C.
+2. **The dream.** A map with choices (a jammed hatch, a left and a right loop, side rooms), more hiding places, a creature that hunts the last noise it heard, the crew hanging in the cage room, a harder swallow, and a bright, normal cabin to wake in.
+3. **Acts 4 and 5.** Cabin shots in the lunar module at helmet height, Neil on the surface (he climbs down first, takes the photo with a flash and a click, then scoops soil, kneels at rocks, writes on his cuff and takes photos) and Mike on the radio in orbit, the US flag, a long narrow ascent flame with thruster puffs, the next act loaded before the liftoff shot ends so the cut is a clean fade, a re-entry shake held to the launch cap, a soft sea, full-size parachutes (two 5 m drogues, three 25 m mains side by side), new dialogue in subtitles only, and an Archive rebuilt as "What really happened". The old anomaly ids went with it; the store field keeps its name because it is part of the debug contract.
 
 ## What went wrong and how it was fixed
 
