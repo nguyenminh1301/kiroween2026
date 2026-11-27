@@ -153,3 +153,10 @@ describe('fog and options', () => {
     )
   })
 })
+
+describe('snap grid follows the internal resolution', () => {
+  it('is twice as fine at 1280 as at 640, so the wobble gets smaller on screen', () => {
+    expect(snapStep(1280) * 2).toBeCloseTo(snapStep(640), 12)
+    expect(snapClip(0.3333, 1280)).toBeCloseTo(0.3333, 2)
+  })
+})

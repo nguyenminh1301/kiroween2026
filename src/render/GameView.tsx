@@ -12,6 +12,10 @@ import { useGameRect, useLevel } from './useGameView'
 export function GameView({ children }: { children: (dpr: number) => ReactNode }) {
   const rect = useGameRect()
   const level = useLevel()
+  const picture = 'sharp' as const
+  // The view in real pixels picks the start level. A resize or a zoom change comes through the rect or the dpr.
+  const viewPx = Math.round(rect.width * (window.devicePixelRatio || 1))
+  useEffect(() => adaptiveScaler.configure(picture, viewPx), [picture, viewPx])
   const dpr = dprFor(lookupLevel(level).width, rect)
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#000' }}>

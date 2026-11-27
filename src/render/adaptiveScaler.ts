@@ -3,6 +3,7 @@ import { gameStore } from '../engine/store'
 import { onRenderHold, holdRender } from '../engine/renderHold'
 import { UP_BLOCK_MS, nextLevel } from './adaptiveDecision'
 import { DEFAULT_LEVEL, levelCount, lowestLevelAtLeast } from './levelTable'
+import { pictureRange, type Picture } from './pictureRange'
 
 export const MAX_SAMPLES = 600
 export const DECISION_MS = 500
@@ -29,6 +30,12 @@ export interface AdaptiveScaler {
   /** Allowed levels: `top` is the sharpest, `floor` the lowest. Clamps the current level. */
   setRange(top: number, floor: number): void
   getRange(): { top: number; floor: number }
+  /**
+   * Set the range and start level for a picture setting and a view width in real pixels.
+   * A new picture setting, or the first call, goes to the start level. A resize keeps the level
+   * the scaler found, inside the new range.
+   */
+  configure(picture: Picture, viewPx: number): void
   sampleCount(): number
   msSinceChange(): number
   subscribe(listener: (level: number) => void): () => void
@@ -42,6 +49,8 @@ export function createAdaptiveScaler(deps: ScalerDeps = {}): AdaptiveScaler {
   let msSinceChange = 0
   let msSinceDecision = 0
   let holdLeft = 0
+  let picture: Picture | null = null
+  let moved = false
   let msSinceDrop = Infinity
   let top = 0
   let floor = lowestLevelAtLeast(AUTO_FLOOR_WIDTH)
@@ -72,6 +81,7 @@ export function createAdaptiveScaler(deps: ScalerDeps = {}): AdaptiveScaler {
       const n = nextLevel(level, samples, msSinceChange, { top, floor, upBlocked: msSinceDrop < UP_BLOCK_MS })
       if (n !== level) {
         if (n > level) msSinceDrop = 0
+        moved = true
         change(n)
       }
     },
@@ -89,6 +99,20 @@ export function createAdaptiveScaler(deps: ScalerDeps = {}): AdaptiveScaler {
       else if (level > floor) change(floor)
     },
     getRange: () => ({ top, floor }),
+    configure(p, viewPx) {
+      const r = pictureRange(p, viewPx)
+      const fresh = picture !== p || !moved
+      picture = p
+      top = r.top
+      floor = r.floor
+      if (fresh) {
+        moved = false
+        msSinceDrop = Infinity
+        if (level !== r.start) change(r.start)
+        else msSinceChange = 0
+      } else if (level < top) change(top)
+      else if (level > floor) change(floor)
+    },
     getLevel: () => level,
     setLevel(n) {
       if (!Number.isInteger(n) || n < 0 || n >= levelCount()) return

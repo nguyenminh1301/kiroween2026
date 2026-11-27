@@ -16,7 +16,7 @@ export class PS1Effect extends Effect {
         ['vignette', new Uniform(0.25)],
         ['noise', new Uniform(0.2)],
         ['seed', new Uniform(0)],
-        ['invRes', new Uniform(new Vector2(1 / 640, 1 / 360))],
+        ['invRes', new Uniform(new Vector2(1 / 640, 1 / 360) /* set from the level every frame */)],
       ]),
     })
   }

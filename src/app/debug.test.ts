@@ -63,13 +63,13 @@ describe('installDebug render contract', () => {
     expect(Object.keys(los.stats).sort()).toEqual(
       ['calls', 'frameMs', 'internalHeight', 'internalWidth', 'level', 'triangles'].sort(),
     )
-    expect(los.stats.level).toBe(1)
-    los.render.setLevel(3)
     expect(los.stats.level).toBe(3)
-    los.render.setLevel(7)
+    los.render.setLevel(5)
+    expect(los.stats.level).toBe(5)
+    los.render.setLevel(9)
     los.render.setLevel(1.5)
-    expect(los.stats.level).toBe(3)
-    los.render.setLevel(1)
+    expect(los.stats.level).toBe(5)
+    los.render.setLevel(3)
     expect(typeof los.render.auto).toBe('function')
   })
 })

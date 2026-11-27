@@ -1,11 +1,14 @@
 export const LEVEL_TABLE: readonly (readonly [number, number])[] = [
+  [1920, 1080],
+  [1280, 720],
   [960, 540],
   [640, 360],
   [480, 270],
   [320, 180],
 ]
 
-export const DEFAULT_LEVEL = 1
+/** 640x360, the old default. The real start level comes from `pictureRange`. */
+export const DEFAULT_LEVEL = 3
 
 export function levelCount(): number {
   return LEVEL_TABLE.length
