@@ -8,6 +8,8 @@ import { mergeStatic, tiledBoxAt, tiledCylinder } from '../../procgen/tiledBox'
 import { buildEscapeTower } from '../../procgen/escapeTower'
 import { buildHatchHandle, buildSideHatch } from '../../procgen/sideHatch'
 import { buildSkyDome, buildSunDisc } from '../../procgen/skyDome'
+import type { Box } from '../../engine/collision'
+import { hatchBoxParts, hatchCouches } from './hatchBox'
 import { HATCH_POS, SUN_DIRECTION, VISUAL_BOXES, type MatName } from './room'
 import { act0State } from './state'
 import { Crowd } from './crowd'
@@ -15,6 +17,9 @@ import { PadCrew } from './crew'
 
 const FOG = { color: '#c8b49a', near: 120, far: 700 }
 const GROUND_Y = -75
+
+const center = (b: Box): [number, number, number] => [(b.min.x + b.max.x) / 2, (b.min.y + b.max.y) / 2, (b.min.z + b.max.z) / 2]
+const size = (b: Box): [number, number, number] => [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z]
 
 /** One merged geometry per material, so the walkway and the room cost a handful of draw calls. */
 function buildStatics() {
@@ -76,7 +81,8 @@ export function Scene() {
       sea: createMaterial({ color: '#58737d' }),
       concrete: createMaterial({ color: '#9b9484' }),
       vc: createMaterial({ vertexColors: true }),
-      dark: createMaterial({ kind: 'unlit', color: '#120e0a', snap: false }),
+      dark: createMaterial({ kind: 'unlit', color: '#080605', snap: false }),
+      couchFaint: createMaterial({ kind: 'unlit', color: '#1b1511', snap: false }),
     }),
     [],
   )
@@ -145,9 +151,16 @@ export function Scene() {
         <cylinderGeometry args={[40, 40, 0.2, 16]} />
       </mesh>
 
-      <mesh material={mats.dark} position={[HATCH_POS.x, HATCH_POS.y, STACK_Z + CM_R - 0.03]}>
-        <planeGeometry args={[0.7, 0.8]} />
-      </mesh>
+      {hatchBoxParts().map((b, i) => (
+        <mesh key={`hb${i}`} material={mats.dark} position={center(b)}>
+          <boxGeometry args={size(b)} />
+        </mesh>
+      ))}
+      {hatchCouches().map((b, i) => (
+        <mesh key={`hc${i}`} material={mats.couchFaint} position={center(b)}>
+          <boxGeometry args={size(b)} />
+        </mesh>
+      ))}
       <group ref={hatchRef} position={[HATCH_POS.x - 0.5, HATCH_POS.y, STACK_Z + CM_R - 0.02]}>
         <mesh geometry={hatchGeo} material={mats.vc} position={[0.5, 0, 0]} />
         <mesh ref={handleRef} geometry={handleGeo} material={mats.vc} position={[0.5, -0.12, 0.125]} />
