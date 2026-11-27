@@ -262,7 +262,11 @@ h1 {
 .hero .photo {
   height: clamp(380px, 52vw, 720px);
   object-fit: cover;
-  object-position: 50% 32%;
+  /* The helmet touches the top edge of the frame, so anchor the crop to the top and
+     add a strip of the same black as the sky above it. */
+  object-position: 50% 0;
+  border-top: 28px solid #08080a;
+  background: #08080a;
 }
 .hero .cap {
   padding-bottom: 0;
@@ -342,8 +346,8 @@ h1 {
 }
 .numbers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 24px 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px 28px;
 }
 .stat {
   display: flex;
@@ -353,9 +357,10 @@ h1 {
   padding-left: 14px;
 }
 .stat-value {
-  font-size: 34px;
+  font-size: clamp(25px, 3.6vw, 34px);
   font-weight: 500;
   line-height: 1.05;
+  white-space: nowrap;
 }
 .stat-label {
   font-family: var(--sans);
@@ -759,6 +764,16 @@ h1 {
   .pullquote {
     padding-left: 16px;
     padding-right: 16px;
+  }
+  .numbers-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 16px;
+  }
+  .stat {
+    padding-left: 10px;
+  }
+  .stat-value {
+    font-size: clamp(19px, 5.2vw, 25px);
   }
   .bar-meta,
   .brand-tag {
