@@ -4,5 +4,5 @@
 - [x] 2. Remove `docs/reference/` and its mentions
 - [x] 3. Rewrite `CREDITS.md`
 - [x] 4. Update `docs/KIRO.md`
-- [ ] 5. Rewrite `README.md`
+- [x] 5. Rewrite `README.md`
 - [ ] 6. Run the checks and report
