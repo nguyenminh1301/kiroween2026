@@ -146,7 +146,7 @@ try {
   await wait(() => window.__los.store.getState().screen === 'begin', null, 30000)
   await page.waitForTimeout(500)
   titleBase = await page.evaluate(() => window.__los.systemCount())
-  const left = await page.evaluate(() => window.__los.audio.playing().filter((n) => /_loop$/.test(n) && !/^(ship_hum|vent|footsteps)/.test(n)))
+  const left = await page.evaluate(() => window.__los.audio.playing().filter((n) => /_loop$/.test(n) && !/^(ship_hum|vent)/.test(n)))
   check(left.length === 0, `quit to title: sounds still playing: ${left.join(', ')}`)
 
   // Pass 2: act 3, act 0, act 3, act 5, act 1.

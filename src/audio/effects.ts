@@ -32,7 +32,7 @@ export const EFFECTS: Record<EffectName, EffectDef> = {
   groan: { files: groans, gain: 0.9 },
   knock: { files: ['knock_1', 'knock_2'], gain: 0.9 },
   scrape: { files: ['creature_scrape_1', 'creature_scrape_2'], gain: 1 },
-  click: { files: ['creature_click_1', 'creature_click_2', 'creature_click_3'], gain: 0.9 },
+  click: { files: ['creature_click_2', 'creature_click_3'], gain: 0.9 },
   sting: { files: ['creature_scream'], gain: 1 },
   breathe: { files: ['creature_breath'], gain: 0.5 },
   cheer: { files: ['crowd_cheer'], gain: 0.8 },

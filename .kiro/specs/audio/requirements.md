@@ -40,14 +40,14 @@ This spec builds all game sound: the Web Audio graph, loading of the recordings 
 - reentry reentry_roar 0.9; chute parachute_open 0.9; splash splash_impact 1; horn ship_horn 0.6
 - locker locker_door 0.7; zipper zipper 0.6; grab handrail_grab 0.35; static static_burst 0.5
 - creak hull_groan_1..3 0.8; groan hull_groan_1..3 0.9; knock knock_1..2 0.9; scrape creature_scrape_1..2 1
-- click creature_click_1..3 0.9; sting creature_scream 1; breathe creature_breath 0.5; cheer crowd_cheer 0.8
+- click creature_click_2..3 0.9; sting creature_scream 1; breathe creature_breath 0.5; cheer crowd_cheer 0.8
 3.3 With `position`, the Effect plays through an HRTF panner, inverse distance model, refDistance 3. The listener follows the player eye and yaw. Without `position` it plays in the head.
 3.4 `audio.playing()` lists the names of the loops and Effects sounding now.
 
 ### 4. Ambience scene
 
 4.1 `audio.setScene(partial)` sets the scene. Any field left out resets to its default. Fields: `hum` 0 to 1 (default 1), `bed` 'ship' | 'engine' | 'none' (default 'ship'), `vent` 0 to 1, `wind` 0 to 1, `birds` boolean (default off), `ocean` 0 to 1, `heli` 0 to 1, `steps` 0 to 1, `breath` boolean (default on). Numeric inputs are clamped, NaN counts as 0.
-4.2 Files: bed 'ship' ship_hum_loop, 'engine' engine_room_loop; vent vent_loop; wind pad_wind_loop; ocean ocean_loop; heli helicopter_loop; steps footsteps_grating. `hum` is the level of the bed.
+4.2 Files: bed 'ship' ship_hum_loop, 'engine' engine_room_loop; vent vent_loop; wind pad_wind_loop; ocean ocean_loop; heli helicopter_loop; steps synthesized (no file). `hum` is the level of the bed.
 4.3 Loops fade in and out over about 1.5 s when the scene changes.
 4.4 The synth fallback for the hum is three drones at 55, 110.5 and 164.8 Hz under filtered noise. Every other loop has a synthesized looping stand-in.
 4.5 `birds` plays a synthesized dawn chirp now and then, on game time.

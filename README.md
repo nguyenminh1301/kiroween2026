@@ -8,7 +8,7 @@ The site opens on a long article about the flight of Apollo 11, with NASA photos
 
 ## How to play
 
-You need a desktop browser with WebGL, a mouse and a keyboard. Use headphones, because much of the game is told through sound and the radio. A run takes about 25 minutes over six chapters.
+You need a desktop browser with WebGL, a mouse and a keyboard. Use headphones, because much of the game is told through sound and the radio. A run takes about 5 minutes over six chapters.
 
 | Key | Does |
 |---|---|
@@ -80,4 +80,4 @@ public/     sound effects and photos
 
 ## Credits and license
 
-The code is MIT, see `LICENSE`. Sound effects, NASA photos, the transcript source, fonts and libraries are listed in [CREDITS.md](CREDITS.md). NASA photos are public domain. The dialogue follows the Apollo 11 air to ground transcripts. The crew names in the game are changed, and the article uses the real names.
+The code is MIT, see `LICENSE`. The MIT license covers the code only. Each sound keeps its own license, and five are CC BY-NC 4.0, so the game must not be used commercially without replacing them; see [CREDITS.md](CREDITS.md). Sound effects, NASA photos, the transcript source, fonts and libraries are listed in [CREDITS.md](CREDITS.md). NASA photos are public domain. The dialogue follows the Apollo 11 air to ground transcripts. The crew names in the game are changed, and the article uses the real names.

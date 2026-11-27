@@ -38,8 +38,8 @@ try {
   await ready(page)
   await page.click('canvas')
   await page
-    .waitForFunction(() => window.__los.audio.loaded().length >= 40, null, { timeout: 30000 })
-    .catch(() => check(false, 'audio.loaded() reached 40 names within 10 s'))
+    .waitForFunction(() => window.__los.audio.loaded().length >= 38, null, { timeout: 30000 })
+    .catch(() => check(false, 'audio.loaded() reached 38 names within 10 s'))
   const playing = await page.evaluate(() => window.__los.audio.playing())
   check(playing.includes('hum'), `hum loop is playing, got ${JSON.stringify(playing)}`)
 

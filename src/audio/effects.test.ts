@@ -8,7 +8,7 @@ describe('pickEffectFile', () => {
   })
   it('picks among loaded files by the random value', () => {
     const all = () => true
-    expect(pickEffectFile('click', all, () => 0)).toBe('creature_click_1')
+    expect(pickEffectFile('click', all, () => 0)).toBe('creature_click_2')
     expect(pickEffectFile('click', all, () => 0.99)).toBe('creature_click_3')
   })
   it('returns null so the synth fallback is used when nothing is loaded', () => {

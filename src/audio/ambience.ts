@@ -41,7 +41,7 @@ const ch = {
   wind: channel('wind', 'ambience', 'wind', 'pad_wind_loop'),
   ocean: channel('ocean', 'ambience', 'ocean', 'ocean_loop'),
   heli: channel('heli', 'ambience', 'heli', 'helicopter_loop'),
-  steps: channel('steps', 'ambience', 'steps', 'footsteps_grating'),
+  steps: channel('steps', 'ambience', 'steps', null),
   breath: channel('breath', 'body', 'noise', 'helmet_breath_loop', { type: 'bandpass', f: 700, q: 0.8 }),
   heartbeat: channel('heartbeat', 'body', 'noise', 'heartbeat_loop'),
   drone: channel('drone', 'ambience', 'drone', 'drone_loop'),

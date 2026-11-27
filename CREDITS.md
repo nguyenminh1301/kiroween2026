@@ -2,52 +2,50 @@
 
 ## Audio
 
-The sound effects in `public/audio/` are CC0 recordings from Freesound, trimmed, converted to mono MP3 and loudness normalized. Everything else (the birds, the Quindar tones, the radio chirps, and a fallback for any file that fails to load) is synthesized in code in `src/audio/`.
+| File | Freesound title | Author | Source | License |
+|---|---|---|---|---|
+| ship_hum_loop.mp3 | submarine.wav | jmorrisoncafe330 | https://freesound.org/people/jmorrisoncafe330/sounds/110098/ | Sampling+ 1.0 |
+| engine_room_loop.mp3 | Stereotypical sinking submarine sound (NO REVERB).aif | Ubehag | https://freesound.org/people/Ubehag/sounds/232021/ | CC0 1.0 |
+| vent_loop.mp3 | WINDInt_Draft.Air flow.Vent Duct 1.Close.Full.Vent noise.Creak.Duct Fan Started_EM.mp3 | newlocknew | https://freesound.org/people/newlocknew/sounds/682731/ | CC BY-NC 4.0 |
+| drone_loop.mp3 | Horror Soundscape - 02 | Headphaze | https://freesound.org/people/Headphaze/sounds/177101/ | CC BY 4.0 |
+| chase_loop.mp3 | Tension and Chase! - Disturbed Horror Loop | JessKawaiiXxX | https://freesound.org/people/JessKawaiiXxX/sounds/421606/ | CC BY 3.0 |
+| creature_breath.mp3 | Low and Short Monster Growl or Purr | djlprojects | https://freesound.org/people/djlprojects/sounds/398254/ | CC BY 4.0 |
+| creature_click_2.mp3 | clicks.aif | nosegrind | https://freesound.org/people/nosegrind/sounds/382112/ | CC BY 3.0 |
+| creature_click_3.mp3 | distressed cicada.wav | cognito perceptu | https://freesound.org/people/cognito%20perceptu/sounds/318924/ | CC0 1.0 |
+| creature_scrape_1.mp3 | MetalScrape_5.wav | deerlord | https://freesound.org/people/deerlord/sounds/534852/ | CC0 1.0 |
+| creature_scrape_2.mp3 | Fork scraping metal 5 | humanoide9000 | https://freesound.org/people/humanoide9000/sounds/328529/ | CC0 1.0 |
+| creature_scream.mp3 | Horror Scream 2 | Bikkit99 | https://freesound.org/people/Bikkit99/sounds/837802/ | CC BY 4.0 |
+| knock_1.mp3 | Metal pipe hit by knuckles | copyc4t | https://freesound.org/people/copyc4t/sounds/244614/ | CC BY 4.0 |
+| knock_2.mp3 | Metal pipe on concrete.wav | deleted_user_2104797 | https://freesound.org/people/deleted_user_2104797/sounds/164572/ | CC0 1.0 |
+| hull_groan_1.mp3, hull_groan_2.mp3, hull_groan_3.mp3 | liner fenders squeaking.WAV | phonoflora | https://freesound.org/people/phonoflora/sounds/500009/ | CC0 1.0 |
+| heartbeat_loop.mp3 | Heartbeat Fast | Poyekhali | https://freesound.org/people/Poyekhali/sounds/254366/ | CC BY 3.0 |
+| helmet_breath_loop.mp3 | Mask Breathing Sound | Kodack | https://freesound.org/people/Kodack/sounds/256519/ | CC0 1.0 |
+| launch_rumble.mp3 | AERORckt_Rocket roar 2.Steady.Crackle_EM_(7lrs).wav | newlocknew | https://freesound.org/people/newlocknew/sounds/627118/ | CC BY-NC 4.0 |
+| pad_wind_loop.mp3 | 04001 looping hollow open air wind 1.wav | Robinhood76 | https://freesound.org/people/Robinhood76/sounds/175513/ | CC BY-NC 4.0 |
+| static_burst.mp3 | Radio static rise | copyc4t | https://freesound.org/people/copyc4t/sounds/244619/ | CC BY 4.0 |
+| handrail_grab.mp3 | Grab Item | Err0rC0de | https://freesound.org/people/Err0rC0de/sounds/704749/ | CC0 1.0 |
+| zipper.mp3 | HeadphonesCase-CloseZipper2 | Rosgardius | https://freesound.org/people/Rosgardius/sounds/696342/ | CC0 1.0 |
+| locker_door.mp3 | door metal big heavy close kinda slam thud echo offmic.wav | kyles | https://freesound.org/people/kyles/sounds/406197/ | CC0 1.0 |
+| ship_horn.mp3 | Ship Horn Blast (wav) | DominikBraun | https://freesound.org/people/DominikBraun/sounds/504567/ | CC BY 4.0 |
+| helicopter_loop.mp3 | TV2 loop.wav | Figowitz | https://freesound.org/people/Figowitz/sounds/69609/ | CC BY-NC 4.0 |
+| ocean_loop.mp3 | Powerful Storm Waves, Rough Sea and Surf | bassimat | https://freesound.org/people/bassimat/sounds/867645/ | CC0 1.0 |
+| splash_impact.mp3 | Big Water Splash | qubodup | https://freesound.org/people/qubodup/sounds/442773/ | CC0 1.0 |
+| parachute_open.mp3 | Parachute.wav | Benboncan | https://freesound.org/people/Benboncan/sounds/72853/ | CC BY 4.0 |
+| reentry_roar.mp3 | NATDTorn_Inside A Huge Tornado.Whirlwind Roar.Flying Debris 1_EM | newlocknew | https://freesound.org/people/newlocknew/sounds/789669/ | CC BY-NC 4.0 |
+| staging_bang.mp3 | CircuitBreaker_02 | Wavewire | https://freesound.org/people/Wavewire/sounds/855099/ | CC BY 4.0 |
+| launch_exterior.mp3 | Space Rocket_Launch_Ext_.wav | Cell31_Sound_Productions | https://freesound.org/people/Cell31_Sound_Productions/sounds/264185/ | CC BY 4.0 |
+| master_alarm.mp3 | Alarm FM(Sytrus,Eq,ptchshft,chrs,MSprcssng).wav | newlocknew | https://freesound.org/people/newlocknew/sounds/536655/ | CC BY 4.0 |
+| dsky_key.mp3 | Button Press | Blankened | https://freesound.org/people/Blankened/sounds/846144/ | CC0 1.0 |
+| toggle_switch.mp3 | toggle switch 1 | TheTechTinkerer | https://freesound.org/people/TheTechTinkerer/sounds/795663/ | CC0 1.0 |
+| hatch_slam.mp3 | Casillero.wav | JDax88 | https://freesound.org/people/JDax88/sounds/646890/ | CC0 1.0 |
+| breaker_push.mp3 | CircuitBreaker Remix | rentless | https://freesound.org/people/rentless/sounds/560879/ | CC0 1.0 |
+| crowd_cheer.mp3 | Sound effect generated with ElevenLabs | ElevenLabs | https://elevenlabs.io/ | ElevenLabs free plan, attribution required |
 
-One row per file. Rows with TODO in the Source URL column still need the Freesound page. A file with no source will be removed.
+The Freesound files were trimmed, converted to mono MP3 and loudness normalized. Every other sound is synthesized in code in `src/audio/`.
 
-| File | Freesound title | Source URL | License |
-|------|-----------------|------------|---------|
-| `breaker_push.mp3` | circuit breaker.wav | TODO | CC0 |
-| `chase_loop.mp3` | TODO | TODO | CC0 |
-| `creature_breath.mp3` | TODO | TODO | CC0 |
-| `creature_click_1.mp3` | TODO | TODO | CC0 |
-| `creature_click_2.mp3` | TODO | TODO | CC0 |
-| `creature_click_3.mp3` | TODO | TODO | CC0 |
-| `creature_scrape_1.mp3` | TODO | TODO | CC0 |
-| `creature_scrape_2.mp3` | TODO | TODO | CC0 |
-| `creature_scream.mp3` | TODO | TODO | CC0 |
-| `crowd_cheer.mp3` | TODO | TODO | TODO |
-| `drone_loop.mp3` | TODO | TODO | CC0 |
-| `dsky_key.mp3` | calculator button press.ogg | TODO | CC0 |
-| `engine_room_loop.mp3` | TODO | TODO | CC0 |
-| `footsteps_grating.mp3` | footsteps_grating.wav | TODO | CC0 |
-| `handrail_grab.mp3` | glove grab.wav | TODO | CC0 |
-| `hatch_slam.mp3` | heavy metal door slam.wav | TODO | CC0 |
-| `heartbeat_loop.mp3` | TODO | TODO | CC0 |
-| `helicopter_loop.mp3` | helicopter hover loop.wav | TODO | CC0 |
-| `helmet_breath_loop.mp3` | TODO | TODO | CC0 |
-| `hull_groan_1.mp3` | TODO | TODO | CC0 |
-| `hull_groan_2.mp3` | TODO | TODO | CC0 |
-| `hull_groan_3.mp3` | TODO | TODO | CC0 |
-| `knock_1.mp3` | TODO | TODO | CC0 |
-| `knock_2.mp3` | TODO | TODO | CC0 |
-| `launch_exterior.mp3` | rocket launch.wav | TODO | CC0 |
-| `launch_rumble.mp3` | TODO | TODO | CC0 |
-| `locker_door.mp3` | metal locker door.wav | TODO | CC0 |
-| `master_alarm.mp3` | master caution alarm.wav | TODO | CC0 |
-| `ocean_loop.mp3` | open ocean waves loop.wav | TODO | CC0 |
-| `pad_wind_loop.mp3` | wind open field loop.wav | TODO | CC0 |
-| `parachute_open.mp3` | parachute opening.wav | TODO | CC0 |
-| `reentry_roar.mp3` | wind roar rumble.mp3 | TODO | CC0 |
-| `ship_horn.mp3` | ship horn.wav | TODO | CC0 |
-| `ship_hum_loop.mp3` | TODO | TODO | CC0 |
-| `splash_impact.mp3` | big water splash.wav | TODO | CC0 |
-| `staging_bang.mp3` | pyrotechnic.wav | TODO | CC0 |
-| `static_burst.mp3` | radio static.flac | TODO | CC0 |
-| `toggle_switch.mp3` | toggle switch.wav | TODO | CC0 |
-| `vent_loop.mp3` | TODO | TODO | CC0 |
-| `zipper.mp3` | ziper close.flac | TODO | CC0 |
+## Licenses
+
+The MIT license in `LICENSE` covers the code only. Each sound keeps its own license as listed above. CC BY and Sampling+ require the attribution given here. Five sounds are CC BY-NC 4.0 (non commercial use only): `vent_loop`, `launch_rumble`, `pad_wind_loop`, `helicopter_loop` and `reentry_roar`. The game as a whole must not be used commercially without replacing them. NASA photos and transcripts are public domain.
 
 ## Photos
 
