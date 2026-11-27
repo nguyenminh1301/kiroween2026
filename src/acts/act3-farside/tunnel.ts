@@ -16,6 +16,8 @@ import {
   LOCKER_D,
   LOCKER_H,
   LOCKER_W,
+  WINDOW,
+  WINDOW_CREW,
   Z_FAR_END,
   Z_HATCH_END,
   type LockerDef,
@@ -46,6 +48,17 @@ export function buildShell(): BufferGeometry {
     if (e.axis === 'z' && Math.abs(e.at - Z_HATCH_END) < 1e-6) continue
     const col = shade(i, Math.round(Math.abs(e.at) * 3))
     const len = e.to - e.from
+    const w = WINDOW
+    if (e.axis === 'z' && e.open === 1 && Math.abs(e.at - w.z) < 1e-6 && w.x - w.halfW >= e.from && w.x + w.halfW <= e.to) {
+      // The wall with the window hole: four pieces round it.
+      const piece = (xa: number, xb: number, ya: number, yb: number): void =>
+        q.quad([xa, ya, e.at], [xb, ya, e.at], [xb, yb, e.at], [xa, yb, e.at], 0, 0, T * (xb - xa), T * (yb - ya), col)
+      piece(e.from, w.x - w.halfW, 0, HEIGHT)
+      piece(w.x + w.halfW, e.to, 0, HEIGHT)
+      piece(w.x - w.halfW, w.x + w.halfW, 0, w.y0)
+      piece(w.x - w.halfW, w.x + w.halfW, w.y1, HEIGHT)
+      continue
+    }
     if (e.axis === 'x') {
       q.quad([e.at, 0, e.to], [e.at, 0, e.from], [e.at, HEIGHT, e.from], [e.at, HEIGHT, e.to], 0, 0, T * len, T * HEIGHT, col)
     } else {
@@ -294,4 +307,50 @@ export function stripSpots(): StripSpot[] {
     }
   }
   return out
+}
+
+const FRAME = '#6a5a4c'
+/** The window: a frame and two bars on the hall side, and the room behind it (floor, ceiling, walls, hooks). */
+export function buildWindow(): BufferGeometry {
+  const parts: BufferGeometry[] = []
+  const w = WINDOW
+  const r = w.room
+  const zf = w.z + 0.05
+  const hw = w.halfW
+  const h = w.y1 - w.y0
+  const yc = (w.y0 + w.y1) / 2
+  // Frame and grille.
+  parts.push(cbox(2 * hw + 0.16, 0.08, 0.1, FRAME, w.x, w.y1 + 0.04, zf))
+  parts.push(cbox(2 * hw + 0.16, 0.08, 0.1, FRAME, w.x, w.y0 - 0.04, zf))
+  parts.push(cbox(0.08, h, 0.1, FRAME, w.x - hw - 0.04, yc, zf))
+  parts.push(cbox(0.08, h, 0.1, FRAME, w.x + hw + 0.04, yc, zf))
+  for (const dx of [-0.15, 0.15]) parts.push(cbox(0.03, h, 0.03, '#2a2622', w.x + dx, yc, w.z + 0.02))
+  // The room: slabs just outside its volume so the inside faces show.
+  const cx = (r.x0 + r.x1) / 2
+  const cz = (r.z0 + r.z1) / 2
+  const dx = r.x1 - r.x0
+  const dz = r.z1 - r.z0
+  parts.push(cbox(dx, 0.1, dz, '#4a2a22', cx, -0.05, cz))
+  parts.push(cbox(dx, 0.1, dz, '#3a1a14', cx, HEIGHT + 0.05, cz))
+  parts.push(cbox(dx, HEIGHT, 0.1, '#5a2a1c', cx, HEIGHT / 2, r.z0 - 0.05))
+  parts.push(cbox(0.1, HEIGHT, dz, '#4a2218', r.x0 - 0.05, HEIGHT / 2, cz))
+  parts.push(cbox(0.1, HEIGHT, dz, '#4a2218', r.x1 + 0.05, HEIGHT / 2, cz))
+  parts.push(cbox(dx - 0.2, 0.06, 0.08, '#3a342c', cx, HEIGHT - 0.04, WINDOW_CREW.cdr.z))
+  for (const who of ['cdr', 'cmp'] as const) parts.push(cbox(0.1, 0.1, 0.1, '#6a6558', WINDOW_CREW[who].x, HEIGHT - 0.09, WINDOW_CREW[who].z))
+  return mergeColored(parts)
+}
+
+/** The weak light of the window room: a dim lamp on the ceiling, a warm wash on the back wall and a pool on the floor. Unlit. */
+export function buildWindowGlow(): BufferGeometry {
+  const q = new QuadBuilder()
+  const r = WINDOW.room
+  const cx = (r.x0 + r.x1) / 2
+  const lampY = HEIGHT - 0.02
+  q.quad([cx - 0.3, lampY, -6.9], [cx + 0.3, lampY, -6.9], [cx + 0.3, lampY, -7.3], [cx - 0.3, lampY, -7.3], 0, 0, 1, 1, '#b08a5a')
+  const wz = r.z0 + 0.012
+  q.quad([cx - 1.0, 0.15, wz], [cx + 1.0, 0.15, wz], [cx + 1.0, 1.9, wz], [cx - 1.0, 1.9, wz], 0, 0, 1, 1, '#3a2216')
+  q.quad([cx - 0.6, 0.45, wz + 0.002], [cx + 0.6, 0.45, wz + 0.002], [cx + 0.6, 1.5, wz + 0.002], [cx - 0.6, 1.5, wz + 0.002], 0, 0, 1, 1, '#4a2c1a')
+  const y = 0.012
+  q.quad([cx - 1.0, y, -6.2], [cx + 1.0, y, -6.2], [cx + 1.0, y, -8.0], [cx - 1.0, y, -8.0], 0, 0, 1, 1, '#2a1610')
+  return q.build()
 }

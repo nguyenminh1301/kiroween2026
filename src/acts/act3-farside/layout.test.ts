@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveCapsule } from '../../engine/collision'
-import { CAGE, CAGED, cageDoorBox, checkpointAt, collisionBoxes, creatureBlockers, creatureClear, crewBox, detectBump, GRID, HATCH, LOCKERS, NAV_NODES, PATROL_ROUTE, solidProps, SPOTS, CREATURE_RADIUS } from './layout'
+import { CAGE, CAGED, cageDoorBox, checkpointAt, collisionBoxes, creatureBlockers, creatureClear, crewBox, detectBump, GRID, HATCH, LOCKERS, NAV_NODES, PATROL_ROUTE, solidProps, SPOTS, CREATURE_RADIUS, WINDOW, WINDOW_CREW } from './layout'
 
 /** Can a walker get from the cell at (x0, z0) to the cell at (x1, z1) when cells in `cut` are removed? */
 function reachable(from: [number, number], to: [number, number], cut: (c: number, r: number) => boolean): boolean {
@@ -180,5 +180,28 @@ describe('act 3 map', () => {
     expect(hit.pos.z).toBeGreaterThan(CAGED.cmp.z)
     expect(hit.pos.z - CAGED.cmp.z).toBeCloseTo(0.55, 1)
     expect(collisionBoxes(false)).not.toContainEqual(crewBox('cmp'))
+  })
+
+  it('puts the window in the junction wall, with a room behind it that no one can walk into', () => {
+    const w = WINDOW
+    expect(GRID.openAt(w.x, w.z + 0.2), 'the hall side is open').toBe(true)
+    expect(GRID.openAt(w.x, w.z - 0.2), 'the far side is solid').toBe(false)
+    expect(w.z).toBeLessThan(-4.4) // south of the wp0 line, in the junction hall
+    expect(w.z).toBeGreaterThan(-6)
+    const r = w.room
+    for (let x = r.x0; x <= r.x1; x += 0.1) for (let z = r.z0; z <= r.z1 - 0.01; z += 0.1) expect(GRID.openAt(x, z), `${x.toFixed(1)},${z.toFixed(1)}`).toBe(false)
+    for (const who of ['cdr', 'cmp'] as const) {
+      expect(WINDOW_CREW[who].x).toBeGreaterThan(r.x0)
+      expect(WINDOW_CREW[who].x).toBeLessThan(r.x1)
+      expect(WINDOW_CREW[who].z).toBeGreaterThan(r.z0)
+    }
+    // The creature's route and nodes never touch the window room.
+    for (const p of [...PATROL_ROUTE, ...Object.values(NAV_NODES)]) expect(p.x > r.x0 && p.x < r.x1 && p.z > r.z0 && p.z < r.z1).toBe(false)
+  })
+
+  it('closes the window to the player: the wall boxes stand across the hole', () => {
+    const boxes = collisionBoxes()
+    const hit = resolveCapsule({ x: WINDOW.x, y: 0.2, z: WINDOW.z + 0.1 }, { x: 0, y: 0, z: -1 }, boxes)
+    expect(hit.pos.z).toBeGreaterThanOrEqual(WINDOW.z + 0.3 - 1e-6)
   })
 })

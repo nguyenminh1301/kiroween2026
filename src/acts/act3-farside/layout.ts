@@ -76,6 +76,27 @@ export const HATCH = { z: -10.4, halfW: HALF_W, h: 2.3, thick: 0.2 }
 export const CAGE = { z: -29.6, backZ: -33.2, doorHalf: 0.35, thick: 0.1 }
 export const CAGE_DOOR_POS: Vec3 = { x: 0, y: 1.2, z: CAGE.z }
 export const CAGE_DOOR_RADIUS = 0.55
+/**
+ * The window at the first junction: a hole in the south wall of the hall (the wall plane is z = `z`, the hall lies
+ * at larger z) with a grille. Behind it is a lit room inside solid map space, where Neil and Mike hang again. It is
+ * a set, not the real cage room: no open map cell lies in it, so nobody can pass the window and the creature's
+ * grid never reaches it.
+ */
+export const WINDOW = {
+  x: -3.0,
+  z: -5.6,
+  halfW: 0.45,
+  y0: 0.7,
+  y1: 1.5,
+  /** The room behind the wall. */
+  room: { x0: -4.4, x1: -1.6, z0: -8.6, z1: -5.6 },
+}
+/** Where the two crew hang in the window room, x and z. */
+export const WINDOW_CREW: Record<'cdr' | 'cmp', Pt> = {
+  cdr: { x: WINDOW.x - 0.45, z: -7.1 },
+  cmp: { x: WINDOW.x + 0.45, z: -7.1 },
+}
+
 /** Neil on the left, Mike on the right, hanging from the ceiling. */
 export const CAGED: Record<'cdr' | 'cmp', Vec3> = {
   cdr: { x: -0.55, y: 0, z: -31.5 },

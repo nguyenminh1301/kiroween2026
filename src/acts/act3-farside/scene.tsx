@@ -14,6 +14,7 @@ import { Creature } from './creature'
 import { Cabin } from './cabin'
 import { Cage, CagedCrew, CarriedView } from './cage'
 import { act3State } from './state'
+import { WindowCrew } from './window'
 
 const FOG = { color: '#000000', near: 4, far: 24 }
 /** The real cabin: the same pale haze as act 2. */
@@ -107,6 +108,7 @@ export function Scene() {
       <Cabin />
       <Cage />
       <CagedCrew />
+      <WindowCrew />
       <Creature />
       <CarriedView />
     </>
