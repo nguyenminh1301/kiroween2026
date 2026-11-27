@@ -4,7 +4,7 @@ The 3D view looks blurry in the game window on a 1800 to 1900 px wide screen. Th
 
 ## 1. Scaler
 
-1.1 WHEN the mean frame time over 5 s is under the climb threshold, THE scaler SHALL go up one level. The threshold is the measured display frame time plus 5 %, limited to 7 to 17.5 ms.
+1.1 WHEN the mean frame time over 5 s is under the climb threshold, THE scaler SHALL go up one level. The threshold is the measured display frame time plus 10 %, limited to 7 to 17.5 ms.
 1.2 WHEN the mean frame time over 3 s is above 25 ms, THE scaler SHALL go down one level.
 1.3 THE scaler SHALL NOT count paused time, loading, act changes, chapter cards or the first 3 s after a camera cut or a resume.
 1.4 THE scaler SHALL NOT go below 640x360 by itself, except in the Retro setting, whose range includes 480x270 and 320x180.

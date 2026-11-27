@@ -4,7 +4,7 @@
 Table indices shift by two: 0 1920x1080, 1 1280x720, 2 960x540, 3 640x360, 4 480x270, 5 320x180. `DEFAULT_LEVEL` becomes 3 (the old default). `e2e/render.mjs` and `debug.test.ts` use the new indices.
 
 ## Decision (`adaptiveDecision.ts`, pure)
-`nextLevel(level, samples, msSinceChange, opts)` with `opts = { top, floor, upBlocked, displayMs }`. Down: 3 s mean over 25 ms. Up: 5 s mean under `clamp(displayMs * 1.05, 7, 17.5)`. `displayMs` is the 10th percentile of the samples, the best estimate of the display's frame time. A 30 fps machine has a 33 ms 10th percentile, the cap of 17.5 ms keeps it from climbing.
+`nextLevel(level, samples, msSinceChange, opts)` with `opts = { top, floor, upBlocked, displayMs }`. Down: 3 s mean over 25 ms. Up: 5 s mean under `clamp(displayMs * 1.1, 7, 17.5)`. `displayMs` is the 10th percentile of the samples, the best estimate of the display's frame time. A 30 fps machine has a 33 ms 10th percentile, the cap of 17.5 ms keeps it from climbing.
 
 ## Ranges (`pictureRange.ts`, pure)
 `pictureRange(picture, viewPx)` returns `{ start, top, floor }` as level indices.

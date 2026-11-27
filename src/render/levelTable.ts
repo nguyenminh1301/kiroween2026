@@ -17,3 +17,10 @@ export function lookupLevel(level: number): { width: number; height: number } {
   const [width, height] = LEVEL_TABLE[clamped]
   return { width, height }
 }
+
+/** Lowest level the scaler may pick by itself: the last one at least `minWidth` wide. */
+export function lowestLevelAtLeast(minWidth: number): number {
+  let idx = 0
+  for (let i = 0; i < LEVEL_TABLE.length; i++) if (LEVEL_TABLE[i][0] >= minWidth) idx = i
+  return idx
+}
