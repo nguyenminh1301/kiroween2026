@@ -78,8 +78,11 @@ export function Dialogue() {
         </div>
       ) : null}
       <div className="dlg-text">
-        <span>{sub.text.slice(0, n)}</span>
-        <span className="rest">{sub.text.slice(n)}</span>
+        {/* One child: the whole line is laid out and centred at once, and the letters not yet typed only hide. */}
+        <span>
+          {sub.text.slice(0, n)}
+          <span className="rest">{sub.text.slice(n)}</span>
+        </span>
       </div>
     </div>
   )
