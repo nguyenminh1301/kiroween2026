@@ -90,3 +90,14 @@ describe('adaptive scaler configure', () => {
     expect(lookupLevel(s.getLevel()).width).toBe(1920)
   })
 })
+
+describe('adaptive scaler cuts', () => {
+  it('slow frames still drop the level when a camera cut comes every 2.5 s', () => {
+    const s = createAdaptiveScaler({ initialLevel: 0 })
+    for (let i = 0; i < 6; i++) {
+      s.hold(1000, false)
+      run(s, 2500, 40)
+    }
+    expect(s.getLevel()).toBeGreaterThan(0)
+  })
+})

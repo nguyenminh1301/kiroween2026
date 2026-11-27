@@ -26,8 +26,8 @@ export interface AdaptiveScaler {
   setLevel(n: number): void
   setAuto(on: boolean): void
   isAuto(): boolean
-  /** Ignore frame times for `ms` of unpaused time and drop the samples so far. */
-  hold(ms: number): void
+  /** Ignore frame times for `ms` of unpaused time. With `clear` (default) also drop the samples so far. */
+  hold(ms: number, clear?: boolean): void
   /** Allowed levels: `top` is the sharpest, `floor` the lowest. Clamps the current level. */
   setRange(top: number, floor: number): void
   getRange(): { top: number; floor: number }
@@ -86,8 +86,9 @@ export function createAdaptiveScaler(deps: ScalerDeps = {}): AdaptiveScaler {
         change(n)
       }
     },
-    hold(ms) {
+    hold(ms, clear = true) {
       holdLeft = Math.max(holdLeft, Number.isFinite(ms) ? ms : 0)
+      if (!clear) return
       samples = []
       msSinceChange = 0
       msSinceDecision = 0
@@ -144,7 +145,7 @@ export function createAdaptiveScaler(deps: ScalerDeps = {}): AdaptiveScaler {
 export const adaptiveScaler = createAdaptiveScaler({ isPaused: () => gameStore.getState().paused })
 
 // Act changes and a resume from pause say nothing about the picture. Loads and cuts call holdRender too.
-onRenderHold((ms) => adaptiveScaler.hold(ms))
+onRenderHold((ms, clear) => adaptiveScaler.hold(ms, clear))
 gameStore.subscribe((s, prev) => {
   if (s.act !== prev.act || (prev.paused && !s.paused)) holdRender()
 })

@@ -1,6 +1,6 @@
 import { cleanupRegistry } from '../engine/cleanupRegistry'
 import { registerSystem } from '../engine/frameDriver'
-import { holdRender } from '../engine/renderHold'
+import { holdCut } from '../engine/renderHold'
 import { gameStore } from '../engine/store'
 import { trackTimeline } from '../engine/unloadReset'
 import {
@@ -102,7 +102,7 @@ export class TimelinePlayer {
       if (sel.shot !== this.lastShot) {
         // A cut shows new scenery: the first frames after it are slow and say nothing about the level.
         this.lastShot = sel.shot
-        holdRender()
+        holdCut()
       }
       const out: CameraOverride = { pose: sel.pose }
       if (sel.fov !== undefined) out.fov = sel.fov

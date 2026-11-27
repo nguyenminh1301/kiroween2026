@@ -68,8 +68,15 @@ try {
   await page.evaluate(() => window.__los.loader.loadAct('sandbox'))
   await page.waitForFunction(() => window.__los.loader.state.getState().status === 'ready', null, { timeout: 30000 })
 
+  // Sharp is the default: a 1280 px wide view starts at 1280x720.
+  await settled(page, 1280, 720)
+  const d0 = await bufferSize(page)
+  if (d0.w !== 1280 || d0.h !== 720) errors.push(`default buffer ${d0.w}x${d0.h}, expected 1280x720`)
+  if (!(await page.evaluate(() => getComputedStyle(document.querySelector('canvas')).imageRendering === 'pixelated')))
+    errors.push('canvas is not pixelated')
+
   await page.evaluate(() => {
-    window.__los.render.setLevel(1)
+    window.__los.render.setLevel(3)
     window.__los.render.auto(false)
   })
   await settled(page, 640, 360)
@@ -86,7 +93,7 @@ try {
   const counts = await channelValues(page, shot)
   if (counts.some((n) => n > 70)) errors.push(`channel values ${counts.join(',')}, expected at most 70 each`)
 
-  await page.evaluate(() => window.__los.render.setLevel(3))
+  await page.evaluate(() => window.__los.render.setLevel(5))
   await settled(page, 320, 180)
   const b3 = await bufferSize(page)
   if (b3.w !== 320 || b3.h !== 180) errors.push(`buffer ${b3.w}x${b3.h}, expected 320x180`)
