@@ -7,7 +7,8 @@ import { getPlayerBody } from '../../engine/playerRuntime'
 import { buildFigure } from '../../procgen/figure'
 import { cbox, mergeColored } from '../../procgen/coloredGeo'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
-import { CAGE, CAGED, HEIGHT } from './layout'
+import { cageDoorDistance, cageGlow } from './goals'
+import { CAGE, CAGE_HANDLE, CAGED, HEIGHT } from './layout'
 import { act3State, type Crew } from './state'
 import { buildBlood, buildCage, buildCageDoor } from './tunnel'
 
@@ -39,6 +40,15 @@ export function Cage() {
     return m
   }, [])
   const dripMat = useMemo(() => createMaterial({ kind: 'unlit', color: '#4a0808', snap: false }), [])
+  // The soft glow round the door handle when the player is within 3 m.
+  const glowMat = useMemo(() => {
+    const m = createMaterial({ kind: 'unlit', color: '#ffd98a', snap: false, fog: false })
+    m.transparent = true
+    m.opacity = 0
+    m.depthWrite = false
+    return m
+  }, [])
+  const glow = useRef<Mesh>(null)
   const drips = useRef<InstancedMesh>(null)
   const door = useRef<Group>(null)
   const root = useRef<Group>(null)
@@ -65,7 +75,14 @@ export function Cage() {
   }, [])
   useEffect(
     () =>
-      registerSystem('act3-cage', PRIORITY, (dt) => {
+      registerSystem('act3-cage', PRIORITY, (dt, t) => {
+        const body = getPlayerBody()
+        const g = cageGlow(body ? cageDoorDistance(body.pos.x, body.pos.z) : Infinity, act3State.cageOpen, t)
+        if (glow.current) {
+          glow.current.visible = g > 0
+          glowMat.opacity = g * 0.75
+          glow.current.scale.setScalar(1 + 0.25 * g)
+        }
         const d = door.current
         if (root.current) root.current.visible = act3State.world === 'dream'
         if (!d) return
@@ -73,7 +90,7 @@ export function Cage() {
         const diff = want - d.rotation.y
         d.rotation.y += Math.sign(diff) * Math.min(Math.abs(diff), DOOR_SPEED * dt)
       }),
-    [],
+    [glowMat],
   )
   useEffect(
     () => () => {
@@ -83,8 +100,9 @@ export function Cage() {
       disposeMaterial(mat)
       disposeMaterial(bloodMat)
       disposeMaterial(dripMat)
+      disposeMaterial(glowMat)
     },
-    [geo, mat, bloodMat, dripMat],
+    [geo, mat, bloodMat, dripMat, glowMat],
   )
   return (
     <group ref={root}>
@@ -95,6 +113,9 @@ export function Cage() {
       </instancedMesh>
       <group ref={door} position={[-CAGE.doorHalf, 0, CAGE.z]}>
         <mesh geometry={geo.door} material={mat} />
+        <mesh ref={glow} position={[CAGE_HANDLE.x, CAGE_HANDLE.y, CAGE_HANDLE.z]} material={glowMat} visible={false} renderOrder={5}>
+          <boxGeometry args={[0.2, 0.34, 0.16]} />
+        </mesh>
       </group>
     </group>
   )

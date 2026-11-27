@@ -76,6 +76,8 @@ export const HATCH = { z: -10.4, halfW: HALF_W, h: 2.3, thick: 0.2 }
 export const CAGE = { z: -29.6, backZ: -33.2, doorHalf: 0.35, thick: 0.1 }
 export const CAGE_DOOR_POS: Vec3 = { x: 0, y: 1.2, z: CAGE.z }
 export const CAGE_DOOR_RADIUS = 0.55
+/** The cage door handle, in the door's own frame (hinge at x = 0, free edge at x = 2 * doorHalf). */
+export const CAGE_HANDLE = { x: CAGE.doorHalf * 2 - 0.1, y: 1.0, z: 0.06 }
 /**
  * The window at the first junction: a hole in the south wall of the hall (the wall plane is z = `z`, the hall lies
  * at larger z) with a grille. Behind it is a lit room inside solid map space, where Neil and Mike hang again. It is

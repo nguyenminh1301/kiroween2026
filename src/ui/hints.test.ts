@@ -37,4 +37,11 @@ describe('hints', () => {
   it('ignores unknown ids', () => {
     expect(make().h.showHint('nope')).toBe(false)
   })
+
+  it('shows an always hint even when the objective names the same key', () => {
+    const t = make('E')
+    expect(t.h.showHint('use')).toBe(false)
+    expect(t.h.showHint('cage')).toBe(true)
+    expect(t.get()?.text).toMatch(/cage door/)
+  })
 })

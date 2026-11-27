@@ -56,6 +56,7 @@ import {
   speedOf,
   type Checkpoint,
 } from './layout'
+import { cageDoorDistance, CAGE_GLOW_RANGE, syncCarryMarker } from './goals'
 import { act3State, resetAct3State } from './state'
 
 const LOGIC_PRIORITY = 300
@@ -369,6 +370,16 @@ export function startAct3(requested: string): void {
           fx.setBlackout(f.cover)
           fx.setBite(f.bite > 0 && f.cover === 0 ? { close: f.bite, flash: f.flash } : null)
         } else if (fx.bite) fx.setBite(null)
+      }
+
+      // Goals: the cage door hint within 3 m, and the marker over the bags while a crewman is carried.
+      if (!act3State.cageOpen && (beats.phase() === 'explore' || beats.phase() === 'cage') && cageDoorDistance(body.pos.x, body.pos.z) <= CAGE_GLOW_RANGE) {
+        void showHint('cage')
+      }
+      const o = gameStore.getState().objective
+      if (o) {
+        const markers = syncCarryMarker(o.markers, act3State.carried !== null)
+        if (markers) gameStore.getState().setObjective({ ...o, markers })
       }
 
       // Noise and breath.

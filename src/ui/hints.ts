@@ -1,4 +1,4 @@
-// Hint slips: once per id per session, skipped when the objective names the same key.
+// Hint slips: once per id per session, skipped when the objective names the same key unless the hint is marked `always`.
 import { HINTS, type HintDef } from '../content/hints'
 import { fxStore, type Hint } from '../engine/fx'
 import { gameStore } from '../engine/store'
@@ -22,7 +22,7 @@ export function createHints(deps: HintDeps): { showHint(id: string): boolean; re
       const def = deps.defs[id]
       if (!def || shown.has(id)) return false
       const keys = deps.objectiveKeys()
-      if (keys !== undefined && norm(keys) === norm(def.key)) return false
+      if (!def.always && keys !== undefined && norm(keys) === norm(def.key)) return false
       shown.add(id)
       const hint: Hint = { id, key: def.key, text: def.text }
       deps.setHint(hint)

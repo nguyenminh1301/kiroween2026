@@ -1,6 +1,8 @@
 export interface HintDef {
   key: string
   text: string
+  /** Show even when the objective strip names the same key. */
+  always?: boolean
 }
 
 export const HINTS: Record<string, HintDef> = {
@@ -11,6 +13,7 @@ export const HINTS: Record<string, HintDef> = {
   chase: { key: 'E', text: 'Keep pressing E on the rails. When you stop, it catches up.' },
   lookBack: { key: 'Q', text: 'Looking back slows you down.' },
   hatch: { key: 'E', text: 'Open the hatch.' },
+  cage: { key: 'E', text: 'The cage door is ahead. Go up to its handle and press E to open it.', always: true },
   walk: { key: 'W A S D', text: 'Walk. Move the mouse to look around.' },
   use: { key: 'E', text: 'Press E to use what the dot is on.' },
   sleep: { key: 'C', text: 'Hold to close your eyes and sleep.' },

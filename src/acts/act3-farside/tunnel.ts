@@ -5,6 +5,7 @@ import {
   BAG_SPOTS,
   CABIN,
   CAGE,
+  CAGE_HANDLE,
   CAGED,
   DOORWAY,
   GRID,
@@ -239,6 +240,9 @@ export function buildCageDoor(): BufferGeometry {
   parts.push(cbox(w, 0.05, 0.05, BAR, w / 2, 0.5, 0))
   parts.push(cbox(w, 0.05, 0.05, BAR, w / 2, 1.3, 0))
   parts.push(cbox(w, 0.05, 0.05, BAR, w / 2, HEIGHT - 0.05, 0))
+  // The handle: a short grip on a plate, at hand height on the free edge.
+  parts.push(cbox(0.06, 0.22, 0.04, '#6a6558', CAGE_HANDLE.x, CAGE_HANDLE.y, CAGE_HANDLE.z - 0.03))
+  parts.push(cbox(0.04, 0.16, 0.06, '#c8bfa8', CAGE_HANDLE.x, CAGE_HANDLE.y, CAGE_HANDLE.z))
   return mergeColored(parts)
 }
 
