@@ -1,4 +1,4 @@
-import { Vector3 } from 'three'
+import { PerspectiveCamera, Vector3 } from 'three'
 import { describe, expect, it } from 'vitest'
 import { createBody, eyePosition } from '../../engine/playerBody'
 import { DEFAULT_REACH } from '../../interaction/targeting'
@@ -16,7 +16,10 @@ import {
   HELMET_EYE,
   HELMET_FRONT_Z,
   HELMET_RADIUS,
+  PANEL_H,
+  PANEL_W,
   SEAT_PAN_Y,
+  START_PITCH,
 } from './layout'
 
 /** The eye of a body seated at `pos`, as the camera sees it. */
@@ -56,12 +59,27 @@ describe('main panel against the eye', () => {
   const eye = eyeOf(BODY_POS)
   const c = new Vector3().setFromMatrixPosition(panelMatrix(MIDDLE))
 
-  it('has its centre about 0.7 m in front of the eye and 0.1 to 0.3 m above it', () => {
-    expect(eye.z - c.z).toBeGreaterThan(0.65)
-    expect(eye.z - c.z).toBeLessThan(0.75)
+  it('has its centre about 1.1 m from the eye, 0.1 to 0.3 m above it', () => {
+    const d = Math.hypot(c.x - eye.x, c.y - eye.y, c.z - eye.z)
+    expect(d).toBeGreaterThan(1.0)
+    expect(d).toBeLessThan(1.2)
     expect(c.y - eye.y).toBeGreaterThanOrEqual(0.1)
     expect(c.y - eye.y).toBeLessThanOrEqual(0.3)
     expect(c.x).toBeCloseTo(eye.x, 5)
+  })
+
+  it('shows all four corners of the main panel inside the view with a margin, from the start pose', () => {
+    const cam = new PerspectiveCamera(60, 16 / 9, 0.05, 100)
+    cam.position.copy(eye)
+    cam.rotation.set(START_PITCH, 0, 0, 'YXZ')
+    cam.updateMatrixWorld(true)
+    const m = panelMatrix(MIDDLE)
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const p = new Vector3(sx * PANEL_W / 2, sy * PANEL_H / 2, 0).applyMatrix4(m).project(cam)
+      expect(Math.abs(p.x)).toBeLessThan(0.8)
+      expect(Math.abs(p.y)).toBeLessThan(0.8)
+      expect(p.z).toBeLessThan(1)
+    }
   })
 
   it('keeps the DSKY at the centre and within reach', () => {
