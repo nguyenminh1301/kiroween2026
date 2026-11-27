@@ -26,7 +26,7 @@ export const act3State = {
   /** Seconds into the lunge, or null. */
   lunge: null as number | null,
   /** The kind of hiding spot the player is in, or null. */
-  hideKind: null as 'locker' | 'corner' | 'bag' | null,
+  hideKind: null as 'locker' | 'bag' | null,
   /** A sound the creature turns its head toward. */
   sound: null as { x: number; z: number } | null,
 }

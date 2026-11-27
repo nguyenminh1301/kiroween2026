@@ -71,7 +71,7 @@ export interface FxState {
   edge: number
   /** Red flash text, or null. */
   flash: string | null
-  /** Inside a sleeping bag: black with a thin slit of light. */
+  /** Inside a sleeping bag: fabric all round and a slit about a fifth of the screen high. */
   slit: boolean
   setSlit: (v: boolean) => void
   setMeter: (m: NoiseMeter | null) => void

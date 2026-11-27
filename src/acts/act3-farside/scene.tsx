@@ -74,7 +74,7 @@ function Ambient() {
           light.intensity = 1.1
         } else {
           light.color.copy(DREAM_AMBIENT)
-          light.intensity = act3State.hideKind === 'corner' ? 2.4 : body?.mode === 'seated' ? 6 : 0.9
+          light.intensity = body?.mode === 'seated' ? 6 : 0.9
         }
       }),
     [light],

@@ -461,16 +461,32 @@
   inset: 0;
   z-index: 24;
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    #000 0,
-    #000 calc(50% - 5px),
-    rgba(110, 60, 36, 0.7) calc(50% - 3px),
-    rgba(243, 231, 211, 0.55) 50%,
-    rgba(110, 60, 36, 0.7) calc(50% + 3px),
-    #000 calc(50% + 5px),
-    #000 100%
-  );
+  /* The inside of a sleeping bag: dark woven fabric all round and an opening about a fifth of the screen
+     high and two thirds of its width. Two gradients, joined with add, leave a rounded hole with soft edges. */
+  background:
+    radial-gradient(ellipse 52vw 22vh at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(8, 5, 4, 0.55) 100%),
+    repeating-linear-gradient(45deg, rgba(60, 44, 34, 0.35) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-45deg, rgba(60, 44, 34, 0.25) 0 1px, transparent 1px 4px),
+    #120d0a;
+  -webkit-mask-image:
+    linear-gradient(to right, #000 0, #000 12%, transparent 22%, transparent 78%, #000 88%, #000 100%),
+    linear-gradient(to bottom, #000 0, #000 36%, transparent 44%, transparent 56%, #000 64%, #000 100%);
+  mask-image:
+    linear-gradient(to right, #000 0, #000 12%, transparent 22%, transparent 78%, #000 88%, #000 100%),
+    linear-gradient(to bottom, #000 0, #000 36%, transparent 44%, transparent 56%, #000 64%, #000 100%);
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+.fx-slit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* A soft dark edge and the zipper seam of the bag down the left side. */
+  background:
+    radial-gradient(ellipse 34vw 11vh at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.5) 100%),
+    repeating-linear-gradient(180deg, rgba(150, 140, 120, 0.5) 0 6px, transparent 6px 14px) 7vw 0 / 3px 100% no-repeat;
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 12%, transparent 22%, transparent 78%, #000 88%, #000 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 12%, transparent 22%, transparent 78%, #000 88%, #000 100%);
 }
 .fx-black {
   position: fixed;

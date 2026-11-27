@@ -6,7 +6,7 @@ import { getPlayerBody } from '../../engine/playerRuntime'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { Z_FAR_END } from './layout'
 import { act3State } from './state'
-import { buildBays, buildDoorLeaves, buildDoorway, buildHatch, buildHatchLight, buildLockers, buildPipes, buildRibs, buildShell, buildWindow, buildWindowGlow, stripSpots } from './tunnel'
+import { buildBays, buildDoorway, buildHatch, buildHatchLight, buildLockers, buildPipes, buildRibs, buildShell, buildWindow, buildWindowGlow, stripSpots } from './tunnel'
 import { CELL } from './mapgrid'
 
 const STRIP_PRIORITY = 700
@@ -34,7 +34,6 @@ export function Corridor() {
       lockers: buildLockers(),
       doorway: buildDoorway(),
       hatch: buildHatch(),
-      leaves: buildDoorLeaves(),
       bays: buildBays(),
       hatchLight: buildHatchLight(),
       window: buildWindow(),
@@ -102,7 +101,6 @@ export function Corridor() {
       <mesh geometry={geo.lockers} material={mats.solid} />
       <mesh geometry={geo.doorway} material={mats.solid} />
       <mesh geometry={geo.hatch} material={mats.solid} />
-      <mesh geometry={geo.leaves} material={mats.solid} />
       <mesh geometry={geo.bays} material={mats.solid} />
       <mesh geometry={geo.hatchLight} material={mats.glow} />
       <mesh geometry={geo.window} material={mats.solid} />

@@ -141,7 +141,7 @@ export const IMPOSTOR_Z = -14
 // ---------------------------------------------------------------------------------------------------
 // Hiding spots.
 
-export type SpotKind = 'locker' | 'corner' | 'bag'
+export type SpotKind = 'locker' | 'bag'
 export interface SpotDef {
   id: string
   kind: SpotKind
@@ -227,55 +227,6 @@ const rectBox = (x0: number, x1: number, z0: number, z1: number, h = 2): Box => 
   max: { x: Math.max(x0, x1), y: h, z: Math.max(z0, z1) },
 })
 
-export interface DoorLeaf {
-  /** The thin slab of the open door. */
-  box: Box
-}
-
-/** An open door: a leaf swung into the room, and the dark corner behind it. */
-function corner(i: number, pocket: Pt, leaf: Box, pocketBox: Box, exit: Pt, yaw: number, usePos: Vec3): SpotDef & { leaf: Box } {
-  return {
-    id: `act3:corner${i}`,
-    kind: 'corner',
-    verb: 'HIDE',
-    usePos,
-    radius: 0.75,
-    inside: { x: pocket.x, y: 0.2, z: pocket.z },
-    yaw,
-    exit: { x: exit.x, y: 0.2, z: exit.z },
-    outside: { x: exit.x, z: exit.z },
-    look: 1.1,
-    block: pocketBox,
-    eye: 1.65,
-    leaf,
-  }
-}
-
-const LEFT_WALL_X = (3 - 10) * CELL // east wall of the left rooms, -8.4
-const RIGHT_WALL_X = (17 - 10) * CELL // west wall of the right rooms, 8.4
-const LEAF_LEN = 0.9
-
-export const CORNERS = [
-  corner(
-    0,
-    { x: LEFT_WALL_X - 0.45, z: -8.6 },
-    rectBox(LEFT_WALL_X - LEAF_LEN, LEFT_WALL_X, -8.1, -8.0, 2.1),
-    rectBox(LEFT_WALL_X - 1.0, LEFT_WALL_X, -9.2, -8.0),
-    { x: LEFT_WALL_X - 1.5, z: -8.6 },
-    Math.PI / 2,
-    { x: LEFT_WALL_X - LEAF_LEN, y: 1.0, z: -8.4 },
-  ),
-  corner(
-    1,
-    { x: RIGHT_WALL_X + 0.45, z: -7.4 },
-    rectBox(RIGHT_WALL_X, RIGHT_WALL_X + LEAF_LEN, -8.0, -7.9, 2.1),
-    rectBox(RIGHT_WALL_X, RIGHT_WALL_X + 1.0, -8.0, -6.8),
-    { x: RIGHT_WALL_X + 1.5, z: -7.4 },
-    -Math.PI / 2,
-    { x: RIGHT_WALL_X + LEAF_LEN, y: 1.0, z: -7.6 },
-  ),
-]
-
 /** An empty sleeping bag on the wall of a crew bay. */
 function bagSpot(i: number, wallX: number, z: number, into: 1 | -1): SpotDef {
   return {
@@ -303,7 +254,7 @@ export const BAG_SPOTS: SpotDef[] = [
 ]
 
 /** Every hiding spot, in one list. */
-export const SPOTS: SpotDef[] = [...LOCKERS, ...CORNERS, ...BAG_SPOTS]
+export const SPOTS: SpotDef[] = [...LOCKERS, ...BAG_SPOTS]
 
 // ---------------------------------------------------------------------------------------------------
 // Collision and creature navigation.
@@ -313,7 +264,7 @@ export const SPOTS: SpotDef[] = [...LOCKERS, ...CORNERS, ...BAG_SPOTS]
 export const cageDoorBox = (): Box => box(-CAGE.doorHalf, CAGE.doorHalf, 0, HEIGHT, CAGE.z - CAGE.thick / 2, CAGE.z + CAGE.thick / 2)
 export const hatchBox = (): Box => box(-HATCH.halfW, HATCH.halfW, 0, HEIGHT, HATCH.z - HATCH.thick / 2, HATCH.z + HATCH.thick / 2)
 
-/** Collision: floor, ceiling, map walls, cabin, bags, lockers, door leaves, hatch and cage bars. */
+/** Collision: floor, ceiling, map walls, cabin, bags, lockers, hatch and cage bars. */
 export function collisionBoxes(withCrew = true): Box[] {
   const zLo = Z_FAR_END - 0.5
   const zHi = CABIN.z1 + 0.5
@@ -338,7 +289,6 @@ export function collisionBoxes(withCrew = true): Box[] {
   // The map. Its closing wall at the doorway is left out: the doorway wall above has the gap.
   boxes.push(...GRID.wallBoxes(HEIGHT).filter((b) => b.min.z < Z_HATCH_END - 1e-6))
   for (const l of LOCKERS) boxes.push(box(l.block.min.x, l.block.max.x, 0, LOCKER_H, l.block.min.z, l.block.max.z))
-  for (const c of CORNERS) boxes.push(c.leaf)
   boxes.push(hatchBox())
   // Cage bars: two fixed slabs either side of the door, and the door.
   boxes.push(box(-HALF_W, -CAGE.doorHalf, 0, HEIGHT, CAGE.z - CAGE.thick / 2, CAGE.z + CAGE.thick / 2))
@@ -365,7 +315,6 @@ export function solidProps(): Array<{ id: string; point: Vec3 }> {
 export function creatureBlockers(): Box[] {
   return [
     ...SPOTS.map((s) => s.block),
-    ...CORNERS.map((c) => c.leaf),
     hatchBox(),
     box(-HALF_W, HALF_W, 0, HEIGHT, CAGE.z - 0.1, CAGE.z + 0.1),
   ]

@@ -110,7 +110,7 @@ try {
   check((await body()).z > -10.3, 'the hatch stops the player')
   await shot('act3-hatch')
 
-  // 2. Hiding spots: a locker, behind an open door, in an empty bag. E to hide, E to come out.
+  // 2. Hiding spots: a locker, in an empty bag. E to hide, E to come out.
   const hide = async (id, verb, x, z, yaw) => {
     await go(x, z, yaw)
     await frames()
@@ -129,14 +129,17 @@ try {
   await page.waitForTimeout(800)
   await page.keyboard.up('Space')
   await leave()
-  await hide('act3:corner0', 'HIDE', -9.9, -8.6, 0)
-  await shot('act3-corner')
-  await leave()
   await hide('act3:bag0', 'SLEEP', -10.6, -13.6, Math.PI / 2)
-  check((await page.locator('[data-testid="slit"]').count()) === 1, 'the bag shows the dark view with a slit of light')
+  check((await page.locator('[data-testid="slit"]').count()) === 1, 'the bag shows the fabric view with a slit about a fifth of the screen high')
+  const slitBox = await page.evaluate(() => {
+    const r = document.querySelector('[data-testid="slit"]').getBoundingClientRect()
+    return { w: r.width, h: r.height }
+  })
+  check(slitBox.w > 0 && slitBox.h > 0, 'the slit layer covers the screen')
   await shot('act3-bag')
   await leave()
   check((await page.locator('[data-testid="slit"]').count()) === 0, 'the slit goes away outside the bag')
+  check((await page.evaluate(() => window.__los.interactables().some((i) => i.id.startsWith('act3:corner')))) === false, 'there is no door corner to hide behind')
 
   // 3. The impostor, then the approach and the cage.
   await go(-6, -13.5)

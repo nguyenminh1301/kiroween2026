@@ -1,4 +1,4 @@
-// Builds the dream map's shell, ribs, pipes, lockers, hatch, door leaves, crew bays and the cage as merged
+// Builds the dream map's shell, ribs, pipes, lockers, hatch, crew bays and the cage as merged
 // geometry. Three.js only, no React.
 import { Matrix4, type BufferGeometry } from 'three'
 import {
@@ -6,7 +6,6 @@ import {
   CABIN,
   CAGE,
   CAGED,
-  CORNERS,
   DOORWAY,
   GRID,
   HALF_W,
@@ -194,21 +193,6 @@ export function buildHatchLight(): BufferGeometry {
   // The gap itself, seen from the side.
   q.quad([-1.15, 0.0, z], [1.15, 0.0, z], [1.15, 0.06, z], [-1.15, 0.06, z], 0, 0, 1, 1, '#fff1d0')
   return q.build()
-}
-
-/** The open doors: a dark slab swung into the room, hung on its hinge post. */
-export function buildDoorLeaves(): BufferGeometry {
-  const parts: BufferGeometry[] = []
-  for (const c of CORNERS) {
-    const b = c.leaf
-    const w = b.max.x - b.min.x
-    const d = b.max.z - b.min.z
-    parts.push(cbox(w, 2.05, Math.max(d, 0.06), '#3a2a22', (b.min.x + b.max.x) / 2, 1.025, (b.min.z + b.max.z) / 2))
-    // Frame, kick plate and handle.
-    parts.push(cbox(w, 0.04, Math.max(d, 0.06) + 0.04, '#6a5a4c', (b.min.x + b.max.x) / 2, 2.07, (b.min.z + b.max.z) / 2))
-    parts.push(cbox(w - 0.1, 0.25, Math.max(d, 0.06) + 0.02, '#5a4a3c', (b.min.x + b.max.x) / 2, 0.15, (b.min.z + b.max.z) / 2))
-  }
-  return mergeColored(parts)
 }
 
 /** Empty sleeping bags standing against the walls of the crew bays, unzipped. */
