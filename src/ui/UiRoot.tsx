@@ -5,9 +5,8 @@ import { gateReason } from '../app/flow'
 import { loader } from '../app/loader'
 import { isDebugUrl } from '../engine/inputRuntime'
 import { useFx, useGame } from './hooks'
-import { Archive } from './Archive'
 import { Dialogue, Dot, LockPrompt, FxLayer, ChoicePrompt, NoiseMeterBar, TopRight, Wrist } from './Overlays'
-import { Chapters, Credits, Headphones, MessageScreen, PauseMenu, Settings, Title, Warning } from './Screens'
+import { Begin, MessageScreen, PauseMenu } from './Screens'
 import './ui.css'
 
 function useEnv() {
@@ -36,13 +35,8 @@ export function UiRoot() {
   let body: React.ReactNode = null
   if (reason) body = <MessageScreen title={MENUS[reason].title} body={MENUS[reason].body} />
   else if (screen === 'gate') body = <MessageScreen title={MENUS.gate.title} body={MENUS.gate.body} />
-  else if (screen === 'warning') body = <Warning />
-  else if (screen === 'headphones') body = <Headphones />
-  else if (screen === 'title') body = <Title />
-  else if (screen === 'chapters') body = <Chapters />
-  else if (screen === 'settings') body = <Settings />
-  else if (screen === 'credits') body = <Credits />
-  else if (screen === 'archive') body = <Archive />
+  else if (screen === 'begin') body = <Begin />
+  else if (screen === 'leaving') body = <div className="leaving" data-screen="leaving" />
   else if (screen === 'game') {
     body = (
       <>

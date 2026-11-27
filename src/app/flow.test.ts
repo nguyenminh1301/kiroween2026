@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cardDurationMs, gateReason, initialScreen, shouldShowCard, startAction, titleButtons } from './flow'
+import { cardDurationMs, gateReason, initialScreen, shouldShowCard, startAction, articleUrl } from './flow'
 
 const ok = { pointerFine: true, width: 1280, webgl2: true }
 
@@ -8,9 +8,9 @@ describe('screen flow', () => {
     expect(startAction()).toEqual({ act: 'act0-pad', checkpoint: undefined })
   })
 
-  it('shows Archive only after the finished flag', () => {
-    expect(titleButtons(false).map((b) => b.id)).toEqual(['start', 'chapters', 'settings', 'credits'])
-    expect(titleButtons(true).map((b) => b.id)).toEqual(['start', 'chapters', 'settings', 'archive', 'credits'])
+  it('points back to the article, with or without a section', () => {
+    expect(articleUrl()).toBe('./')
+    expect(articleUrl('what-really-happened')).toBe('./#what-really-happened')
   })
 
   it('shows the gate for a narrow window or a coarse pointer', () => {
@@ -19,7 +19,7 @@ describe('screen flow', () => {
     expect(gateReason({ ...ok, pointerFine: false })).toBe('gate')
     expect(gateReason({ ...ok, webgl2: false })).toBe('noWebgl')
     expect(initialScreen({ ...ok, width: 500 })).toBe('gate')
-    expect(initialScreen(ok)).toBe('warning')
+    expect(initialScreen(ok)).toBe('begin')
   })
 })
 

@@ -62,7 +62,7 @@ export function createPauseCollector(): PauseCollector {
 
 /**
  * The pointer lock stays held in the game, also through a chapter card (paused, card up) and
- * act changes. It is released for pause, title, chapters, settings, credits and the Archive, and while the
+ * act changes. It is released for pause, the begin card and the end fade, and while the
  * act 3 choice shows, so the answers can be clicked.
  */
 export function shouldHoldLock(screen: string, paused: boolean, card = false, choice = false): boolean {

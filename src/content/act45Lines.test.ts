@@ -1,6 +1,5 @@
 import { readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { MOMENTS } from './archive'
 import { LINES } from './subtitles'
 
 const IDS = Object.keys(LINES).filter((id) => id.startsWith('act4.') || id.startsWith('act5.'))
@@ -55,20 +54,5 @@ describe('act 4 and 5 dialogue', () => {
       expect(LINES[id].text.length).toBeLessThanOrEqual(90)
       expect(LINES[id].text).not.toMatch(new RegExp('[\\u2013\\u2014]| -' + '- '))
     }
-  })
-})
-
-describe('archive', () => {
-  it('lists the eight real moments with a source each and no trace of a fourth person', () => {
-    expect(MOMENTS.map((m) => m.id).sort()).toEqual(
-      ['alarm-1202', 'burn-routine', 'eagle-landed', 'escape-tower', 'flag-knocked', 'hornet', 'loss-of-signal', 'seismo-steps'].sort(),
-    )
-    for (const m of MOMENTS) {
-      expect(m.source).toMatch(/^https:\/\//)
-      expect(m.cite.length).toBeGreaterThan(3)
-      expect(`${m.seen} ${m.real}`).not.toMatch(/creature|fourth|four men|monster|impostor/i)
-      expect(`${m.seen} ${m.real}`).not.toMatch(new RegExp('[\\u2013\\u2014]| -' + '- '))
-    }
-    expect(MOMENTS.find((m) => m.id === 'burn-routine')!.real).toContain('BURN_BABY_BURN--MASTER_IGNITION_ROUTINE')
   })
 })

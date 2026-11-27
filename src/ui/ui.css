@@ -107,50 +107,6 @@
   opacity: 0.6;
 }
 
-/* title */
-.title-name {
-  margin: 0;
-  font-family: var(--type);
-  font-weight: 400;
-  font-size: clamp(48px, 7.4vw, 92px);
-  letter-spacing: 0.06em;
-  color: #f2ead2;
-  text-shadow: 0 0 18px rgba(233, 183, 64, 0.35), 0 0 2px rgba(255, 240, 200, 0.7);
-}
-.title-trace {
-  margin: 18px 0 8px;
-  width: 340px;
-  height: 36px;
-}
-.title-trace path {
-  fill: none;
-  stroke: #7dffa0;
-  stroke-width: 2;
-  filter: drop-shadow(0 0 3px rgba(125, 255, 160, 0.6));
-}
-.title-stamp {
-  display: inline-block;
-  margin: 0 0 30px;
-  padding: 3px 14px;
-  border: 3px solid #a3322a;
-  color: #a3322a;
-  font-family: var(--serif-type);
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  transform: rotate(-8deg);
-  opacity: 0.75;
-  pointer-events: none;
-  user-select: none;
-}
-.title-tag {
-  margin: 0 0 14px;
-  font-size: 14px;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-}
 .menu-list {
   display: flex;
   flex-direction: column;
@@ -615,41 +571,30 @@
   overflow: hidden;
 }
 
-/* ---------- archive ---------- */
-.paper.archive {
-  width: min(820px, 100%);
-  max-height: 92vh;
-  padding: 26px 36px 30px;
+/* ---------- begin card and end fade ---------- */
+.begin-card {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: center;
 }
-.moment {
-  border: 1px solid rgba(36, 33, 27, 0.45);
-  padding: 10px 14px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.begin-card p {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.04em;
 }
-.moment.seen {
-  border: 2px solid #b9822a;
-  background: rgba(233, 183, 64, 0.14);
+.leaving {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  animation: leaving-fade 1.4s linear forwards;
+  pointer-events: all;
 }
-.moment .tag {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #8a5a10;
-}
-.moment.missed .tag {
-  color: rgba(36, 33, 27, 0.6);
-}
-.moment.missed .saw {
-  opacity: 0.5;
-}
-.moment a {
-  align-self: flex-start;
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--stamp);
+@keyframes leaving-fade {
+  to {
+    opacity: 1;
+  }
 }
 
 /* Act 3: the two answers after waking, typed on a paper strip at the bottom. The pointer is free here. */

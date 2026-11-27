@@ -10,15 +10,7 @@ import { GameView, RenderRuntime } from '@/render/GameView'
 import { RenderBoundary } from '@/render/RenderBoundary'
 import { PS1Composer } from '@/render/PS1Composer'
 import { StatsBox } from '@/render/StatsBox'
-import { TitleBackdrop } from '@/render/TitleBackdrop'
-import { gameStore } from '@/engine/store'
 import { loader } from './loader'
-
-const BACKDROP_SCREENS = new Set(['title', 'chapters', 'settings', 'credits', 'warning', 'headphones'])
-
-function useBackdrop(): boolean {
-  return useSyncExternalStore(gameStore.subscribe, () => BACKDROP_SCREENS.has(gameStore.getState().screen))
-}
 
 function useLoaderState() {
   return useSyncExternalStore(loader.subscribe, loader.getState)
@@ -26,7 +18,6 @@ function useLoaderState() {
 
 export function App() {
   const state = useLoaderState()
-  const backdrop = useBackdrop()
   const Scene = state.status === 'ready' ? (loader.getModule()?.Scene ?? null) : null
 
   return (
@@ -47,7 +38,7 @@ export function App() {
             <Input />
             <PointerLockController />
             <Markers />
-            {Scene ? <Scene key={state.act} /> : backdrop ? <TitleBackdrop /> : null}
+            {Scene ? <Scene key={state.act} /> : null}
           </Canvas>
         )}
       </GameView>

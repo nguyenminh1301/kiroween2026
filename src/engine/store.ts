@@ -3,16 +3,7 @@ import type { Verb } from '../content/verbs'
 import type { ActId, MoveMode, Subtitle, TensionState } from '../types'
 import { DEFAULT_SETTINGS, applySettings, type Settings } from './settings'
 
-export type Screen =
-  | 'gate'
-  | 'warning'
-  | 'headphones'
-  | 'title'
-  | 'chapters'
-  | 'settings'
-  | 'credits'
-  | 'archive'
-  | 'game'
+export type Screen = 'gate' | 'begin' | 'game' | 'leaving'
 
 /** The checklist line shown at the top right. `markers` are interactable ids that show a world marker. */
 export interface Objective {
@@ -76,7 +67,7 @@ export interface GameState {
 }
 
 export const gameStore = createStore<GameState>()((set) => ({
-  screen: 'title',
+  screen: 'begin',
   act: null,
   checkpoint: null,
   paused: false,

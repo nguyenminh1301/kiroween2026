@@ -4,9 +4,8 @@ import { ACT_TITLES, FORM_LINE, MENUS } from '../content/menus'
 import { ACT_ORDER } from '../engine/actOrder'
 import { resumeGame } from '../engine/inputRuntime'
 import { SETTINGS_RANGES } from '../engine/settings'
-import { gameStore, type Screen } from '../engine/store'
-import { titleButtons } from '../app/flow'
-import { goScreen, pickChapter, quitToTitle, restartCheckpoint, startRun } from '../app/session'
+import { gameStore } from '../engine/store'
+import { leaveToArticle, pickChapter, restartCheckpoint, startRun } from '../app/session'
 import { useGame } from './hooks'
 
 function Btn({ children, onClick, first }: { children: React.ReactNode; onClick: () => void; first?: boolean }) {
@@ -28,100 +27,21 @@ export function MessageScreen({ title, body }: { title: string; body: string }) 
   )
 }
 
-export function Warning() {
-  const m = MENUS.warning
+/** The only card before the game. Browsers need one click before they allow sound and mouse lock. */
+export function Begin() {
   return (
-    <div className="screen" data-screen="warning">
-      <div className="typed-panel">
-        <h2>{m.title}</h2>
-        <p>{m.body}</p>
-        <Btn first onClick={() => goScreen('headphones')}>
-          {m.action}
-        </Btn>
-      </div>
-    </div>
-  )
-}
-
-export function Headphones() {
-  const m = MENUS.headphones
-  return (
-    <div className="screen" data-screen="headphones">
-      <div className="typed-panel">
-        <h2>{m.title}</h2>
-        <p>{m.body}</p>
-        <Btn
-          first
-          onClick={() => {
-            audio.unlock()
-            goScreen('title')
-          }}
-        >
-          {m.action}
-        </Btn>
-      </div>
-    </div>
-  )
-}
-
-/** A wavy carrier trace that ends in a flat line. */
-function tracePath(): string {
-  const pts: string[] = []
-  for (let x = 0; x <= 340; x += 4) {
-    const live = x < 220
-    const amp = live ? 12 * Math.sin(x * 0.11) * Math.sin(x * 0.037 + 1) + 5 * Math.sin(x * 0.45) : 0
-    pts.push(`${x === 0 ? 'M' : 'L'}${x} ${18 + amp}`)
-  }
-  return pts.join(' ')
-}
-
-export function Title() {
-  const finished = useGame((s) => s.finished)
-  const m = MENUS.title
-  const label = (id: string): string =>
-    id === 'archive' ? MENUS.archive.menu : (m as unknown as Record<string, string>)[id]
-  return (
-    <div className="screen" data-screen="title">
-      <h1 className="title-name">{m.name}</h1>
-      <svg className="title-trace" viewBox="0 0 340 36" aria-hidden="true">
-        <path d={tracePath()} />
-      </svg>
-      <p className="title-tag">{m.tagline}</p>
-      <div className="title-stamp" aria-hidden="true">
-        {m.stamp}
-      </div>
-      <div className="menu-list">
-        {titleButtons(finished).map((b, i) => (
-          <Btn
-            key={b.id}
-            first={i === 0}
-            onClick={() => (b.screen ? goScreen(b.screen) : void startRun())}
-          >
-            {label(b.id)}
-          </Btn>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-export function Chapters() {
-  const m = MENUS.chapters
-  return (
-    <div className="screen" data-screen="chapters">
-      <div className="paper">
-        <div className="form-line">{FORM_LINE}</div>
-        <h2>{m.title}</h2>
-        <div className="menu-list">
-          {ACT_ORDER.map((id, i) => (
-            <Btn key={id} first={i === 0} onClick={() => void pickChapter(id)}>
-              <span className="num">{String(i).padStart(2, '0')}</span>
-              {ACT_TITLES[id]}
-            </Btn>
-          ))}
-          <Btn onClick={() => goScreen('title')}>{m.back}</Btn>
-        </div>
-      </div>
+    <div className="screen" data-screen="begin">
+      <button
+        type="button"
+        className="typed-panel begin-card"
+        autoFocus
+        onClick={() => {
+          audio.unlock()
+          void startRun()
+        }}
+      >
+        <p>{MENUS.begin}</p>
+      </button>
     </div>
   )
 }
@@ -191,62 +111,53 @@ export function SettingsForm({ onBack, backLabel = MENUS.settings.back }: { onBa
   )
 }
 
-export function Settings() {
-  return (
-    <div className="screen" data-screen="settings">
-      <div className="paper">
-        <div className="form-line">{FORM_LINE}</div>
-        <h2>{MENUS.settings.title}</h2>
-        <SettingsForm onBack={() => goScreen('title')} />
-      </div>
-    </div>
-  )
-}
-
-export function Credits() {
-  const m = MENUS.credits
-  return (
-    <div className="screen" data-screen="credits">
-      <div className="paper">
-        <div className="form-line">{FORM_LINE}</div>
-        <h2>{m.title}</h2>
-        {m.lines.map((l) => (
-          <p key={l}>{l}</p>
-        ))}
-        <Btn first onClick={() => goScreen('title')}>
-          {m.back}
-        </Btn>
-      </div>
-    </div>
-  )
-}
-
 export function PauseMenu() {
-  const [view, setView] = useState<'menu' | 'settings'>('menu')
+  const [view, setView] = useState<'menu' | 'chapters' | 'settings'>('menu')
   const m = MENUS.pause
-  return (
-    <div className="screen dim" data-screen="pause">
-      {view === 'menu' ? (
-        <div className="typed-panel">
-          <h2>{m.title}</h2>
+  if (view === 'chapters') {
+    return (
+      <div className="screen dim" data-screen="pause">
+        <div className="paper">
+          <div className="form-line">{FORM_LINE}</div>
+          <h2>{MENUS.chapters.title}</h2>
           <div className="menu-list">
-            <Btn first onClick={() => resumeGame()}>
-              {m.resume}
-            </Btn>
-            <Btn onClick={() => void restartCheckpoint()}>{m.restart}</Btn>
-            <Btn onClick={() => setView('settings')}>{m.settings}</Btn>
-            <Btn onClick={() => quitToTitle()}>{m.quit}</Btn>
+            {ACT_ORDER.map((id, i) => (
+              <Btn key={id} first={i === 0} onClick={() => void pickChapter(id)}>
+                <span className="num">{String(i).padStart(2, '0')}</span>
+                {ACT_TITLES[id]}
+              </Btn>
+            ))}
+            <Btn onClick={() => setView('menu')}>{MENUS.chapters.back}</Btn>
           </div>
         </div>
-      ) : (
+      </div>
+    )
+  }
+  if (view === 'settings') {
+    return (
+      <div className="screen dim" data-screen="pause">
         <div className="paper">
           <div className="form-line">{FORM_LINE}</div>
           <h2>{MENUS.settings.title}</h2>
           <SettingsForm onBack={() => setView('menu')} />
         </div>
-      )}
+      </div>
+    )
+  }
+  return (
+    <div className="screen dim" data-screen="pause">
+      <div className="typed-panel">
+        <h2>{m.title}</h2>
+        <div className="menu-list">
+          <Btn first onClick={() => resumeGame()}>
+            {m.resume}
+          </Btn>
+          <Btn onClick={() => void restartCheckpoint()}>{m.restart}</Btn>
+          <Btn onClick={() => setView('chapters')}>{m.chapters}</Btn>
+          <Btn onClick={() => setView('settings')}>{m.settings}</Btn>
+          <Btn onClick={() => leaveToArticle()}>{m.back}</Btn>
+        </div>
+      </div>
     </div>
   )
 }
-
-export type { Screen }

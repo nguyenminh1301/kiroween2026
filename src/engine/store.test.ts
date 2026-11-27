@@ -26,7 +26,7 @@ describe('store', () => {
 
   it('has the documented initial state', () => {
     const s = gameStore.getState()
-    expect(s.screen).toBe('title')
+    expect(s.screen).toBe('begin')
     expect(s.act).toBeNull()
     expect(s.checkpoint).toBeNull()
     expect(s.paused).toBe(false)
@@ -58,7 +58,7 @@ describe('store', () => {
     expect(n.unlockedActs).toEqual(['act0-pad', 'act1-launch'])
     expect(n.anomaliesSeen).toEqual([])
     gameStore.setState({
-      screen: 'title', act: null, checkpoint: null, paused: false, moveMode: 'walk',
+      screen: 'begin', act: null, checkpoint: null, paused: false, moveMode: 'walk',
       objective: null, target: null, unlockedActs: ['act0-pad'],
     })
   })

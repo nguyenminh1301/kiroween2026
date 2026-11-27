@@ -19,24 +19,7 @@ export function gateReason(env: Env): 'gate' | 'noWebgl' | null {
 }
 
 export function initialScreen(env: Env): Screen {
-  return gateReason(env) === 'gate' ? 'gate' : 'warning'
-}
-
-export interface TitleButton {
-  id: 'start' | 'chapters' | 'settings' | 'archive' | 'credits'
-  screen: Screen | null
-}
-
-/** Title buttons in order. Archive appears only after act 5 was finished once. */
-export function titleButtons(finished: boolean): TitleButton[] {
-  const list: TitleButton[] = [
-    { id: 'start', screen: null },
-    { id: 'chapters', screen: 'chapters' },
-    { id: 'settings', screen: 'settings' },
-  ]
-  if (finished) list.push({ id: 'archive', screen: 'archive' })
-  list.push({ id: 'credits', screen: 'credits' })
-  return list
+  return gateReason(env) === 'gate' ? 'gate' : 'begin'
 }
 
 /** Start always begins at act 0, first checkpoint. */
@@ -59,3 +42,14 @@ export function shouldShowCard(opts: {
 }): boolean {
   return !opts.restart && !!opts.intro && opts.intro.length > 0 && opts.checkpoint === opts.firstCheckpoint
 }
+
+/** Where the article page is, relative to the game page. Works under a sub path. */
+export function articleUrl(hash = ''): string {
+  return `./${hash ? `#${hash}` : ''}`
+}
+
+/** The article section the game ends on. */
+export const ARTICLE_END_HASH = 'what-really-happened'
+
+/** Length of the end fade in ms. */
+export const END_FADE_MS = 1400

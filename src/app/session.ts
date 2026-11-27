@@ -3,7 +3,7 @@ import { requestLock } from '../engine/inputRuntime'
 import { gameStore, type Screen } from '../engine/store'
 import type { ActId } from '../types'
 import { markRestart } from './chapterCard'
-import { startAction } from './flow'
+import { ARTICLE_END_HASH, END_FADE_MS, articleUrl, startAction } from './flow'
 import { loader } from './loader'
 
 export function playAct(id: ActId, checkpoint?: string, opts: { restart?: boolean } = {}): Promise<void> {
@@ -31,23 +31,25 @@ export function restartCheckpoint(): Promise<void> {
   return playAct(s.act, s.checkpoint ?? undefined, { restart: true })
 }
 
-export function quitToTitle(): void {
+/** Leave the game for the article page. Stops the act first so nothing keeps playing. */
+export function leaveToArticle(hash = ''): void {
   loader.unload()
   const s = gameStore.getState()
   s.setPaused(false)
-  s.setScreen('title')
+  window.location.assign(articleUrl(hash))
 }
 
 export function goScreen(screen: Screen): void {
   gameStore.getState().setScreen(screen)
 }
 
-/** Show the Archive when the loader reports finished. Call once from boot. */
+/** When the loader reports finished, fade to black and open the article at "What really happened". Call once from boot. */
 export function wireFinish(): void {
   loader.subscribe(() => {
     if (loader.getState().status !== 'finished') return
     const s = gameStore.getState()
     s.setPaused(false)
-    s.setScreen('archive')
+    s.setScreen('leaving')
+    window.setTimeout(() => leaveToArticle(ARTICLE_END_HASH), END_FADE_MS + 100)
   })
 }
