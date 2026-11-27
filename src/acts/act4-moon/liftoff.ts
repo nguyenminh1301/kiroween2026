@@ -6,8 +6,8 @@ import { cabinEye } from './descent'
 import { ROOF, faceAt } from './layout'
 import { groundAt } from './terrain'
 
-export const LIFTOFF_DURATION = 14
-export const FIRE_AT = 1.4
+export const LIFTOFF_DURATION = 15.6
+export const FIRE_AT = 3
 export const FIRE_FADE = 7
 /** The readout panel is up for this long after ignition. */
 export const READOUT_SECONDS = 4
@@ -16,9 +16,9 @@ export const BLAST_SCRAPS = 70
 export const BLAST_DUST = 130
 export const FLAG_TIP_DELAY = 0.4
 /** The next act is fetched this far into the shot, so the switch has nothing left to load. */
-export const PRELOAD_AT = 9
+export const PRELOAD_AT = 10.6
 /** The picture fades to black from here and is black at the end of the shot. */
-export const FADE_FROM = 12.6
+export const FADE_FROM = 14.2
 
 /** How far the ascent stage has climbed `t` seconds in. */
 export const ascentRise = (t: number): number => (t <= FIRE_AT ? 0 : (t - FIRE_AT) ** 1.8 * 0.9)
@@ -104,10 +104,10 @@ export const flagTip = (t: number): number => Math.min(1, Math.max(0, (t - FIRE_
 
 export const LIFTOFF_SHAKE: ShakeKey[] = [
   { t: 0, amp: 0 },
-  { t: 1.4, amp: 0 },
-  { t: 1.6, amp: 0.12 },
-  { t: 5, amp: 0.05 },
-  { t: 9, amp: 0 },
+  { t: 3, amp: 0 },
+  { t: 3.2, amp: 0.12 },
+  { t: 6.6, amp: 0.05 },
+  { t: 10.6, amp: 0 },
 ]
 
 const v = (x: number, y: number, z: number): Vec3 => ({ x, y, z })
@@ -121,47 +121,47 @@ export const LIFTOFF_SHOTS: LiftShot[] = [
   {
     name: 'cabin-panel',
     from: 0,
-    to: 1.4,
+    to: 3,
     fov: 70,
     far: 3000,
     cam: () => ({ position: cabinEye(0), lookAt: faceAt(2, 0.5, 0.55) }),
   },
   {
     name: 'wide',
-    from: 1.4,
-    to: 2.4,
+    from: 3,
+    to: 4,
     fov: 60,
     far: 3000,
     cam: () => ({ position: v(13, groundAt(13, 16) + 3.5, 16), lookAt: v(0, 2.6, 0) }),
   },
   {
     name: 'engine',
-    from: 2.4,
-    to: 5,
+    from: 4,
+    to: 6.6,
     fov: 80,
     far: 3000,
     cam: (_u, t) => ({ position: v(4.6, 2.0, 5.4), lookAt: v(ROOF.x * 0.2, 3.1 + ascentRise(t) * 0.5, ROOF.z * 0.2) }),
   },
   {
     name: 'cabin-window',
-    from: 5,
-    to: 7.5,
+    from: 6.6,
+    to: 9.1,
     fov: 75,
     far: 3000,
     cam: (_u, t) => ({ position: cabinEye(ascentRise(t)), lookAt: faceAt(0, 0.5, 0.4, 0.5) }),
   },
   {
     name: 'ground',
-    from: 7.5,
-    to: 9,
+    from: 9.1,
+    to: 10.6,
     fov: 65,
     far: 3000,
     cam: (_u, t) => ({ position: v(8, groundAt(8, 11) + 1.2, 11), lookAt: v(0, 3 + ascentRise(t), 0) }),
   },
   {
     name: 'pullback',
-    from: 9,
-    to: 14,
+    from: 10.6,
+    to: 15.6,
     fov: 55,
     far: 3000,
     cam: (u, t) => ({
@@ -184,6 +184,13 @@ export function liftoffEvents(h: LiftoffHooks): TimelineEvent[] {
   return [
     { at: 0.3, run: () => h.say('act4.liftoff', { urgent: true }) },
     {
+      at: FIRE_AT + 0.3,
+      run: () => {
+        h.say('act4.off')
+        h.say('act4.quiet')
+      },
+    },
+    {
       at: FIRE_AT,
       run: () => {
         h.readout(true)
@@ -199,7 +206,7 @@ export function liftoffEvents(h: LiftoffHooks): TimelineEvent[] {
       },
     },
     { at: PRELOAD_AT, run: () => h.preload() },
-    { at: 10.5, run: () => h.say('act4.columbia') },
+    { at: 12.1, run: () => h.say('act4.columbia') },
     { at: LIFTOFF_DURATION, run: () => h.end() },
   ]
 }

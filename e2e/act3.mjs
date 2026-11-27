@@ -170,7 +170,7 @@ try {
   await frames()
   await go(-6, -14.6)
   await wait(() => window.__los.store.getState().anomaliesSeen.includes('loss-of-signal'), null, 30000)
-  await subtitle('how many crew aboard', 30000)
+  await subtitle('how many aboard', 30000)
   await go(0, -26.8)
   await frames()
   await page.waitForTimeout(800)

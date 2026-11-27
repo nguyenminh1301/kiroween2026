@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { dueEvents, selectShot, shakeAmplitude } from '../../timeline/timeline'
 import {
+  FIRE_AT,
   LIFTOFF_DURATION,
   LIFTOFF_SHAKE,
   LIFTOFF_SHOTS,
@@ -24,27 +25,27 @@ import {
 import { cabinShotAt } from './descent'
 
 describe('liftoff', () => {
-  it('rises (t - 1.4)^1.8 * 0.9 after the fire starts', () => {
-    expect(ascentRise(1.4)).toBe(0)
-    expect(ascentRise(5)).toBeCloseTo(3.6 ** 1.8 * 0.9, 6)
+  it('rises (t - FIRE_AT)^1.8 * 0.9 after the fire starts', () => {
+    expect(ascentRise(FIRE_AT)).toBe(0)
+    expect(ascentRise(FIRE_AT + 3.6)).toBeCloseTo(3.6 ** 1.8 * 0.9, 6)
   })
 
   it('fades the fire over 7 s and tips the flag after 0.4 s', () => {
-    expect(fireLevel(1)).toBe(0)
-    expect(fireLevel(1.4)).toBe(1)
-    expect(fireLevel(8.4)).toBe(0)
-    expect(flagTip(1.7)).toBe(0)
-    expect(flagTip(2.6)).toBe(1)
+    expect(fireLevel(FIRE_AT - 0.4)).toBe(0)
+    expect(fireLevel(FIRE_AT)).toBe(1)
+    expect(fireLevel(FIRE_AT + 7)).toBe(0)
+    expect(flagTip(FIRE_AT + 0.3)).toBe(0)
+    expect(flagTip(FIRE_AT + 1.2)).toBe(1)
   })
 
   it('types the readout line by line, then removes it after 4 s', () => {
     const lines = ['ONE', 'TWO LINES']
-    expect(readoutAt(1.3, 'HEAD', lines)).toBeNull()
-    expect(readoutAt(1.4, 'HEAD', lines)?.lines).toEqual([])
-    expect(readoutAt(1.4 + 0.25 + 1 / 38 + 0.001, 'HEAD', lines)?.lines).toEqual(['O'])
-    expect(readoutAt(1.4 + 1.2, 'HEAD', lines)?.lines).toEqual(['ONE', 'TWO LINES'])
-    expect(readoutAt(1.4 + 4, 'HEAD', lines)).toBeNull()
-    expect(readoutAt(2.2, 'HEAD', lines)?.header).toBe('HEAD')
+    expect(readoutAt(FIRE_AT - 0.1, 'HEAD', lines)).toBeNull()
+    expect(readoutAt(FIRE_AT, 'HEAD', lines)?.lines).toEqual([])
+    expect(readoutAt(FIRE_AT + 0.25 + 1 / 38 + 0.001, 'HEAD', lines)?.lines).toEqual(['O'])
+    expect(readoutAt(FIRE_AT + 1.2, 'HEAD', lines)?.lines).toEqual(['ONE', 'TWO LINES'])
+    expect(readoutAt(FIRE_AT + 4, 'HEAD', lines)).toBeNull()
+    expect(readoutAt(FIRE_AT + 0.8, 'HEAD', lines)?.header).toBe('HEAD')
   })
 
   it('throws foil and dust off the deck: up and out, then down onto the dust', () => {
@@ -64,14 +65,14 @@ describe('liftoff', () => {
   })
 
   it('has the shots and the shake from the plan', () => {
-    expect(selectShot(LIFTOFF_SHOTS, 3)?.fov).toBe(80)
+    expect(selectShot(LIFTOFF_SHOTS, 5)?.fov).toBe(80)
     expect(cabinShotAt(LIFTOFF_SHOTS, 0.5)).toBe(true)
-    expect(cabinShotAt(LIFTOFF_SHOTS, 6)).toBe(true)
-    expect(cabinShotAt(LIFTOFF_SHOTS, 3)).toBe(false)
+    expect(cabinShotAt(LIFTOFF_SHOTS, 8)).toBe(true)
+    expect(cabinShotAt(LIFTOFF_SHOTS, 5)).toBe(false)
     for (let t = 0; t < LIFTOFF_DURATION; t += 0.5) expect(selectShot(LIFTOFF_SHOTS, t)).not.toBeNull()
-    expect(shakeAmplitude(LIFTOFF_SHAKE, 1.6, false)).toBe(0.12)
-    expect(shakeAmplitude(LIFTOFF_SHAKE, 5, false)).toBe(0.05)
-    expect(shakeAmplitude(LIFTOFF_SHAKE, 9, false)).toBe(0)
+    expect(shakeAmplitude(LIFTOFF_SHAKE, FIRE_AT + 0.2, false)).toBe(0.12)
+    expect(shakeAmplitude(LIFTOFF_SHAKE, 6.6, false)).toBe(0.05)
+    expect(shakeAmplitude(LIFTOFF_SHAKE, 10.6, false)).toBe(0)
   })
 
   it('loads the next act well before the shot ends, then fades to black with no gap', () => {
@@ -107,10 +108,19 @@ describe('liftoff', () => {
         },
       ),
     }
-    dueEvents(def, 0, 0, 1.4).forEach((e) => e.run())
+    dueEvents(def, 0, 0, FIRE_AT).forEach((e) => e.run())
     expect(log).toEqual(['say:act4.liftoff:urgent', 'readout:true', 'anomaly:burn-routine'])
     log.length = 0
-    dueEvents(def, 2, 1.4, 14).forEach((e) => e.run())
-    expect(log).toEqual(['say:act4.flagdown', 'anomaly:flag-knocked', 'readout:false', 'preload', 'say:act4.columbia', 'end'])
+    dueEvents(def, 2, FIRE_AT, LIFTOFF_DURATION).forEach((e) => e.run())
+    expect(log).toEqual([
+      'say:act4.off',
+      'say:act4.quiet',
+      'say:act4.flagdown',
+      'anomaly:flag-knocked',
+      'readout:false',
+      'preload',
+      'say:act4.columbia',
+      'end',
+    ])
   })
 })

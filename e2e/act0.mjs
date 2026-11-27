@@ -67,12 +67,12 @@ try {
   await page.keyboard.up('KeyW')
   // Walking past the crew said nothing and never turned the view.
   check(!(await page.evaluate(() => window.__los.focus())), 'walking past the crew does not turn the view')
-  check(!/middle couch/.test((await state()).sub ?? ''), 'Gunter does not speak until talked to')
+  check(!/Middle couch/.test((await state()).sub ?? ''), 'Gunter does not speak until talked to')
   // Look at Gunter and talk: verb TALK, then his line.
   await page.evaluate(() => window.__los.player.set({ yaw: -0.73, pitch: -0.2 }))
   await page.waitForFunction(() => window.__los.store.getState().target?.verb === 'TALK', null, { timeout: 30000 })
   await page.keyboard.press('KeyE')
-  await page.waitForFunction(() => /middle couch/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 40000, polling: 100 })
+  await page.waitForFunction(() => /Middle couch/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 40000, polling: 100 })
   await shot('act0-room')
 
   // Aim at the hatch and board.

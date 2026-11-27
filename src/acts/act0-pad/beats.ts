@@ -32,6 +32,8 @@ export interface BeatDeps {
 
 export type CrewId = 'tech1' | 'tech2' | 'gunter'
 
+/** The player is this far along the arm (z below this) when launch control speaks. */
+export const ARM_Z = 3.5
 export const START_DELAY = 0.8
 export const PERIODIC_CHEER = 0.7
 
@@ -41,6 +43,8 @@ export interface Beats {
   wave(): void
   /** The player pressed E on a crew member. */
   talk(who: CrewId): void
+  /** The player reached the arm. Launch control reports the countdown once. */
+  reachArm(): void
   /** The player is inside the White Room. Call every frame or on change. */
   enterRoom(): void
   /** The player used the hatch. */
@@ -58,6 +62,15 @@ export function createBeats(deps: BeatDeps): Beats {
   let beat = 0
   let gunterTalks = 0
   let hatchT = 0
+  let counted = false
+  let armReached = false
+  let introDone = false
+  const maybeCount = (): void => {
+    if (counted || boarded || !armReached || !introDone) return
+    counted = true
+    // Pinned to a late beat so the wave and room beats never drop it.
+    deps.say('act0.count', { beat: Number.MAX_SAFE_INTEGER }, () => {})
+  }
   const hatchQueue = hatchEvents({
     playSound: (n) => deps.playSound(n),
     say: (id) => say(id, { urgent: true }),
@@ -82,6 +95,8 @@ export function createBeats(deps: BeatDeps): Beats {
     deps.showHint('walk')
     say('act0.intro1', {}, () =>
       say('act0.intro2', {}, () => {
+        introDone = true
+        maybeCount()
         if (!waved) deps.setObjective('act0Wave')
       }),
     )
@@ -113,6 +128,9 @@ export function createBeats(deps: BeatDeps): Beats {
       cheerLeft = cheerPeriod(true)
       deps.setObjective('act0Board')
       say('act0.wave', {})
+      // The intro chain is dropped by the new beat, so launch control may speak now.
+      introDone = true
+      maybeCount()
     },
     talk(who) {
       if (boarded || (talkUntil.get(who) ?? -1) > clock) return
@@ -120,6 +138,10 @@ export function createBeats(deps: BeatDeps): Beats {
       talkUntil.set(who, clock + 12)
       const id = who === 'tech1' ? 'act0.tech1' : who === 'tech2' ? 'act0.tech2' : gunterTalks++ === 0 ? 'act0.gunter1' : 'act0.gunter2'
       say(id, {}, () => talkUntil.delete(who))
+    },
+    reachArm() {
+      armReached = true
+      maybeCount()
     },
     enterRoom() {
       if (inRoom || boarded) return

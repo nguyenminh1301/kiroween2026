@@ -146,6 +146,7 @@ export function descentEvents(h: DescentHooks): TimelineEvent[] {
         h.dsky(r(63, 16, 68, 1202))
         h.beep()
         h.say('act4.alarm')
+        h.say('act4.alarmask')
         h.moment('alarm-1202')
       },
     },
@@ -163,6 +164,8 @@ export function descentEvents(h: DescentHooks): TimelineEvent[] {
         h.beep()
       },
     },
+    { at: 11.5, run: () => h.say('act4.landing') },
+    { at: 12.5, run: () => h.say('act4.dust') },
     {
       at: 13,
       run: () => {
@@ -171,7 +174,14 @@ export function descentEvents(h: DescentHooks): TimelineEvent[] {
       },
     },
     { at: 17, run: () => h.say('act4.thirty') },
-    { at: 21.5, run: () => h.say('act4.contact') },
+    {
+      at: 21.5,
+      run: () => {
+        h.say('act4.contact')
+        h.say('act4.stop')
+        h.say('act4.stopack')
+      },
+    },
     {
       at: 22.6,
       run: () => {

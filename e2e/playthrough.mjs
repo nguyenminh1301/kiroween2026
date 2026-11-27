@@ -145,7 +145,7 @@ try {
   await page.evaluate(() => window.__los.player.set({ yaw: -0.73, pitch: -0.2 }))
   await wait(() => window.__los.store.getState().target?.verb === 'TALK', null, 30000)
   await page.keyboard.press('KeyE')
-  await subtitle('middle couch', 40000)
+  await subtitle('Middle couch', 40000)
   await unfocused()
   await page.evaluate(() => window.__los.player.set({ yaw: 0, pitch: -0.1 }))
   await wait(() => window.__los.store.getState().target?.verb === 'GRAB', null, 30000)
@@ -261,7 +261,7 @@ try {
   await go3(-6, -14.6)
   await wait(() => window.__los.store.getState().anomaliesSeen.includes('loss-of-signal'), null, 30000)
   check(await seen('loss-of-signal'), 'loss-of-signal seen')
-  await subtitle('how many crew aboard', 30000)
+  await subtitle('how many aboard', 30000)
   // The approach and the cage.
   await go3(0, -26.5)
   await frames()

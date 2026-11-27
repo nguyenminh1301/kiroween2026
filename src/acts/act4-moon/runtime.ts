@@ -107,11 +107,14 @@ const PHOTO_GUARD = 0.5
 /** The flash comes this long after Neil starts to lift the camera. */
 const FLASH_AT = PHOTO_LIFT + 0.2
 const ORBIT_DELAY = 8
+/** Neil's two lines, by seconds into his climb: at the foot of the ladder, then off the footpad. */
+const NEIL_FOOT_LINE_AT = 3
+const NEIL_STEP_LINE_AT = 4.1
 
 type Phase = 'descent' | 'neil' | 'exit' | 'eva' | 'return' | 'climb' | 'liftoff'
 
 const LINE_FOR_TAKE: Partial<Record<Item, string>> = { scoop: 'act4.takescoop', seismo: 'act4.takeseismo' }
-const LINE_FOR_DO: Record<TaskId, string> = { flag: 'act4.flag', sample: 'act4.sample', seismo: 'act4.seismo' }
+const LINE_FOR_DO: Record<TaskId, string> = { flag: 'act4.flagup', sample: 'act4.sample', seismo: 'act4.seismo' }
 const KIT_SPOT: Record<Item, { pos: Vec3; r: number }> = {
   flag: { pos: FLAG_KIT, r: RADIUS.flagKit },
   scoop: { pos: SCOOP_SPOT, r: RADIUS.tool },
@@ -168,6 +171,9 @@ export function startAct4(requested: string): void {
   let photo: { close: () => void } | null = null
   let photoBusy = false
   let neilT = 0
+  let neilGo = false
+  let footSaid = false
+  let stepSaid = false
   let clock = 0
   setAct4Source(() => ({
     phase,
@@ -331,7 +337,9 @@ export function startAct4(requested: string): void {
       syncTasks()
       void showHint('jump')
     }
-    say('act4.flagtask', { look: FLAG_KIT, then: ready_ })
+    const flagTask = (): void => say('act4.flagtask', { look: FLAG_KIT, then: ready_ })
+    if (intro) say('act4.view', { then: () => say('act4.viewcdr', { then: () => say('act4.desolation', { then: flagTask }) }) })
+    else flagTask()
   }
 
   const useKit = (item: Item): void => {
@@ -359,6 +367,7 @@ export function startAct4(requested: string): void {
     syncTasks()
     say(LINE_FOR_DO[task])
     if (task === 'flag') {
+      say('act4.flagcmp')
       sendNeil(act4State.neil, [photoStop()])
       void showHint('photo')
     }
@@ -379,6 +388,7 @@ export function startAct4(requested: string): void {
     n.t = 0
     say('act4.photo')
     addTimeout(() => {
+      say('act4.photodone')
       audio.play('shutter')
       const fx = fxStore.getState()
       fx.setWhiteout(1)
@@ -408,7 +418,7 @@ export function startAct4(requested: string): void {
       photo = null
       syncTasks()
       say('act4.jobs')
-      addTimeout(() => alive && say('act4.orbit'), ORBIT_DELAY)
+      addTimeout(() => alive && say('act4.orbit', { then: () => say('act4.orbitok') }), ORBIT_DELAY)
     }
     const onKey = (e: KeyboardEvent): void => {
       if (e.code === 'KeyE' && !e.repeat) close()
@@ -436,7 +446,7 @@ export function startAct4(requested: string): void {
     gameStore.getState().setCheckpoint('run')
     gameStore.getState().setObjective({ ...CHECKLISTS.act4Return })
     sendNeil(act4State.neil, [{ x: NEIL_FOOT.x, z: NEIL_FOOT.z, act: 'standing', dwell: Infinity }])
-    say('act4.back')
+    say('act4.back', { then: () => say('act4.adios') })
   }
 
   for (const item of ['flag', 'scoop', 'seismo'] as const) {
@@ -557,10 +567,22 @@ export function startAct4(requested: string): void {
         }
       }
       if (phase === 'neil') {
-        neilT += dt
-        clock = neilT
-        applyNeilClimb(Math.min(neilT, NEIL_DOWN_SECONDS))
-        if (neilT >= NEIL_DOWN_SECONDS) exitHatch()
+        // Neil waits at the hatch until the landing talk on the radio is over.
+        if (!neilGo && radio.ids().length === 0) neilGo = true
+        if (neilGo) {
+          neilT += dt
+          clock = neilT
+          applyNeilClimb(Math.min(neilT, NEIL_DOWN_SECONDS))
+          if (!footSaid && neilT >= NEIL_FOOT_LINE_AT) {
+            footSaid = true
+            say('act4.foot')
+          }
+          if (!stepSaid && neilT >= NEIL_STEP_LINE_AT) {
+            stepSaid = true
+            say('act4.step')
+          }
+          if (neilT >= NEIL_DOWN_SECONDS && stepSaid && radio.ids().length === 0) exitHatch()
+        }
       } else if (act4State.neil.visible) {
         stepNeil(act4State.neil, Math.min(dt, 0.05))
       }

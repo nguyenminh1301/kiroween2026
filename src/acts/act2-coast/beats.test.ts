@@ -39,7 +39,7 @@ describe('act 2 beats', () => {
     const t = setup()
     t.beats.begin()
     await t.advance(40)
-    expect(t.shown.map((s) => s.id)).toEqual(['act2.jobs', 'act2.press', 'act2.out'])
+    expect(t.shown.map((s) => s.id)).toEqual(['act2.jobs', 'act2.out', 'act2.press'])
     expect(t.objectives).toEqual(['repairs'])
   })
 
@@ -75,7 +75,7 @@ describe('act 2 beats', () => {
     const t = setup()
     t.beats.crossBack('sleep')
     await t.advance(30)
-    expect(t.shown.map((s) => s.id)).toEqual(['act2.longer', 'act2.sleep'])
+    expect(t.shown.map((s) => s.id)).toEqual(['act2.longer', 'act2.sleep', LINES['act2.sleep'].more?.[0], 'act2.sleepack'])
     expect(t.objectives).toEqual(['act2Sleep'])
     t.beats.enterBag()
     expect(t.objectives.at(-1)).toBe('act2Eyes')

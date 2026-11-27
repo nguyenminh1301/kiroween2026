@@ -141,7 +141,20 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
       const line = deps.lines[id]
       if (!line) return Promise.resolve()
       return new Promise<void>((resolve) => {
-        const item: Item = { id, line, opts, beat: opts.beat ?? beat, resolve }
+        const parts = (line.more ?? []).map((text, i): Item => ({
+          id: `${id}+${i + 1}`,
+          line: { ...line, text, more: undefined, moreSeconds: undefined, seconds: line.moreSeconds?.[i], voiced: false },
+          opts: { ...opts, onStart: undefined },
+          beat: opts.beat ?? beat,
+          resolve: i === (line.more?.length ?? 0) - 1 ? resolve : () => {},
+        }))
+        const item: Item = {
+          id,
+          line: parts.length ? { ...line, more: undefined, moreSeconds: undefined } : line,
+          opts,
+          beat: opts.beat ?? beat,
+          resolve: parts.length ? () => {} : resolve,
+        }
         // A line is never queued twice: it is already waiting or playing.
         if (!opts.urgent && (current?.item.id === id || queue.some((q) => q.id === id))) {
           resolve()
@@ -150,12 +163,12 @@ export function createRadioQueue(deps: RadioDeps): RadioQueue {
         if (opts.urgent) {
           endCurrent()
           dropQueue()
-          queue.push(item)
+          queue.push(item, ...parts)
           gap = 0
           startNext()
           return
         }
-        queue.push(item)
+        queue.push(item, ...parts)
         if (!current && gap <= 0) startNext()
       })
     },

@@ -80,43 +80,46 @@ export function startAct1(): void {
   // TLI, then the Earth in the windows, then hand-off.
   function startTli(): void {
     act1State.phase = 'tli'
-    say('act1.tli', {}, () => {
-      new TimelinePlayer({
-        duration: TLI_DURATION,
-        shots: TLI_SHOTS,
-        events: tliEvents({
-          playSound: (n) => audio.play(n),
-          showEarth: () => {
-            cabinState.earth = true
-          },
-          earthLines: () =>
-            say('act1.earth', {}, () =>
-              say('act1.look', {}, () =>
-                say('act1.rest', {}, () => {
-                  stages.tliDone()
-                  completeAct()
-                }),
+    say('act1.tli', {}, () =>
+      say('act1.tliack', {}, () => {
+        new TimelinePlayer({
+          duration: TLI_DURATION,
+          shots: TLI_SHOTS,
+          events: tliEvents({
+            playSound: (n) => audio.play(n),
+            say: (id) => say(id),
+            showEarth: () => {
+              cabinState.earth = true
+            },
+            earthLines: () =>
+              say('act1.ride', {}, () =>
+                say('act1.rideok', {}, () =>
+                  say('act1.earth', {}, () =>
+                    say('act1.rest', {}, () => {
+                      stages.tliDone()
+                      completeAct()
+                    }),
+                  ),
+                ),
               ),
-            ),
-        }),
-        onTick(t) {
-          act1State.tliT = t
-          act1State.view = tliViewAt(t)
-          cabinState.engine = tliEngineLevel(t)
-        },
-      }).start()
-    })
+          }),
+          onTick(t) {
+            act1State.tliT = t
+            act1State.view = tliViewAt(t)
+            cabinState.engine = tliEngineLevel(t)
+          },
+        }).start()
+      }),
+    )
   }
 
   function onLaunchEnd(): void {
     if (!stages.launchDone()) return
     act1State.view = 'cabin'
-    say('act1.key', {
-      onStart: () => {
-        setObjective('act1Key')
-        void showHint('use')
-      },
-    })
+    // The objective shows at once. The commander's line follows the launch traffic still on the radio.
+    setObjective('act1Key')
+    void showHint('use')
+    say('act1.key')
   }
 
   new TimelinePlayer({

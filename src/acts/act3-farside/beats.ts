@@ -217,13 +217,25 @@ export function createBeats(deps: BeatDeps): Beats {
       deps.blackout(1)
       if (c === 'start') {
         phase = 'wake'
-        deps.say('act3.los')
-        after(GET_UP_AT, () => {
-          if (phase !== 'wake') return
-          phase = 'explore'
-          deps.getUp()
-          deps.setObjective('act3Find')
-          deps.hint('walk')
+        // Houston and the commander first, then the signal goes and the dream begins.
+        deps.say('act3.around', {
+          then: () => {
+            if (phase !== 'wake') return
+            deps.say('act3.aroundack', {
+              from: 'player',
+              then: () => {
+                if (phase !== 'wake') return
+                deps.say('act3.los')
+                after(GET_UP_AT, () => {
+                  if (phase !== 'wake') return
+                  phase = 'explore'
+                  deps.getUp()
+                  deps.setObjective('act3Find')
+                  deps.hint('walk')
+                })
+              },
+            })
+          },
         })
       } else if (c === 'wp0') {
         phase = 'explore'

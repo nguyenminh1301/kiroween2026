@@ -81,6 +81,26 @@ describe('act 0 beats', () => {
     expect(log.at(-1)).toBe('say:act0.gunter2')
   })
 
+  it('launch control reports the countdown once, after the narrator, when the player reaches the arm', () => {
+    const { beats, log, end, run } = setup()
+    run(1)
+    beats.reachArm()
+    expect(log).not.toContain('say:act0.count')
+    end('act0.intro1')
+    end('act0.intro2')
+    expect(log.indexOf('say:act0.count')).toBeGreaterThan(log.indexOf('say:act0.intro2'))
+    beats.reachArm()
+    expect(log.filter((l) => l === 'say:act0.count').length).toBe(1)
+  })
+
+  it('launch control still speaks when the wave came first', () => {
+    const { beats, log, run } = setup()
+    run(1)
+    beats.reachArm()
+    beats.wave()
+    expect(log).toContain('say:act0.count')
+  })
+
   it('each pad crewman has a line', () => {
     const { beats, log } = setup()
     beats.talk('tech1')

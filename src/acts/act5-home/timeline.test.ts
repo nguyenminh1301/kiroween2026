@@ -145,32 +145,41 @@ describe('events', () => {
     const player = new TimelinePlayer({ duration: 72, events: events(r.hooks) }, { reducedMotion: () => false })
     for (let i = 0; i < 1500; i++) player.step(0.05)
     expect(r.log).toEqual([
-      'act5.entry+focus',
+      'act5.cleared+focus',
+      'act5.gear',
+      'act5.hill',
+      'act5.later+focus',
       'sky #ff7a2a',
       'earth off',
       'reentry',
       'static',
       'act5.blackout+focus',
       'sky #ffa25a',
+      'act5.aria',
+      'act5.airboss',
       'sky #5e8fc8',
       'chute',
       'act5.drogues+focus',
-      'act5.radar',
       'chute',
       'act5.mains+focus',
       'sky #8fb6dd',
+      'act5.hornet',
+      'act5.hornetack',
+      'act5.alt',
+      'act5.swim',
       'splash',
       'act5.splash',
-      'act5.hornet',
+      'act5.okay+focus',
       'moment hornet',
       'horn',
       'act5.end',
       'fade',
       'complete',
     ])
-    expect(sortedEvents({ duration: 72, events: events(r.hooks) }).map((e) => e.at)).toEqual(
-      [0.8, 12.3, 13.2, 13.2, 17.5, 19.5, 21, 21.8, 26.3, 28.2, 29, 30.5, 45.1, 50, 52, 62, 69.5, 71.5],
-    )
+    expect(sortedEvents({ duration: 72, events: events(r.hooks) }).map((e) => e.at)).toEqual([
+      0.8, 0.9, 9.8, 9.9, 12.3, 16, 16.2, 17.5, 18.6, 18.7, 19.5, 21, 21.8, 28.2, 29, 30.5, 31, 31.1, 38, 38.1, 45.1,
+      47.4, 50, 52, 62, 69.5, 71.5,
+    ])
   })
   it('stop mid-timeline fires nothing more', () => {
     const r = recorder()

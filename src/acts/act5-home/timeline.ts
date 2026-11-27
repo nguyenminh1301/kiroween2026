@@ -258,9 +258,14 @@ export interface Hooks {
   complete(): void
 }
 
+/**
+ * Radio lines are queued in the order of the record. Each has a short `seconds`, so a late line
+ * plays over the next shot and none is cut.
+ */
 export function events(h: Hooks): TimelineEvent[] {
   return [
-    { at: 0.8, run: () => h.say('act5.entry', { focus: CDR_HEAD }) },
+    { at: 0.8, run: () => h.say('act5.cleared', { focus: CDR_HEAD }) },
+    { at: 0.9, run: () => h.say('act5.gear') },
     {
       at: 12.3,
       run: () => {
@@ -269,16 +274,23 @@ export function events(h: Hooks): TimelineEvent[] {
         h.playSound('reentry')
       },
     },
-    { at: 13.2, run: () => h.playSound('static') },
-    { at: 13.2, run: () => h.say('act5.blackout', { focus: CMP_HEAD }) },
+    { at: 9.8, run: () => h.say('act5.hill') },
+    { at: 9.9, run: () => h.say('act5.later', { focus: CDR_HEAD }) },
+    { at: 16, run: () => h.playSound('static') },
+    { at: 16.2, run: () => h.say('act5.blackout', { focus: CMP_HEAD }) },
     { at: 17.5, run: () => h.setSky(SKY.burn) },
+    { at: 18.6, run: () => h.say('act5.aria') },
+    { at: 18.7, run: () => h.say('act5.airboss') },
     { at: 19.5, run: () => h.setSky(SKY.blue) },
     { at: 21, run: () => h.playSound('chute') },
     { at: 21.8, run: () => h.say('act5.drogues', { focus: CDR_HEAD }) },
-    { at: 26.3, run: () => h.say('act5.radar') },
     { at: 28.2, run: () => h.playSound('chute') },
     { at: 29, run: () => h.say('act5.mains', { focus: CDR_HEAD }) },
     { at: 30.5, run: () => h.setSky(SKY.high) },
+    { at: 31, run: () => h.say('act5.hornet') },
+    { at: 31.1, run: () => h.say('act5.hornetack') },
+    { at: 38, run: () => h.say('act5.alt') },
+    { at: 38.1, run: () => h.say('act5.swim') },
     {
       at: SPLASH_AT + 0.1,
       run: () => {
@@ -286,12 +298,10 @@ export function events(h: Hooks): TimelineEvent[] {
         h.say('act5.splash')
       },
     },
+    { at: SPLASH_AT + 2.4, run: () => h.say('act5.okay', { focus: CMP_HEAD }) },
     {
       at: 50,
-      run: () => {
-        h.say('act5.hornet')
-        h.moment('hornet')
-      },
+      run: () => h.moment('hornet'),
     },
     { at: 52, run: () => h.playSound('horn') },
     { at: 62, run: () => h.say('act5.end') },

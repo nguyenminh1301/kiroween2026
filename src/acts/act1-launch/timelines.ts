@@ -23,18 +23,23 @@ export const IGNITION_AT = 3.5
  * Beat times of the short launch, in seconds of game time. The cabin shows from ignition to orbit shutdown for
  * about 10 s in all (see `cabinSeconds`); the outside shots carry the rest of the beats.
  */
-export const TOWER_AT = 9
-export const ROLL_AT = 9.6
-export const MAXQ_AT = 10.6
-export const STAGING_AT = 11.6
-export const JETTISON_AT = 14.2
-export const SECOND_STAGE_AT = 17.6
-export const THIRD_STAGE_AT = 19.8
-/** Orbit shutdown: the end of the cabin time the launch counts. */
-export const ORBIT_AT = 22.9
+export const TOWER_AT = 10.75
+export const ROLL_AT = 12.6
+export const ROLLOK_AT = 14.65
+export const MAXQ_AT = 16.4
+export const STAGINGGO_AT = 19.65
+export const STAGING_AT = 23.2
+export const JETTISON_AT = 25.05
+export const SECOND_STAGE_AT = 26.4
+export const THIRD_STAGE_AT = 27.2
+export const SHUTDOWN_AT = 28
+/** Orbit shutdown confirmed: the end of the cabin time the launch counts. */
+export const ORBIT_AT = 29.35
 
 export const LAUNCH_DURATION = ORBIT_AT + 0.5
 export const TLI_DURATION = 15
+/** The alarm tone starts this long before staging. */
+const ALARM_LEAD = 0.2
 
 /** Rocket height above the pad `t` seconds into the launch timeline. */
 export function rocketHeight(t: number): number {
@@ -67,10 +72,28 @@ export const LAUNCH_SHOTS: NamedShot[] = [
       ({ position: v(PAD_X + 70, 6, 60), lookAt: v(PAD_X, PAD_BASE_Y + rocketHeight(t) + 40, 0) }),
   },
   {
+    name: 'climb',
+    view: 'space',
+    from: 11.4,
+    to: 15.4,
+    fov: 58,
+    far: 9000,
+    cam: (u) => ({ position: v(SPACE_X + lerp(-70, -55, u), SPACE_Y + lerp(8, 20, u), 100), lookAt: v(SPACE_X, SPACE_Y + 4, 0) }),
+  },
+  {
+    name: 'stack',
+    view: 'space',
+    from: 19.4,
+    to: 22.8,
+    fov: 52,
+    far: 9000,
+    cam: (u) => ({ position: v(SPACE_X + lerp(80, 66, u), SPACE_Y + lerp(26, 18, u), 110), lookAt: v(SPACE_X, SPACE_Y + 2, 0) }),
+  },
+  {
     name: 'staging',
     view: 'space',
-    from: STAGING_AT,
-    to: STAGING_AT + 2.6,
+    from: 22.8,
+    to: 25,
     fov: 60,
     far: 9000,
     cam: (u) => ({ position: v(SPACE_X + lerp(60, 50, u), SPACE_Y + 12, 90), lookAt: v(SPACE_X, SPACE_Y - 8, 0) }),
@@ -78,8 +101,8 @@ export const LAUNCH_SHOTS: NamedShot[] = [
   {
     name: 'jettison',
     view: 'space',
-    from: JETTISON_AT,
-    to: JETTISON_AT + 3.4,
+    from: 25,
+    to: 28,
     fov: 55,
     far: 9000,
     cam: (u) => ({ position: v(SPACE_X + lerp(-40, -34, u), SPACE_Y + 30, 70), lookAt: v(SPACE_X, SPACE_Y + 24, 0) }),
@@ -130,7 +153,7 @@ export function tliEngineLevel(t: number): number {
   return Math.max(0, 1 - (t - 5.8) * 1.5)
 }
 
-export const alarmOn = (t: number): boolean => t >= 11.4 && t < STAGING_AT + 1.6
+export const alarmOn = (t: number): boolean => t >= STAGING_AT - ALARM_LEAD && t < STAGING_AT + 1.6
 
 export const SKY = {
   pad: '#9db7c9',
@@ -149,28 +172,47 @@ export interface LaunchHooks {
   moment(id: string): void
 }
 
-/** The launch events, in the order the timeline runs them. */
+/**
+ * The launch events, in the order the timeline runs them. Lines are queued, never urgent: the radio plays them
+ * in order and each has a short `seconds`, so a late line plays over the next outside shot.
+ */
 export function launchEvents(h: LaunchHooks): TimelineEvent[] {
   return [
-    { at: 0.2, run: () => h.say('act1.count2') },
+    { at: 0.1, run: () => h.say('act1.count') },
     { at: 3.2, run: () => h.playSound('rumble') },
     { at: IGNITION_AT, run: () => h.ignite() },
+    { at: 4.3, run: () => h.say('act1.count2') },
     {
       at: LIFTOFF_AT,
       run: () => {
         h.liftoff()
-        h.say('act1.liftoff', { urgent: true })
+        h.say('act1.liftoff')
       },
     },
     { at: 5.2, run: () => h.playSound('launchRoar') },
-    { at: TOWER_AT, run: () => h.setSky(SKY.climb) },
-    { at: 10.8, run: () => h.setSky(SKY.dark) },
-    { at: 11.4, run: () => h.playSound('alarm') },
+    {
+      at: TOWER_AT,
+      run: () => {
+        h.setSky(SKY.climb)
+        h.say('act1.tower')
+      },
+    },
+    { at: ROLL_AT, run: () => h.say('act1.roll') },
+    {
+      at: ROLLOK_AT,
+      run: () => {
+        h.setSky(SKY.dark)
+        h.say('act1.rollok')
+      },
+    },
+    { at: MAXQ_AT, run: () => h.say('act1.maxq') },
+    { at: STAGINGGO_AT, run: () => h.say('act1.staginggo') },
+    { at: STAGING_AT - ALARM_LEAD, run: () => h.playSound('alarm') },
     {
       at: STAGING_AT,
       run: () => {
         h.playSound('staging')
-        h.say('act1.staging', {})
+        h.say('act1.staging')
       },
     },
     {
@@ -181,6 +223,7 @@ export function launchEvents(h: LaunchHooks): TimelineEvent[] {
       },
     },
     { at: SECOND_STAGE_AT, run: () => h.setSky(SKY.space) },
+    { at: SHUTDOWN_AT, run: () => h.say('act1.shutdown') },
     { at: ORBIT_AT, run: () => h.say('act1.orbit') },
   ]
 }
@@ -196,14 +239,20 @@ export function cabinSeconds(shots: NamedShot[] = LAUNCH_SHOTS): number {
 
 export interface TliHooks {
   playSound(name: 'rumble'): void
+  say(id: string): void
   showEarth(): void
-  /** Mike, then the commander, with the view on the window. */
+  /** The talk after the burn: the commander, Houston, Mike, Houston. The act finishes after the last line. */
   earthLines(): void
 }
+
+export const TLI_FLASHES_AT = 3
 
 export function tliEvents(h: TliHooks): TimelineEvent[] {
   return [
     { at: 0.2, run: () => h.playSound('rumble') },
+    { at: 0.3, run: () => h.say('act1.tliburn') },
+    { at: 0.4, run: () => h.say('act1.tligo') },
+    { at: TLI_FLASHES_AT, run: () => h.say('act1.flashes') },
     { at: 6.5, run: () => h.showEarth() },
     { at: 7.2, run: () => h.earthLines() },
   ]

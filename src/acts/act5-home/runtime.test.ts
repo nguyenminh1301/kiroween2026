@@ -48,13 +48,21 @@ describe('act 5 runtime', () => {
     expect(s.fear).toBeCloseTo(0.2)
     run(73)
     expect(log.filter((l) => l.startsWith('say'))).toEqual([
-      'say act5.entry',
+      'say act5.cleared',
+      'say act5.gear',
+      'say act5.hill',
+      'say act5.later',
       'say act5.blackout',
+      'say act5.aria',
+      'say act5.airboss',
       'say act5.drogues',
-      'say act5.radar',
       'say act5.mains',
-      'say act5.splash',
       'say act5.hornet',
+      'say act5.hornetack',
+      'say act5.alt',
+      'say act5.swim',
+      'say act5.splash',
+      'say act5.okay',
       'say act5.end',
     ])
     expect(log.filter((l) => l === 'complete')).toHaveLength(1)
@@ -64,8 +72,8 @@ describe('act 5 runtime', () => {
   it('quitting mid-timeline fires nothing more and stops all sound', () => {
     gameStore.getState().setPaused(false)
     startAct5()
-    run(14)
-    expect(act5State.t).toBeGreaterThan(13.5)
+    run(17)
+    expect(act5State.t).toBeGreaterThan(16.5)
     const n = log.length
     expect(log).toContain('say act5.blackout')
     cleanupRegistry.runAll()

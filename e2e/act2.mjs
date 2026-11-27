@@ -93,7 +93,7 @@ try {
   )
   await objective('Repairs left')
   check(await page.evaluate(() => window.__los.player.body.mode === 'zeroG'), 'zero-g body')
-  await subtitle('housekeeping items')
+  await subtitle('few items for you')
   await page.waitForTimeout(1200)
   await shot('act2-start')
   await budget('start')
@@ -127,7 +127,7 @@ try {
   for (let i = 0; i < 100 && (await z()) > 0.6; i++) await push(0)
   check(pushes >= 1, `at least one real push, got ${pushes}`)
   if ((await z()) > 0.6) await page.evaluate(() => window.__los.player.set({ pos: { x: 0, y: 0.3, z: 0.5 } }))
-  await subtitle('Hear that rattle')
+  await subtitle('funnies on the O2')
 
   // Oxygen line: hammer from the pouch, three taps on the joint.
   check(!(await enabled('act2:joint')), 'joint needs the hammer')
@@ -141,7 +141,7 @@ try {
     await useAt('act2:joint', 'TAP')
     await page.waitForTimeout(300)
   }
-  await subtitle('Oxygen flow is steady')
+  await subtitle('O2 flow looks normal')
   check(!(await enabled('act2:joint')), 'joint is done after three taps')
 
   // Computer in the lander: three buttons.
@@ -154,7 +154,7 @@ try {
     await useAt(`act2:comp${i}`, 'CLEAR')
     await page.waitForTimeout(300)
   }
-  await subtitle('Computer looks clean')
+  await subtitle('computer looks clean')
   await shot('act2-computer')
   await objective('Float back up the tunnel')
   check(!(await page.evaluate(() => window.__los.focus())), 'no scripted turn in the lander')
@@ -165,7 +165,7 @@ try {
   for (let i = 0; i < 100 && (await z()) < 3.2; i++) await push(Math.PI)
   await page.waitForFunction(() => window.__los.player.body.pos.z > 3.1, null, { timeout: 30000 })
   check(pushes - before >= 3, `the way back took ${pushes - before} pushes, expected at least 3`)
-  await subtitle('You were gone a while')
+  await subtitle('You were down there a while')
   await page.waitForTimeout(1500)
   await shot('act2-longer')
   await budget('command module')

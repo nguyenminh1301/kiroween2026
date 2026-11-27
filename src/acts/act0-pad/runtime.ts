@@ -14,7 +14,7 @@ import { focus } from '../../interaction/Focus'
 import { registerInteractable } from '../../interaction/interactables'
 import { showHint } from '../../ui/hints'
 import type { Vec3 } from '../../types'
-import { createBeats, type BeatDeps, type CrewId } from './beats'
+import { ARM_Z, createBeats, type BeatDeps, type CrewId } from './beats'
 import { crowdAim, decayExcitement } from './crowdLogic'
 import {
   COLLISION_BOXES,
@@ -147,6 +147,7 @@ export function startAct0(): void {
         inRoom = isInRoom
         applyAmbience()
       }
+      if (body.pos.z < ARM_Z) beats.reachArm()
       if (isInRoom) beats.enterRoom()
     },
     { pausable: true },

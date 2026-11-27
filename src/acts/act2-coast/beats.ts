@@ -56,6 +56,7 @@ export function createAct2Beats(d: Act2BeatDeps): Act2Beats {
       if (d.alive() && b === beat) done?.()
     })
   }
+  const sleepLines = (): void => say('act2.sleep', () => say('act2.sleepack'))
   const after = (next: Next): void => {
     if (next === 'sleep') d.setObjective('act2Sleep')
     else if (next === 'back') d.setObjective('act2Back')
@@ -64,11 +65,11 @@ export function createAct2Beats(d: Act2BeatDeps): Act2Beats {
   return {
     begin() {
       d.setObjective('repairs')
-      say('act2.jobs', () => say('act2.press', () => say('act2.out')))
+      say('act2.jobs', () => say('act2.out', () => say('act2.press')))
     },
     nearJoint() {
       go()
-      say('act2.o2')
+      say('act2.o2', () => say('act2.o2b'))
     },
     enterLander() {
       go()
@@ -77,12 +78,12 @@ export function createAct2Beats(d: Act2BeatDeps): Act2Beats {
     repairDone(which, next) {
       go()
       after(next)
-      say(DONE_LINE[which], next === 'sleep' ? () => say('act2.sleep') : undefined)
+      say(DONE_LINE[which], next === 'sleep' ? sleepLines : undefined)
     },
     crossBack(next) {
       go()
       after(next)
-      say('act2.longer', next === 'sleep' ? () => say('act2.sleep') : undefined)
+      say('act2.longer', next === 'sleep' ? sleepLines : undefined)
     },
     enterBag() {
       go()

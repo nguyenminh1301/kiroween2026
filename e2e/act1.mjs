@@ -61,7 +61,7 @@ try {
     { timeout: 40000 },
   )
 
-  // Launch (about 23 s): pad shot, liftoff shot, cabin shake, staging and jettison shots.
+  // Launch (about 30 s): pad shot, liftoff shot, cabin shake, staging and jettison shots.
   await atTime(2)
   await shot('act1-pad')
   await budget('pad shot')
@@ -74,16 +74,16 @@ try {
   await atTime(9.4)
   await shot('act1-shake')
   await budget('cabin during shake')
-  await atTime(12.2)
+  await atTime(23.5)
   await shot('act1-staging')
   await budget('staging shot')
 
   // Upper stages: the later beats never turn the view. Then the DSKY three times.
-  await atTime(15)
+  await atTime(26)
   await shot('act1-jettison')
   await budget('jettison shot')
   await page.waitForFunction(() => window.__los.timeline() !== null, null, { timeout: 60000 })
-  await atTime(21)
+  await atTime(30)
   await objective('numbers on the card')
   check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   for (let i = 0; i < 3; i++) {
@@ -107,7 +107,7 @@ try {
   await shot('act1-tli')
   await budget('TLI shot')
   await atTime(7.5)
-  await page.waitForFunction(() => /whole Earth/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 30000, polling: 100 })
+  await page.waitForFunction(() => /all of Africa/.test(window.__los.store.getState().subtitle?.text ?? ''), null, { timeout: 30000, polling: 100 })
   check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   await shot('act1-earth')
 

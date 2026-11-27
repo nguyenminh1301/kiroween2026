@@ -7,6 +7,7 @@ const lines: Record<string, Line> = {
   a: { speaker: 'CDR', text: 'one', seconds: 1 },
   b: { speaker: 'CMP', text: 'two', seconds: 1 },
   c: { speaker: 'CAPCOM', text: 'three', seconds: 2 },
+  m: { speaker: 'CAPCOM', text: 'part one', more: ['part two', 'part three'] },
 }
 
 function setup() {
@@ -31,6 +32,24 @@ function setup() {
 }
 
 describe('radio queue', () => {
+  it('plays the parts of a long line in order and resolves after the last', async () => {
+    const { radio, log, advance, sub } = setup()
+    let done = false
+    void radio.say('m').then(() => (done = true))
+    void radio.say('a')
+    expect(sub()?.text).toBe('part one')
+    expect(radio.ids()).toEqual(['m', 'm+1', 'm+2', 'a'])
+    advance(1.4)
+    expect(sub()?.text).toBe('part two')
+    advance(1.4)
+    expect(sub()?.text).toBe('part three')
+    expect(done).toBe(false)
+    advance(1.4)
+    await Promise.resolve()
+    expect(done).toBe(true)
+    expect(log.filter((l) => l.startsWith('start'))).toEqual(['start m', 'start m+1', 'start m+2', 'start a'])
+  })
+
   it('plays lines in order, one at a time', () => {
     const { radio, log, advance, sub } = setup()
     void radio.say('a')
