@@ -14,14 +14,19 @@ export interface NamedShot extends Shot {
 
 export const ENTRY_X = -5000
 export const OCEAN_X = 5000
-export const DURATION = 72
+/** The ending: the narrator, then the picture fades to black. With prints on, two more prints follow the narrator. */
+export const DURATION = 73.5
+/** Extra seconds after the narrator for the two last prints. */
+export const PRINT_TAIL = 17
 export const START_HEIGHT = 900
 export const SPLASH_AT = 45
 export const SPLASH_LEN = 7
 export const COLLAR_AT = 56
-export const FADE_AT = 69.5
+export const FADE_AT = 71
 export const FADE_LEN = 2
-export const COMPLETE_AT = 71.5
+export const COMPLETE_AT = 73
+/** The narrator's two part line, from 62 s, is done by then. */
+export const END_DONE_AT = 71.4
 /** Three escorts around the carrier, 1.3 to 1.9 km from the capsule, steaming slowly. Positions are at t = 0. */
 export const ESCORTS = [
   { x: -700, z: -1100, yaw: 0.5, speed: 5 },
@@ -91,7 +96,8 @@ export const drogueOn = (t: number): boolean => t >= 21 && t < 29
 /** Splash progress, 0 to 1 from 45 s over 7 s. */
 export const splashProgress = (t: number): number => clamp01((t - SPLASH_AT) / SPLASH_LEN)
 export const collarProgress = (t: number): number => clamp01((t - COLLAR_AT) / 2)
-export const fadeLevel = (t: number): number => clamp01((t - FADE_AT) / FADE_LEN)
+/** Black level 0 to 1. `tail` is PRINT_TAIL when the last prints show, else 0. */
+export const fadeLevel = (t: number, tail = 0): number => clamp01((t - FADE_AT - tail) / FADE_LEN)
 
 /** Capsule position in the ocean set: height, then a small bob once it floats. */
 export function capsuleY(t: number, wave = 0): number {
@@ -181,7 +187,7 @@ const RAW_SHOTS: NamedShot[] = [
     name: 'pull',
     view: 'ocean',
     from: 57,
-    to: 72,
+    to: DURATION + PRINT_TAIL,
     fov: 58,
     far: 6000,
     // Close on the Sea King over the capsule, with the carrier far behind it.
@@ -255,6 +261,8 @@ export interface Hooks {
   fadeOut(): void
   /** A real moment of the flight happened in front of the player. */
   moment(id: string): void
+  /** Slide in the print of a real photo. */
+  print(id: string): void
   complete(): void
 }
 
@@ -262,7 +270,7 @@ export interface Hooks {
  * Radio lines are queued in the order of the record. Each has a short `seconds`, so a late line
  * plays over the next shot and none is cut.
  */
-export function events(h: Hooks): TimelineEvent[] {
+export function events(h: Hooks, tail = 0): TimelineEvent[] {
   return [
     { at: 0.8, run: () => h.say('act5.cleared', { focus: CDR_HEAD }) },
     { at: 0.9, run: () => h.say('act5.gear') },
@@ -304,8 +312,17 @@ export function events(h: Hooks): TimelineEvent[] {
       run: () => h.moment('hornet'),
     },
     { at: 52, run: () => h.playSound('horn') },
+    { at: SPLASH_AT + 2.9, run: () => h.print('raft') },
+    { at: 56.6, run: () => h.print('lifted') },
     { at: 62, run: () => h.say('act5.end') },
-    { at: FADE_AT, run: () => h.fadeOut() },
-    { at: COMPLETE_AT, run: () => h.complete() },
+    // After the narrator: the crew walks to the quarantine trailer, then sits in it. Only when prints are on.
+    ...(tail > 0
+      ? [
+          { at: END_DONE_AT, run: () => h.print('quarantineWalk') },
+          { at: END_DONE_AT + 8.6, run: () => h.print('quarantineTrailer') },
+        ]
+      : []),
+    { at: FADE_AT + tail, run: () => h.fadeOut() },
+    { at: COMPLETE_AT + tail, run: () => h.complete() },
   ]
 }

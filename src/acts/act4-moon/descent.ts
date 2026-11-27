@@ -131,6 +131,8 @@ export interface DescentHooks {
   beep(): void
   /** A real moment of the flight happened in front of the player. */
   moment(id: string): void
+  /** Slide in the print of a real photo. */
+  print(id: string): void
 }
 
 const r = (prog: number, verb: number, noun: number, alarm: number | null): DskyReadout => ({ prog, verb, noun, alarm })
@@ -164,6 +166,8 @@ export function descentEvents(h: DescentHooks): TimelineEvent[] {
         h.beep()
       },
     },
+    // Below the lander, looking up at the plume: the real photo of the pilot inside Eagle.
+    { at: 9, run: () => h.print('eagleInside') },
     { at: 11.5, run: () => h.say('act4.landing') },
     { at: 12.5, run: () => h.say('act4.dust') },
     {
@@ -188,6 +192,7 @@ export function descentEvents(h: DescentHooks): TimelineEvent[] {
         h.say('act4.landed')
         h.say('act4.landedok')
         h.moment('eagle-landed')
+        h.print('control')
       },
     },
   ]

@@ -59,6 +59,19 @@ export interface PhotoView {
   alt: string
 }
 
+/** The small print of a real NASA photo in the top right corner. */
+export interface PrintView {
+  /** Changes for every print, so the slide in starts again. */
+  key: number
+  src: string
+  /** What the photo shows, with its date. */
+  line1: string
+  /** "NASA photo" and its number. */
+  line2: string
+  /** The print is sliding out. */
+  leaving: boolean
+}
+
 /** The green AGC readout panel: a header and the lines typed so far. */
 export interface ReadoutView {
   header: string
@@ -102,6 +115,8 @@ export interface FxState {
   setBlackout: (v: number) => void
   setWhiteout: (v: number) => void
   photo: PhotoView | null
+  print: PrintView | null
+  setPrint: (p: PrintView | null) => void
   readout: ReadoutView | null
   setReadout: (r: ReadoutView | null) => void
   setPhoto: (p: PhotoView | null) => void
@@ -114,7 +129,7 @@ export interface FxState {
   clearFx: () => void
 }
 
-const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, slit: false, bite: null as Bite | null, blackout: 0, whiteout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, photo: null as PhotoView | null, readout: null as ReadoutView | null }
+const EMPTY = { meter: null as NoiseMeter | null, edge: 0, flash: null as string | null, slit: false, bite: null as Bite | null, blackout: 0, whiteout: 0, flashes: [] as Flash[], caption: null, card: null, dsky: null, hint: null, wrist: false, gauge: null as GaugeView | null, photo: null as PhotoView | null, print: null as PrintView | null, readout: null as ReadoutView | null }
 
 export const fxStore = createStore<FxState>()((set) => ({
   ...EMPTY,
@@ -124,6 +139,7 @@ export const fxStore = createStore<FxState>()((set) => ({
   setSlit: (slit) => set({ slit }),
   setBite: (bite) => set({ bite: bite ? { close: Math.min(1, Math.max(0, bite.close)), flash: Math.min(1, Math.max(0, bite.flash)) } : null }),
   setPhoto: (photo) => set({ photo }),
+  setPrint: (print) => set({ print }),
   setReadout: (readout) => set({ readout }),
   setBlackout: (v) => set({ blackout: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),
   setWhiteout: (v) => set({ whiteout: Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0 }),

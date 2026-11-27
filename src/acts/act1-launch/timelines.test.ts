@@ -34,6 +34,7 @@ function record() {
     liftoff: () => push('liftoff'),
     setSky: (c: string) => push(`sky ${c}`),
     moment: (id: string) => push(`moment ${id}`),
+    print: (id: string) => push(`print ${id}`),
     showEarth: () => push('earth'),
     earthLines: () => push('earthLines'),
   }
@@ -55,6 +56,7 @@ describe('launch timeline', () => {
       [4.5, 'liftoff'],
       [4.5, 'act1.liftoff'],
       [5.2, 'launchRoar'],
+      [8.6, 'print liftoff'],
       [10.75, 'sky #4a6a8a'],
       [10.75, 'act1.tower'],
       [12.6, 'act1.roll'],
@@ -120,6 +122,7 @@ describe('launch timeline', () => {
         liftoff: () => {},
         setSky: () => {},
         moment: () => {},
+        print: () => {},
       }),
     })
     const eventAt = new Map<string, number>()
@@ -192,6 +195,7 @@ describe('TLI timeline', () => {
       [0.4, 'act1.tligo'],
       [3, 'act1.flashes'],
       [6.5, 'earth'],
+      [6.7, 'print earth'],
       [7.2, 'earthLines'],
     ])
     expect(TLI_SHOTS).toHaveLength(1)

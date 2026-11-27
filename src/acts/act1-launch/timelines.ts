@@ -35,6 +35,8 @@ export const THIRD_STAGE_AT = 27.2
 export const SHUTDOWN_AT = 28
 /** Orbit shutdown confirmed: the end of the cabin time the launch counts. */
 export const ORBIT_AT = 29.35
+/** The first outside shot (the pad low view) ends. */
+export const PRINT_LIFTOFF_AT = 8.6
 
 export const LAUNCH_DURATION = ORBIT_AT + 0.5
 export const TLI_DURATION = 15
@@ -170,6 +172,8 @@ export interface LaunchHooks {
   setSky(color: string): void
   /** A real moment of the flight happened in front of the player. */
   moment(id: string): void
+  /** Slide in the print of a real photo. */
+  print(id: string): void
 }
 
 /**
@@ -190,6 +194,8 @@ export function launchEvents(h: LaunchHooks): TimelineEvent[] {
       },
     },
     { at: 5.2, run: () => h.playSound('launchRoar') },
+    // The first outside shot ends: the real liftoff.
+    { at: PRINT_LIFTOFF_AT, run: () => h.print('liftoff') },
     {
       at: TOWER_AT,
       run: () => {
@@ -241,11 +247,14 @@ export interface TliHooks {
   playSound(name: 'rumble'): void
   say(id: string): void
   showEarth(): void
+  print(id: string): void
   /** The talk after the burn: the commander, Houston, Mike, Houston. The act finishes after the last line. */
   earthLines(): void
 }
 
 export const TLI_FLASHES_AT = 3
+/** The Earth shows in the window at 6.5 s; the real photo of it follows. */
+export const PRINT_EARTH_AT = 6.7
 
 export function tliEvents(h: TliHooks): TimelineEvent[] {
   return [
@@ -254,6 +263,7 @@ export function tliEvents(h: TliHooks): TimelineEvent[] {
     { at: 0.4, run: () => h.say('act1.tligo') },
     { at: TLI_FLASHES_AT, run: () => h.say('act1.flashes') },
     { at: 6.5, run: () => h.showEarth() },
+    { at: PRINT_EARTH_AT, run: () => h.print('earth') },
     { at: 7.2, run: () => h.earthLines() },
   ]
 }

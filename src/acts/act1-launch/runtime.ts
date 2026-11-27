@@ -5,6 +5,7 @@ import { CHECKLISTS } from '../../content/checklists'
 import { completeAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { createBody } from '../../engine/playerBody'
+import { preloadFirstPrint, showPrint } from '../../engine/prints'
 import { getPlayerBody, setPlayerBody } from '../../engine/playerRuntime'
 import { addPlayerSystem } from '../../engine/playerSystem'
 import { gameStore } from '../../engine/store'
@@ -56,6 +57,7 @@ export function startAct1(): void {
   gameStore.getState().setFear(0.05)
   gameStore.getState().setHeartRate(84)
 
+  preloadFirstPrint('act1-launch')
   const stages = createStages()
   setCameraShaker(() => {
     const { phase, launchT, tliT } = act1State
@@ -88,6 +90,7 @@ export function startAct1(): void {
           events: tliEvents({
             playSound: (n) => audio.play(n),
             say: (id) => say(id),
+            print: (id) => showPrint('act1-launch', id),
             showEarth: () => {
               cabinState.earth = true
             },
@@ -137,6 +140,7 @@ export function startAct1(): void {
           cabinState.sky = c
         },
         moment: (id) => gameStore.getState().addAnomalySeen(id),
+        print: (id) => showPrint('act1-launch', id),
       }),
       { at: LAUNCH_DURATION, run: onLaunchEnd },
     ],

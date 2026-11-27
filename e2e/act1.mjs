@@ -72,6 +72,7 @@ try {
   await shot('act1-liftoff')
   await budget('liftoff shot')
   await atTime(9.4)
+  check((await page.evaluate(() => document.querySelector('[data-testid=print]')?.textContent ?? '')).includes('S69-39961'), 'the real liftoff print slides in after the first outside shot')
   await shot('act1-shake')
   await budget('cabin during shake')
   await atTime(23.5)

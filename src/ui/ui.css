@@ -896,3 +896,64 @@
 @keyframes readout-blink {
   50% { opacity: 0; }
 }
+
+/* A small print of a real NASA photo, in the top right corner under the objective. */
+.print-slot {
+  width: 20vw;
+  min-width: 180px;
+  max-width: 340px;
+  pointer-events: none;
+}
+.print {
+  margin: 0;
+  box-sizing: border-box;
+  width: 100%;
+  background: #efe9d8;
+  padding: 0.7vw 0.7vw 0.5vw;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+  transform: rotate(2.2deg);
+  transform-origin: top right;
+  animation: print-in 0.6s ease-out both;
+  pointer-events: none;
+  user-select: none;
+}
+.print.leaving {
+  animation: print-out 0.6s ease-in both;
+}
+.print.hidden,
+.print-slot.hidden {
+  visibility: hidden;
+}
+.print.paused {
+  animation-play-state: paused;
+}
+.print img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 22vh;
+  object-fit: cover;
+  border: 1px solid #3a342a;
+}
+.print figcaption {
+  margin-top: 0.5vw;
+  font-family: var(--mono);
+  font-size: clamp(9px, 0.75vw, 12px);
+  line-height: 1.35;
+  color: #3a342a;
+}
+.print figcaption span {
+  display: block;
+}
+@keyframes print-in {
+  from { transform: translateX(120%) rotate(6deg); opacity: 0; }
+  to { transform: translateX(0) rotate(2.2deg); opacity: 1; }
+}
+@keyframes print-out {
+  from { transform: translateX(0) rotate(2.2deg); opacity: 1; }
+  to { transform: translateX(120%) rotate(6deg); opacity: 0; }
+}
+.reduced .print,
+.reduced .print.leaving {
+  animation-duration: 0.01s;
+}

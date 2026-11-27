@@ -14,6 +14,7 @@ import {
   drogueOn,
   events,
   fadeLevel,
+  PRINT_TAIL,
   heat,
   height,
   heliLevel,
@@ -36,6 +37,7 @@ function recorder() {
     hideEarth: () => log.push('earth off'),
     fadeOut: () => log.push('fade'),
     moment: (id) => log.push(`moment ${id}`),
+    print: (id) => log.push(`print ${id}`),
     complete: () => log.push('complete'),
   }
   return { log, hooks }
@@ -99,9 +101,11 @@ describe('formulas', () => {
     }
   })
   it('fade and audio levels', () => {
-    expect(fadeLevel(69.5)).toBe(0)
-    expect(fadeLevel(70.5)).toBeCloseTo(0.5)
-    expect(fadeLevel(72)).toBe(1)
+    expect(fadeLevel(71)).toBe(0)
+    expect(fadeLevel(72)).toBeCloseTo(0.5)
+    expect(fadeLevel(73)).toBe(1)
+    expect(fadeLevel(71 + 17, 17)).toBe(0)
+    expect(fadeLevel(73 + 17, 17)).toBe(1)
     expect(oceanLevel(30, true)).toBe(0)
     expect(oceanLevel(40, true)).toBe(0.5)
     expect(oceanLevel(50, false)).toBe(0.1)
@@ -142,7 +146,7 @@ describe('formulas', () => {
 describe('events', () => {
   it('fire once, in order, with the right content', () => {
     const r = recorder()
-    const player = new TimelinePlayer({ duration: 72, events: events(r.hooks) }, { reducedMotion: () => false })
+    const player = new TimelinePlayer({ duration: 73.5, events: events(r.hooks) }, { reducedMotion: () => false })
     for (let i = 0; i < 1500; i++) player.step(0.05)
     expect(r.log).toEqual([
       'act5.cleared+focus',
@@ -170,20 +174,31 @@ describe('events', () => {
       'splash',
       'act5.splash',
       'act5.okay+focus',
+      'print raft',
       'moment hornet',
       'horn',
+      'print lifted',
       'act5.end',
       'fade',
       'complete',
     ])
-    expect(sortedEvents({ duration: 72, events: events(r.hooks) }).map((e) => e.at)).toEqual([
+    expect(sortedEvents({ duration: 73.5, events: events(r.hooks) }).map((e) => e.at)).toEqual([
       0.8, 0.9, 9.8, 9.9, 12.3, 16, 16.2, 17.5, 18.6, 18.7, 19.5, 21, 21.8, 28.2, 29, 30.5, 31, 31.1, 38, 38.1, 45.1,
-      47.4, 50, 52, 62, 69.5, 71.5,
+      47.4, 47.9, 50, 52, 56.6, 62, 71, 73,
     ])
+  })
+  it('adds the two last prints after the narrator when prints are on, and fades later', () => {
+    const r = recorder()
+    const player = new TimelinePlayer({ duration: 73.5 + PRINT_TAIL, events: events(r.hooks, PRINT_TAIL) }, { reducedMotion: () => false })
+    for (let i = 0; i < 2000; i++) player.step(0.05)
+    const tail = r.log.slice(r.log.indexOf('act5.end'))
+    expect(tail).toEqual(['act5.end', 'print quarantineWalk', 'print quarantineTrailer', 'fade', 'complete'])
+    const times = sortedEvents({ duration: 73.5 + PRINT_TAIL, events: events(r.hooks, PRINT_TAIL) }).map((e) => e.at)
+    expect(times.slice(-5)).toEqual([62, 71.4, 80, 88, 90])
   })
   it('stop mid-timeline fires nothing more', () => {
     const r = recorder()
-    const player = new TimelinePlayer({ duration: 72, events: events(r.hooks) }, { reducedMotion: () => false })
+    const player = new TimelinePlayer({ duration: 73.5, events: events(r.hooks) }, { reducedMotion: () => false })
     for (let i = 0; i < 100; i++) player.step(0.1)
     const n = r.log.length
     player.stop()

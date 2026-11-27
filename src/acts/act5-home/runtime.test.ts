@@ -46,7 +46,7 @@ describe('act 5 runtime', () => {
     expect(s.tension).toBe('UNEASE')
     expect(s.heartRate).toBe(100)
     expect(s.fear).toBeCloseTo(0.2)
-    run(73)
+    run(91)
     expect(log.filter((l) => l.startsWith('say'))).toEqual([
       'say act5.cleared',
       'say act5.gear',

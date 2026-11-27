@@ -6,6 +6,8 @@ export interface Settings {
   volume: number
   subtitleScale: number
   reducedMotion: boolean
+  /** Show the small prints of real NASA photos in the corner. */
+  prints: boolean
 }
 
 export type NumericSettingKey = 'sensitivity' | 'volume' | 'subtitleScale'
@@ -15,6 +17,7 @@ export const DEFAULT_SETTINGS: Settings = {
   volume: 1,
   subtitleScale: 1,
   reducedMotion: false,
+  prints: true,
 }
 
 export const SETTINGS_DEFAULTS = DEFAULT_SETTINGS
@@ -44,6 +47,7 @@ export function applySettings(current: Settings, partial: Partial<Settings>): Se
     volume: clampSetting('volume', partial.volume, current.volume),
     subtitleScale: clampSetting('subtitleScale', partial.subtitleScale, current.subtitleScale),
     reducedMotion: clampReducedMotion(partial.reducedMotion, current.reducedMotion),
+    prints: typeof partial.prints === 'boolean' ? partial.prints : current.prints,
   }
 }
 
@@ -87,6 +91,7 @@ function sanitizeSettings(raw: unknown): Settings {
     subtitleScale: strictNumber('subtitleScale', o.subtitleScale),
     reducedMotion:
       typeof o.reducedMotion === 'boolean' ? o.reducedMotion : DEFAULT_SETTINGS.reducedMotion,
+    prints: typeof o.prints === 'boolean' ? o.prints : DEFAULT_SETTINGS.prints,
   }
 }
 

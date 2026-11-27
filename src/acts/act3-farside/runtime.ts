@@ -12,6 +12,7 @@ import { LEAVE_NOISE, stepNoise } from '../../director/noise'
 import { setDirectorSource } from '../../director/snapshot'
 import { applyTension, createTension, stepHeartRate, stepTension, type Tension } from '../../director/tension'
 import { completeAct, restartAct } from '../../engine/actFlow'
+import { preloadFirstPrint, showPrint } from '../../engine/prints'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { setCameraShaker } from '../../engine/cameraShake'
 import { setChoiceHandler } from '../../engine/choiceBridge'
@@ -144,6 +145,7 @@ export function startAct3(requested: string): void {
     act3State.creatureVisible = false
   }
 
+  preloadFirstPrint('act3-farside')
   let spotIndex = -1
   let spotTime = 0
   let leftSpot: { spot: SpotDef; left: number } | null = null
@@ -174,6 +176,7 @@ export function startAct3(requested: string): void {
     },
     checkpoint: (name) => gameStore.getState().setCheckpoint(name),
     anomaly: (id) => gameStore.getState().addAnomalySeen(id),
+    print: (id) => showPrint('act3-farside', id),
     sfx: (name) => audio.play(name),
     blackout: (v) => fxStore.getState().setBlackout(v),
     getUp: () => {

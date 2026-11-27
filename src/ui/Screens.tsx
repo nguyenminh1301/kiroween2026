@@ -106,6 +106,15 @@ export function SettingsForm({ onBack, backLabel = MENUS.settings.back }: { onBa
           onChange={(e) => set({ reducedMotion: e.target.checked })}
         />
       </label>
+      <label className="setting-row">
+        <span>{m.prints}</span>
+        <input
+          type="checkbox"
+          name="prints"
+          checked={settings.prints}
+          onChange={(e) => set({ prints: e.target.checked })}
+        />
+      </label>
       <Btn onClick={onBack}>{backLabel}</Btn>
     </>
   )

@@ -17,6 +17,7 @@ export const MENUS = {
     volume: 'Volume',
     subtitleSize: 'Subtitle size',
     reducedMotion: 'Reduced motion',
+    prints: 'Photo prints',
     back: 'Back',
   },
   pause: {

@@ -103,21 +103,23 @@ describe('liftoff', () => {
           say: (id, o) => log.push(`say:${id}${o?.urgent ? ':urgent' : ''}`),
           readout: (on) => log.push(`readout:${on}`),
           anomaly: (a) => log.push(`anomaly:${a}`),
+          print: (id) => log.push(`print:${id}`),
           preload: () => log.push('preload'),
           end: () => log.push('end'),
         },
       ),
     }
     dueEvents(def, 0, 0, FIRE_AT).forEach((e) => e.run())
-    expect(log).toEqual(['say:act4.liftoff:urgent', 'readout:true', 'anomaly:burn-routine'])
+    expect(log).toEqual(['say:act4.liftoff:urgent', 'print:commander', 'readout:true', 'anomaly:burn-routine'])
     log.length = 0
-    dueEvents(def, 2, FIRE_AT, LIFTOFF_DURATION).forEach((e) => e.run())
+    dueEvents(def, 3, FIRE_AT, LIFTOFF_DURATION).forEach((e) => e.run())
     expect(log).toEqual([
       'say:act4.off',
       'say:act4.quiet',
       'say:act4.flagdown',
       'anomaly:flag-knocked',
       'readout:false',
+      'print:rendezvous',
       'preload',
       'say:act4.columbia',
       'end',

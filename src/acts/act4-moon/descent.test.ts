@@ -64,6 +64,7 @@ describe('descent', () => {
         dsky: (r) => log.push(`dsky:${r.prog}/${r.verb}/${r.noun}/${r.alarm}`),
         beep: () => log.push('beep'),
         moment: (id) => log.push(`moment:${id}`),
+        print: (id) => log.push(`print:${id}`),
       }),
     }
     const at = (t: number): void => {
@@ -84,7 +85,7 @@ describe('descent', () => {
     expect(log).toContain('say:act4.landing')
     expect(log).toContain('say:act4.dust')
     at(22.6)
-    expect(log.slice(-3)).toEqual(['say:act4.landed', 'say:act4.landedok', 'moment:eagle-landed'])
-    expect(sortedEvents(def).map((e) => e.at)).toEqual([0, 0.5, 4, 8, 11, 11.5, 12.5, 13, 17, 21.5, 22.6])
+    expect(log.slice(-4)).toEqual(['say:act4.landed', 'say:act4.landedok', 'moment:eagle-landed', 'print:control'])
+    expect(sortedEvents(def).map((e) => e.at)).toEqual([0, 0.5, 4, 8, 9, 11, 11.5, 12.5, 13, 17, 21.5, 22.6])
   })
 })

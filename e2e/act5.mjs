@@ -49,12 +49,13 @@ try {
   const sawLines = new Set()
   let maxCalls = 0
   let maxTris = 0
-  for (const mark of [8.5, 11.5, 22.8, 25, 29.8, 34, 36.5, 45, 54, 63]) {
+  for (const mark of [8.5, 11.5, 22.8, 25, 29.8, 34, 36.5, 45, 49, 54, 63]) {
     await wait((m) => (window.__los.timeline() ?? 999) >= m, mark, 120000)
     const s = await page.evaluate(() => ({ calls: window.__los.stats.calls, tris: window.__los.stats.triangles }))
     maxCalls = Math.max(maxCalls, s.calls)
     maxTris = Math.max(maxTris, s.tris)
     await shot(`act5-t${String(mark).replace('.', '_').padStart(2, '0')}s`)
+    if (mark === 49) check((await page.evaluate(() => document.querySelector('[data-testid=print]')?.textContent ?? '')).includes('S69-21698'), 'raft print shows after splashdown')
   }
   check(maxCalls < 150, `draw calls ${maxCalls}, expected under 150`)
   check(maxTris < 150000, `triangles ${maxTris}, expected under 150000`)
@@ -63,8 +64,13 @@ try {
   await wait(() => (window.__los.timeline() ?? 999) >= 62.2, null, 60000)
   await wait(() => window.__los.store.getState().subtitle?.text?.startsWith('July 24, 1969'), null, 30000)
   sawLines.add('act5.end')
-  await wait(() => (window.__los.timeline() ?? 999) >= 70.8, null, 60000)
+  // The last two prints follow the narrator: the walk to the quarantine trailer, then the trailer.
+  const printText = () => page.evaluate(() => document.querySelector('[data-testid=print]')?.textContent ?? '')
+  await wait(() => (window.__los.timeline() ?? 999) >= 73, null, 60000)
+  check((await printText()).includes('S69-40753'), 'quarantine walk print shows after the narrator')
   await shot('act5-t72s')
+  await wait(() => (window.__los.timeline() ?? 999) >= 82, null, 60000)
+  check((await printText()).includes('KSC-69PC-484'), 'quarantine trailer print shows')
   await wait(() => window.__los.store.getState().screen === 'leaving', null, 30000)
   await page.waitForTimeout(500)
   await shot('act5-t81s')

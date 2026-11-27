@@ -75,6 +75,8 @@ The act 4 liftoff screen and the article page quote the routine name `BURN_BABY_
 
 ## Images
 
+The photos in `public/img/article/` are shown in the article and, as small prints, in the game (`src/content/prints.ts`).
+
 | File | Source | License |
 |------|--------|---------|
 | `public/img/as11-40-5875.jpg` | NASA, Apollo 11, July 20, 1969, photo AS11-40-5875 (Buzz Aldrin beside the flag). https://www.hq.nasa.gov/alsj/a11/images11.html | Public domain (NASA) |
@@ -87,3 +89,12 @@ The act 4 liftoff screen and the article page quote the routine name `BURN_BABY_
 | `public/img/article/as11-44-6642.jpg` | NASA, AS11-44-6642, KSC-as11-44-6642. https://images.nasa.gov/details/AS11-44-6642 | Public domain (NASA) |
 | `public/img/article/s69-21698.jpg` | NASA, S69-21698, Recovery - Apollo 11. https://images.nasa.gov/details/S69-21698 | Public domain (NASA) |
 | `public/img/article/s69-40022.jpg` | NASA, S69-40022, View of Mission Control Center celebrating conclusion of Apollo 11 mission. https://images.nasa.gov/details/S69-40022 | Public domain (NASA) |
+| `public/img/article/as11-36-5355.jpg` | NASA, AS11-36-5355, View of Earth, showing Africa, Europe and Asia taken by Apollo 11 crewmember. https://images.nasa.gov/details/AS11-36-5355 | Public domain (NASA) |
+| `public/img/article/s69-39532.jpg` | NASA, S69-39532, APOLLO TV TRANSMISSION - 07/18/1969. https://images.nasa.gov/details/S69-39532 | Public domain (NASA) |
+| `public/img/article/as11-44-6552.jpg` | NASA, AS11-44-6552, View of Earth rising over Moon's horizon taken from Apollo 11 spacecraft. https://images.nasa.gov/details/AS11-44-6552 | Public domain (NASA) |
+| `public/img/article/as11-36-5390.jpg` | NASA, AS11-36-5390, View of Astronaut Edwin Aldrin Jr. in Lunar Module. https://images.nasa.gov/details/AS11-36-5390 | Public domain (NASA) |
+| `public/img/article/s69-39815.jpg` | NASA, S69-39815, View - Mission Control Center (MCC) - Lunar Surface - Apollo XI Extravehicular Activity (EVA) - MSC. https://images.nasa.gov/details/S69-39815 | Public domain (NASA) |
+| `public/img/article/as11-37-5528.jpg` | NASA, AS11-37-5528, View of Astronaut Neil Armstrong in Lunar Module. https://images.nasa.gov/details/AS11-37-5528 | Public domain (NASA) |
+| `public/img/article/s69-21294.jpg` | NASA, S69-21294, Apollo 11 spacecraft Command Module hoisted aboard U.S.S. Hornet. https://images.nasa.gov/details/S69-21294 | Public domain (NASA) |
+| `public/img/article/s69-40753.jpg` | NASA, S69-40753, Apollo 11 crewmen arrive aboard U.S.S. Hornet during recovery operation. https://images.nasa.gov/details/S69-40753 | Public domain (NASA) |
+| `public/img/article/ksc-69pc-484.jpg` | NASA, KSC-69PC-484, KSC-69PC-484. https://images.nasa.gov/details/KSC-69PC-484 | Public domain (NASA) |

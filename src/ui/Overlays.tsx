@@ -4,6 +4,7 @@ import { VERB_LABELS } from '../content/verbs'
 import { DREAM_CHOICES, MENUS } from '../content/menus'
 import { pickChoice } from '../engine/choiceBridge'
 import { METER_TICK } from '../engine/fx'
+import { printHidden } from '../engine/prints'
 import { isDebugUrl, lockRuntime, requestLock } from '../engine/inputRuntime'
 import { needsLockPrompt } from '../engine/pointerLock'
 import { useFx, useGame } from './hooks'
@@ -106,6 +107,39 @@ export function TopRight() {
           <span>{hint.text}</span>
         </div>
       ) : null}
+      <PrintSlot />
+    </div>
+  )
+}
+
+/** The small print of a real NASA photo. It never takes the mouse and hides in close-ups and the act 3 chase. */
+function PrintSlot() {
+  const print = useFx((s) => s.print)
+  const hidden = useFx((s) =>
+    printHidden({
+      gauge: s.gauge !== null,
+      photo: s.photo !== null,
+      bite: s.bite !== null,
+      card: s.card !== null,
+      choice: false,
+      tension: '',
+    }),
+  )
+  const tension = useGame((s) => s.tension)
+  const choice = useGame((s) => s.choiceOpen)
+  const paused = useGame((s) => s.paused)
+  if (!print) return null
+  const off = hidden || printHidden({ gauge: false, photo: false, bite: false, card: false, choice, tension })
+  const cls = ['print', print.leaving ? 'leaving' : '', paused ? 'paused' : ''].filter(Boolean).join(' ')
+  return (
+    <div className={`print-slot${off ? ' hidden' : ''}`} data-testid="print" aria-hidden="true">
+      <figure className={cls} key={print.key}>
+        <img src={print.src} alt="" draggable={false} />
+        <figcaption>
+          <span>{print.line1}</span>
+          <span>{print.line2}</span>
+        </figcaption>
+      </figure>
     </div>
   )
 }

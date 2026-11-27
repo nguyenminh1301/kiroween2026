@@ -17,6 +17,8 @@ export const BLAST_DUST = 130
 export const FLAG_TIP_DELAY = 0.4
 /** The next act is fetched this far into the shot, so the switch has nothing left to load. */
 export const PRELOAD_AT = 10.6
+/** The print of Eagle coming back to Columbia. It stays 8 s, so it starts early enough to show before the black. */
+export const PRINT_DOCKING_AT = 9.1
 /** The picture fades to black from here and is black at the end of the shot. */
 export const FADE_FROM = 14.2
 
@@ -175,6 +177,8 @@ export interface LiftoffHooks {
   say(id: string, opts?: { urgent?: boolean }): void
   readout(on: boolean): void
   anomaly(id: string): void
+  /** Slide in the print of a real photo. */
+  print(id: string): void
   preload(): void
   end(): void
 }
@@ -183,6 +187,7 @@ export interface LiftoffHooks {
 export function liftoffEvents(h: LiftoffHooks): TimelineEvent[] {
   return [
     { at: 0.3, run: () => h.say('act4.liftoff', { urgent: true }) },
+    { at: 0.5, run: () => h.print('commander') },
     {
       at: FIRE_AT + 0.3,
       run: () => {
@@ -206,6 +211,7 @@ export function liftoffEvents(h: LiftoffHooks): TimelineEvent[] {
       },
     },
     { at: PRELOAD_AT, run: () => h.preload() },
+    { at: PRINT_DOCKING_AT, run: () => h.print('rendezvous') },
     { at: 12.1, run: () => h.say('act4.columbia') },
     { at: LIFTOFF_DURATION, run: () => h.end() },
   ]

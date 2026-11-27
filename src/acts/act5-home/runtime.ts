@@ -1,6 +1,7 @@
 // Act 5 start-up: seated in the cabin, one 72 s timeline of outside shots, then the Archive.
 // Everything goes through cleanup helpers, so unloading removes it. No Three.js or React imports.
 import { audio, radio, startAudioSession } from '../../audio'
+import { preloadFirstPrint, showPrint } from '../../engine/prints'
 import { completeAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { fxStore } from '../../engine/fx'
@@ -16,7 +17,7 @@ import { HELMET_BODY_POS, START_PITCH } from '../../procgen/cabin/layout'
 import { TimelinePlayer } from '../../timeline/TimelinePlayer'
 import { entrySoundAt } from './entrySound'
 import { act5State, resetAct5State } from './state'
-import { DURATION, events, fadeLevel, heat, heliLevel, oceanLevel, shakeEnvelope, SHOTS, SKY, viewAt, windowViewAt } from './timeline'
+import { DURATION, events, fadeLevel, PRINT_TAIL, heat, heliLevel, oceanLevel, shakeEnvelope, SHOTS, SKY, viewAt, windowViewAt } from './timeline'
 
 export function startAct5(): void {
   resetAct5State()
@@ -51,8 +52,11 @@ export function startAct5(): void {
   store.setHeartRate(100)
   store.setTension('UNEASE')
 
+  // The two last prints add seconds after the narrator, but only when prints are on.
+  const tail = gameStore.getState().settings.prints ? PRINT_TAIL : 0
+  preloadFirstPrint('act5-home')
   const player = new TimelinePlayer({
-    duration: DURATION,
+    duration: DURATION + tail,
     shots: SHOTS,
     events: events({
       say(id, opts) {
@@ -67,8 +71,9 @@ export function startAct5(): void {
       },
       fadeOut: () => {},
       moment: (id) => gameStore.getState().addAnomalySeen(id),
+      print: (id) => showPrint('act5-home', id),
       complete: () => completeAct(),
-    }),
+    }, tail),
     onTick(t) {
       const dt = Math.max(0, t - lastT)
       lastT = t
@@ -79,7 +84,7 @@ export function startAct5(): void {
       const h = heat(t)
       act5State.heat = h
       cabinState.engine = h
-      fxStore.getState().setBlackout(fadeLevel(t))
+      fxStore.getState().setBlackout(fadeLevel(t, tail))
       audio.setReentry(entrySoundAt(t, view === 'cabin'), dt)
       const outside = view !== 'cabin'
       const o = oceanLevel(t, outside)

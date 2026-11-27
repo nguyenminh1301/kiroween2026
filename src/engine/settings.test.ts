@@ -42,6 +42,7 @@ const validSettings: fc.Arbitrary<Settings> = fc.record({
   volume: inRange('volume'),
   subtitleScale: inRange('subtitleScale'),
   reducedMotion: fc.boolean(),
+  prints: fc.boolean(),
 })
 
 const validSaved: fc.Arbitrary<SavedShape> = fc
@@ -61,6 +62,7 @@ describe('settings defaults', () => {
       volume: 1,
       subtitleScale: 1,
       reducedMotion: false,
+      prints: true,
     })
     expect(SETTINGS_RANGES.sensitivity).toEqual([0.2, 3])
     expect(SETTINGS_RANGES.volume).toEqual([0, 1])
@@ -128,6 +130,7 @@ describe('settings parsing', () => {
       expect(s.settings[key]).toBeLessThanOrEqual(hi)
     }
     expect(typeof s.settings.reducedMotion).toBe('boolean')
+    expect(typeof s.settings.prints).toBe('boolean')
     expect(s.unlockedActs).toContain('act0-pad')
     expect(new Set(s.unlockedActs).size).toBe(s.unlockedActs.length)
     for (const id of s.unlockedActs) expect(ACT_ORDER).toContain(id)
@@ -173,7 +176,7 @@ describe('settings parsing', () => {
       unlockedActs: ['act2-coast', 'nope'],
     })
     expect(parseSaved(raw)).toEqual({
-      settings: { sensitivity: 1, volume: 0.5, subtitleScale: 1, reducedMotion: true },
+      settings: { sensitivity: 1, volume: 0.5, subtitleScale: 1, reducedMotion: true, prints: true },
       unlockedActs: ['act0-pad', 'act2-coast'],
     })
   })

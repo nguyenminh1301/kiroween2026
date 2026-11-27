@@ -5,6 +5,7 @@ import { CHECKLISTS } from '../../content/checklists'
 import { completeAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
 import { fxStore } from '../../engine/fx'
+import { preloadFirstPrint, showPrint } from '../../engine/prints'
 import { inputState } from '../../engine/inputRuntime'
 import { createBody, eyePosition } from '../../engine/playerBody'
 import { getPlayerBody, setPlayerBody, updatePlayerBody } from '../../engine/playerRuntime'
@@ -93,7 +94,10 @@ export function startAct2(): void {
   buildRails()
 
   const beats = createAct2Beats({ radio, alive: () => alive, setObjective })
+  preloadFirstPrint('act2-coast')
   addTimeout(() => beats.begin(), 1)
+  // The crew TV broadcast of this day, as a print.
+  addTimeout(() => showPrint('act2-coast', 'broadcast'), 2)
 
   // Positions that move with `cmFar` are mutated in place.
   const bagPosition = { ...bagPos(act2State.cmFar) }

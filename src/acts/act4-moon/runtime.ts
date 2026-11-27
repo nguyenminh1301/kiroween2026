@@ -7,6 +7,7 @@ import { HINTS } from '../../content/hints'
 import { HUD, PHOTO } from '../../content/hud'
 import { completeAct, preloadNextAct } from '../../engine/actFlow'
 import { cleanupRegistry } from '../../engine/cleanupRegistry'
+import { preloadFirstPrint, preloadPrint, showPrint } from '../../engine/prints'
 import { fxStore } from '../../engine/fx'
 import { MOON_JUMP_SPEED, MOON_GRAVITY, MOON_WALK_SPEED } from '../../engine/movement'
 import { setAct4Source } from '../../engine/debugInfo'
@@ -213,6 +214,7 @@ export function startAct4(requested: string): void {
 
   // ---- Descent ----
   function descent(): void {
+    preloadFirstPrint('act4-moon')
     audio.setScene({ hum: 0.25, bed: 'none', breath: breathAllowed('act4-moon', 'lander') })
     store.setTension('UNEASE')
     vitals(0.3, 110)
@@ -228,6 +230,7 @@ export function startAct4(requested: string): void {
           dsky: (r) => fxStore.getState().setDsky(r),
           beep: () => audio.play('alarm'),
           moment: (id) => gameStore.getState().addAnomalySeen(id),
+          print: (id) => showPrint('act4-moon', id),
         }),
         { at: DESCENT_DURATION, run: () => alive && neilDown() },
       ],
@@ -492,6 +495,7 @@ export function startAct4(requested: string): void {
   function climb(): void {
     if (phase !== 'return') return
     phase = 'climb'
+    preloadPrint('commander')
     act4State.neil.visible = false
     audio.setScene({ hum: 0.25, bed: 'none', breath: breathAllowed('act4-moon', 'lander') })
     climbT = 0
@@ -523,6 +527,7 @@ export function startAct4(requested: string): void {
             if (!on) fxStore.getState().setReadout(null)
           },
           anomaly: (id) => gameStore.getState().addAnomalySeen(id),
+          print: (id) => showPrint('act4-moon', id),
           preload: preloadNextAct,
           end: fin,
         },

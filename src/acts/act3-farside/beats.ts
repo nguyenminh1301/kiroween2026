@@ -28,6 +28,8 @@ export interface BeatDeps {
   tension(event: TensionEvent): void
   checkpoint(name: Checkpoint): void
   anomaly(id: string): void
+  /** Slide in the print of a real photo. */
+  print(id: string): void
   sfx(name: Sfx): void
   blackout(v: number): void
   /** Stand up out of the bag. */
@@ -226,6 +228,7 @@ export function createBeats(deps: BeatDeps): Beats {
               then: () => {
                 if (phase !== 'wake') return
                 deps.say('act3.los')
+                deps.print('earthrise')
                 after(GET_UP_AT, () => {
                   if (phase !== 'wake') return
                   phase = 'explore'

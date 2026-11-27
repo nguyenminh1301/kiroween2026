@@ -16,6 +16,7 @@ function harness(first: Crew | null = null) {
     tension: (e) => log.push(`tension:${e}`),
     checkpoint: (c) => log.push(`cp:${c}`),
     anomaly: (a) => log.push(`anomaly:${a}`),
+    print: (p) => log.push(`print:${p}`),
     sfx: (s) => log.push(`sfx:${s}`),
     blackout: (v) => blackouts.push(v),
     getUp: () => log.push('getUp'),
@@ -55,7 +56,7 @@ describe('act 3 dream beats', () => {
     expect(h.beats.phase()).toBe('wake')
     expect(h.beats.frozen()).toBe(true)
     h.run(2.5)
-    expect(h.log.slice(0, 3)).toEqual(['say:act3.around', 'say:act3.aroundack', 'say:act3.los'])
+    expect(h.log.slice(0, 4)).toEqual(['say:act3.around', 'say:act3.aroundack', 'say:act3.los', 'print:earthrise'])
     expect(h.log).not.toContain('getUp')
     h.run(4)
     expect(h.log).toContain('getUp')
