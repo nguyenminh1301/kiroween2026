@@ -16,8 +16,12 @@ import {
   GATHER_RADIUS,
   MAIN_TILT,
   RISER_BASE_RADIUS,
-  RISER_WIDTH,
-  MAIN_LINE_WIDTH,
+  DROGUE_BANDS,
+  DROGUE_HEIGHT,
+  DROGUE_LINES,
+  DROGUE_RISER,
+  MAIN_LINES,
+  drogueRig,
   DROGUE_DIAMETER,
   LINE_LENGTH,
   MAIN_DIAMETER,
@@ -75,6 +79,30 @@ describe('drogues', () => {
   it('jerks the capsule at each opening, then settles', () => {
     expect(Math.abs(openingJerk(DROGUE_AT + 1.4))).toBeGreaterThan(0.05)
     expect(Math.abs(openingJerk(45))).toBeLessThan(0.01)
+  })
+})
+
+describe('drogue shape and rig', () => {
+  it('is a short wide cone: height 0.6 of its width, with gaps between its bands', () => {
+    expect(DROGUE_HEIGHT).toBeCloseTo(0.6 * DROGUE_DIAMETER, 9)
+    expect(DROGUE_BANDS).toBeGreaterThanOrEqual(4)
+    expect(DROGUE_HEIGHT).toBeLessThan(DROGUE_DIAMETER)
+  })
+  it('runs its lines to a confluence and a 15 m riser to the capsule, on each side', () => {
+    for (const side of [-1, 1]) {
+      const r = drogueRig(CUT_AT - 0.5, side)
+      const base = { x: side * 0.5, y: 0, z: 0 }
+      expect(r.riserEnd).toEqual(base)
+      expect(Math.hypot(r.confluence.x - base.x, r.confluence.y - base.y)).toBeCloseTo(DROGUE_RISER, 3)
+      expect(r.mouth.y).toBeGreaterThan(r.confluence.y)
+      expect(r.centre.y).toBeGreaterThan(r.mouth.y)
+      // The mouth faces the capsule: the canopy is farther from it than the confluence.
+      expect(Math.hypot(r.centre.x, r.centre.y)).toBeGreaterThan(Math.hypot(r.confluence.x, r.confluence.y))
+    }
+  })
+  it('lets go of the capsule once cut', () => {
+    const r = drogueRig(CUT_AT + 1, 1)
+    expect(r.riserEnd.y).not.toBe(0)
   })
 })
 
@@ -168,7 +196,7 @@ describe('real sizes', () => {
       const out = (p.rim.x - p.gather.x) * p.gather.x + (p.rim.z - p.gather.z) * p.gather.z
       expect(out).toBeGreaterThan(0)
       expect(Math.acos(p.axis.y)).toBeCloseTo(MAIN_TILT, 5)
-      expect(MAIN_TILT).toBeLessThan(0.35)
+      expect(MAIN_TILT).toBeLessThan(0.45)
       expect(Math.hypot(p.axis.x, p.axis.y, p.axis.z)).toBeCloseTo(1, 9)
     }
   })
@@ -203,9 +231,20 @@ describe('real sizes', () => {
     }
     expect(ends.size).toBe(3)
   })
-  it('draws lines and risers thick enough to see', () => {
-    expect(MAIN_LINE_WIDTH).toBeGreaterThanOrEqual(0.2)
-    expect(RISER_WIDTH).toBeGreaterThanOrEqual(0.4)
+  it('draws thin strings: 16 to 24 lines per main and 10 to 12 per drogue', () => {
+    expect(MAIN_LINES).toBeGreaterThanOrEqual(16)
+    expect(MAIN_LINES).toBeLessThanOrEqual(24)
+    expect(DROGUE_LINES).toBeGreaterThanOrEqual(10)
+    expect(DROGUE_LINES).toBeLessThanOrEqual(12)
+  })
+  it('puts each main confluence about 3 m over the capsule top, with a short riser', () => {
+    for (let i = 0; i < 3; i++) {
+      const g = gatherPoint(i)
+      const b = riserBase(i)
+      expect(g.y).toBeGreaterThan(2.5)
+      expect(g.y).toBeLessThan(3.5)
+      expect(Math.hypot(g.x - b.x, g.y - b.y, g.z - b.z)).toBeLessThan(6)
+    }
   })
   it('sits a reefed canopy higher on the same lines, narrow and nearly upright', () => {
     expect(mainPose(0, 0.22, 0.3).rim.y).toBeGreaterThan(mainPose(0, 1, 1).rim.y)

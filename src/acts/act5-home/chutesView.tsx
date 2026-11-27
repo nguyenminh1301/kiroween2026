@@ -2,37 +2,36 @@
 // One frame system reads the timeline time and poses everything; nothing here goes through React state.
 import { useEffect, useMemo, useRef } from 'react'
 import {
+  BufferAttribute,
+  BufferGeometry,
+  CircleGeometry,
   ConeGeometry,
-  CylinderGeometry,
   DoubleSide,
-  InstancedMesh,
   LatheGeometry,
-  Matrix4,
+  LineBasicMaterial,
+  LineSegments,
   MeshBasicMaterial,
-  Quaternion,
   SphereGeometry,
   Vector2,
   Vector3,
-  type BufferGeometry,
   type Group,
   type Mesh,
 } from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { registerSystem } from '../../engine/frameDriver'
 import {
+  DROGUE_BANDS,
   DROGUE_DIAMETER,
-  DROGUE_LINE_WIDTH,
+  DROGUE_HEIGHT,
+  DROGUE_LINES,
   MAIN_COUNT,
   MAIN_DIAMETER,
-  MAIN_LINE_WIDTH,
+  MAIN_LINES,
   RELEASE_AT,
-  RISER_BASE_RADIUS,
-  RISER_WIDTH,
   breathe,
   canopyShape,
   coverAt,
-  drogueFill,
-  droguePos,
+  drogueRig,
   drogueState,
   mainPose,
   mainsOpen,
@@ -52,39 +51,61 @@ const PRIORITY = 662
 const PHI = 1.25
 const MAIN_R = MAIN_DIAMETER / 2 / Math.sin(PHI)
 const DROGUE_R = DROGUE_DIAMETER / 2
-const DROGUE_H = 6
-const LINES_MAIN = 24
-const LINES_DROGUE = 8
+const DROGUE_H = DROGUE_HEIGHT
+/** Capacity of the thin lines (suspension and pilot lines) and of the risers, in segments. */
+const LINE_CAP = MAIN_COUNT * MAIN_LINES + 2 * DROGUE_LINES + 3
+const RISER_CAP = MAIN_COUNT + 2
 const RIM_Y = 0.236
-/** Instances for every line and riser: 3 mains, 2 drogues, 3 pilot lines and the risers. */
-const SEGMENTS = MAIN_COUNT * (LINES_MAIN + 1) + 2 * (LINES_DROGUE + 1) + 3 + 8
 
 const dome = (r: number): BufferGeometry => new SphereGeometry(r, 12, 5, 0, Math.PI * 2, 0, PHI).scale(1, 0.75, 1)
 
-/** A round ribbon parachute: a cone built from stacked bands with gaps between them. Mouth at -H/2, apex at +H/2. */
+/** A conical ribbon parachute: short and wide, stacked bands with gaps between them and a small closed top. Mouth at -H/2. */
 function ribbonCone(radius: number, height: number, bands: number): BufferGeometry {
   const parts: BufferGeometry[] = []
+  const top = 0.18
+  const gap = 0.06
   for (let k = 0; k < bands; k++) {
-    const u0 = k / bands + (k === 0 ? 0 : 0.025)
-    const u1 = (k + 1) / bands - (k === bands - 1 ? 0 : 0.025)
-    const pts: Vector2[] = []
-    for (let j = 0; j <= 3; j++) {
-      const u = u0 + ((u1 - u0) * j) / 3
-      pts.push(new Vector2(Math.max(0.02, radius * Math.cos(u * Math.PI * 0.5) ** 0.85), -height / 2 + u * height))
-    }
-    parts.push(new LatheGeometry(pts, 14))
+    const u0 = k / bands + (k === 0 ? 0 : gap / bands / 2)
+    const u1 = (k + 1) / bands - (k === bands - 1 ? 0 : gap / bands / 2)
+    const rAt = (u: number): number => radius * (1 - (1 - top) * u)
+    parts.push(new LatheGeometry([new Vector2(rAt(u0), -height / 2 + u0 * height), new Vector2(rAt(u1), -height / 2 + u1 * height)], 16))
   }
+  const cap = new CircleGeometry(radius * top, 12)
+  cap.rotateX(-Math.PI / 2)
+  cap.translate(0, height / 2, 0)
+  parts.push(cap)
   const g = mergeGeometries(parts) as BufferGeometry
   parts.forEach((x) => x.dispose())
   return g
 }
 
+/** A growing set of segments drawn as one-pixel lines. */
+function lineSet(cap: number, opacity: number, color: string): { obj: LineSegments; add: (a: P, b: P) => void; begin: () => void; end: () => void } {
+  const pos = new Float32Array(cap * 6)
+  const geometry = new BufferGeometry()
+  geometry.setAttribute('position', new BufferAttribute(pos, 3))
+  const obj = new LineSegments(geometry, new LineBasicMaterial({ color, transparent: true, opacity, depthWrite: false }))
+  obj.frustumCulled = false
+  let n = 0
+  return {
+    obj,
+    begin: () => {
+      n = 0
+    },
+    add: (a, b) => {
+      if (n >= cap) return
+      pos.set([a.x, a.y, a.z, b.x, b.y, b.z], n * 6)
+      n++
+    },
+    end: () => {
+      geometry.setDrawRange(0, n * 2)
+      geometry.attributes.position.needsUpdate = true
+    },
+  }
+}
+
 const UP = new Vector3(0, 1, 0)
 const tmpA = new Vector3()
-const tmpB = new Vector3()
-const tmpQ = new Quaternion()
-const tmpM = new Matrix4()
-const tmpS = new Vector3()
 
 type P = { x: number; y: number; z: number }
 
@@ -99,11 +120,9 @@ export function Chutes() {
   const geo = useMemo(
     () => ({
       main: dome(MAIN_R),
-      drogue: ribbonCone(DROGUE_R, DROGUE_H, 5),
+      drogue: ribbonCone(DROGUE_R, DROGUE_H, DROGUE_BANDS),
       pilot: new ConeGeometry(0.7, 1.6, 8, 1, true),
       cover: new ConeGeometry(0.55, 0.6, 8),
-      /** Unit-length bar along y with a 1 m wide square section, scaled per segment. */
-      bar: new CylinderGeometry(0.5, 0.5, 1, 4, 1),
     }),
     [],
   )
@@ -111,15 +130,11 @@ export function Chutes() {
     () => ({
       canopy: new MeshBasicMaterial({ map: canopyTexture(), side: DoubleSide, color: '#f2eee6' }),
       cover: new MeshBasicMaterial({ color: '#8a877d' }),
-      line: new MeshBasicMaterial({ color: '#e6e0cf' }),
     }),
     [],
   )
-  const bars = useMemo(() => {
-    const m = new InstancedMesh(geo.bar, mat.line, SEGMENTS)
-    m.frustumCulled = false
-    return m
-  }, [geo, mat])
+  const strings = useMemo(() => lineSet(LINE_CAP, 0.5, '#e8e2d0'), [])
+  const risers = useMemo(() => lineSet(RISER_CAP, 0.9, '#f4efe2'), [])
 
   useEffect(() => {
     let startPos: Array<{ x: number; y: number; z: number }> | null = null
@@ -134,18 +149,8 @@ export function Chutes() {
       const capY = capsuleY(t, wave) + (t < SPLASH_AT ? openingJerk(t) : 0)
       g.position.y = capY + 1.9
       g.rotation.z = t < SPLASH_AT ? sway(t) : 0
-      let n = 0
-      /** One line or riser: a thin bar from a to b, `w` metres wide. */
-      const seg = (a: P, b: P, w: number): void => {
-        tmpA.set(a.x, a.y, a.z)
-        tmpB.set(b.x, b.y, b.z).sub(tmpA)
-        const len = tmpB.length()
-        if (len < 1e-6 || n >= SEGMENTS) return
-        tmpQ.setFromUnitVectors(UP, tmpB.divideScalar(len))
-        tmpA.addScaledVector(tmpB, len / 2)
-        tmpM.compose(tmpA, tmpQ, tmpS.set(w, len, w))
-        bars.setMatrixAt(n++, tmpM)
-      }
+      strings.begin()
+      risers.begin()
       const open = mainsOpen(t)
       const shape = canopyShape(open)
       const apexes: P[] = []
@@ -158,32 +163,27 @@ export function Chutes() {
             cover.current.rotation.set(c.spin, 0, c.spin * 0.7)
           }
         }
-        // Drogues: each on its own riser to the capsule top. The lines gather a little below the mouth.
+        // Drogues: a short banded cone on thin lines that meet at the confluence, then a 15 m riser to the capsule.
         const ds = drogueState(t)
-        const fill = drogueFill(t)
         for (let s = 0; s < 2; s++) {
           const m = drogues.current[s]
           if (!m) continue
           m.visible = ds !== 'hidden'
           if (ds === 'hidden') continue
           const side = s === 0 ? -1 : 1
-          const p = droguePos(t, side)
-          m.position.set(p.x, p.y, p.z)
-          m.scale.set(fill, 1.5 - 0.5 * Math.min(1, fill), fill)
-          m.rotation.z = ds === 'falling' ? side * 0.6 : 0
-          const mouth = { x: p.x, y: p.y - (DROGUE_H / 2) * m.scale.y, z: p.z }
-          const base = { x: side * RISER_BASE_RADIUS, y: 0, z: 0 }
-          const gather =
-            ds === 'out'
-              ? { x: mouth.x + (base.x - mouth.x) * 0.2, y: mouth.y + (base.y - mouth.y) * 0.2, z: mouth.z }
-              : { x: mouth.x, y: mouth.y - 3, z: mouth.z }
-          const rr = DROGUE_R * fill
-          for (let k = 0; k < LINES_DROGUE; k++) {
-            const a = (k / LINES_DROGUE) * Math.PI * 2
-            seg({ x: mouth.x + Math.cos(a) * rr, y: mouth.y, z: mouth.z + Math.sin(a) * rr }, gather, DROGUE_LINE_WIDTH)
+          const r = drogueRig(t, side)
+          m.position.set(r.centre.x, r.centre.y, r.centre.z)
+          m.scale.set(r.xz, r.y, r.xz)
+          if (ds === 'falling') m.rotation.set(0, 0, side * 0.6)
+          else m.quaternion.setFromUnitVectors(UP, tmpA.set(r.dir.x, r.dir.y, r.dir.z))
+          for (let k = 0; k < DROGUE_LINES; k++) {
+            const a = (k / DROGUE_LINES) * Math.PI * 2
+            const c = Math.cos(a) * r.mouthRadius
+            const sn = Math.sin(a) * r.mouthRadius
+            // The rim plane is perpendicular to the axis: e2 in the x-y plane, e1 along z.
+            strings.add({ x: r.mouth.x + r.dir.y * c, y: r.mouth.y - r.dir.x * c, z: r.mouth.z + sn }, r.confluence)
           }
-          // Cut at 28.2 s: the riser lets go of the capsule and trails above the falling drogue.
-          seg(gather, ds === 'out' ? base : { x: gather.x - side * 1.5, y: gather.y + 6, z: gather.z }, RISER_WIDTH)
+          risers.add(r.confluence, r.riserEnd)
         }
         // Mains: a triangle, each on its own gather point and riser.
         const bell = open > 0
@@ -202,8 +202,8 @@ export function Chutes() {
           m.scale.set(xz, ys, xz)
           const top = MAIN_R * 0.75 * ys
           apexes[i] = { x: m.position.x + pose.axis.x * top, y: m.position.y + pose.axis.y * top, z: m.position.z + pose.axis.z * top }
-          for (let k = 0; k < LINES_MAIN; k++) seg(pose.gather, rimPoint(pose, k, LINES_MAIN), MAIN_LINE_WIDTH)
-          seg(riserBase(i), pose.gather, RISER_WIDTH)
+          for (let k = 0; k < MAIN_LINES; k++) strings.add(pose.gather, rimPoint(pose, k, MAIN_LINES))
+          risers.add(riserBase(i), pose.gather)
         }
         const pr = pilotRun(t)
         for (let i = 0; i < MAIN_COUNT; i++) {
@@ -214,12 +214,10 @@ export function Chutes() {
           const c0 = mainPose(i, canopyShape(0.3).xz, canopyShape(0.3).spread)
           const ap = apexes[i] ?? { x: c0.rim.x, y: c0.rim.y + 6, z: c0.rim.z }
           m.position.set(ap.x * pr, 1 + (ap.y + 3 - 1) * pr, ap.z * pr)
-          seg(m.position, ap, DROGUE_LINE_WIDTH)
+          strings.add(m.position, ap)
         }
-        // Hide the unused instances.
-        tmpM.makeScale(0, 0, 0)
-        for (let k = n; k < SEGMENTS; k++) bars.setMatrixAt(k, tmpM)
-        bars.instanceMatrix.needsUpdate = true
+        strings.end()
+        risers.end()
         // Remember where the mains were when the capsule touched down.
         startPos = apexes.map((_, i) => {
           const m = mains.current[i]
@@ -243,16 +241,19 @@ export function Chutes() {
         m.rotation.z = r.landed ? 0 : 0.3 * (1 - r.flat) * Math.sin(time + i)
       }
     })
-  }, [geo, bars])
+  }, [geo, strings, risers])
 
   useEffect(
     () => () => {
-      bars.dispose()
+      for (const l of [strings, risers]) {
+        l.obj.geometry.dispose()
+        ;(l.obj.material as LineBasicMaterial).dispose()
+      }
       Object.values(geo).forEach((g) => g.dispose())
       mat.canopy.map?.dispose()
       Object.values(mat).forEach((m) => m.dispose())
     },
-    [geo, mat, bars],
+    [geo, mat, strings, risers],
   )
 
   return (
@@ -268,7 +269,8 @@ export function Chutes() {
         {[0, 1, 2].map((i) => (
           <mesh key={`m${i}`} ref={(m) => (mains.current[i] = m)} geometry={geo.main} material={mat.canopy} visible={false} frustumCulled={false} />
         ))}
-        <primitive object={bars} />
+        <primitive object={strings.obj} />
+        <primitive object={risers.obj} />
       </group>
       {[0, 1, 2].map((i) => (
         <mesh key={`f${i}`} ref={(m) => (freed.current[i] = m)} geometry={geo.main} material={mat.canopy} visible={false} frustumCulled={false} />

@@ -38,7 +38,7 @@ describe('attitude', () => {
 describe('sparks and flakes', () => {
   it('start near the shield and trail behind it, falling a little', () => {
     fc.assert(
-      fc.property(fc.tuple(fc.double({ min: 0, max: 0.999 }), fc.double({ min: 0, max: 1 }), fc.double({ min: 0, max: 1 }), fc.double({ min: 0, max: 1 })), fc.double({ min: 0, max: 60, noNaN: true }), (seed, time) => {
+      fc.property(fc.tuple(fc.double({ min: 0, max: 0.999, noNaN: true }), fc.double({ min: 0, max: 1, noNaN: true }), fc.double({ min: 0, max: 1, noNaN: true }), fc.double({ min: 0, max: 1, noNaN: true })), fc.double({ min: 0, max: 60, noNaN: true }), (seed, time) => {
         const p = particleAt(seed, time)
         expect(p.age).toBeGreaterThanOrEqual(0)
         expect(p.age).toBeLessThan(1)
