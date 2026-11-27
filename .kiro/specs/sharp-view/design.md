@@ -21,3 +21,7 @@ Decision: the brief says "never below 640x360 on its own" and also "Retro is 640
 
 ## Setting
 `Settings.picture: 'sharp' | 'balanced' | 'retro'`, default sharp, sanitized on load. A select in `SettingsForm`. Text in `content/menus.ts`. The scaler subscribes to the store.
+
+## Decisions made while building
+- Camera cuts hold the scaler for 1 s without clearing samples. With a full 3 s clear on every cut, act 5 (cuts every few seconds) could never drop even on a slow machine.
+- In SwiftShader (the e2e browser) frames cost about 50 ms at every level from 320x180 to 1280x720, so the cost is the scene, not the pixels. There the scaler drops to its floor, which is correct for that machine.
