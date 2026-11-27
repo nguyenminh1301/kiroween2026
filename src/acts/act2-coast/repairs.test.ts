@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BAND_HI, BAND_LO, createRepairs, knobToPsi, PANEL_CARD, PANEL_START, repairObjective, SITE_DIGITS } from './repairs'
+import { BAND_HI, BAND_LO, createRepairs, knobToPsi, repairObjective } from './repairs'
 
 const holdKnobAt = (r: ReturnType<typeof createRepairs>, psi: number) => {
   r.s.knob = (psi - 2.5) / 5
@@ -66,55 +66,15 @@ describe('cabin pressure', () => {
   })
 })
 
-describe('breaker panel', () => {
-  it('starts wrong, flips only while open, and finishes when it matches the card', () => {
+describe('computer', () => {
+  it('clears three lines, each once, then shows OK', () => {
     const r = createRepairs()
-    expect(r.flip(0)).toBe(false)
-    expect(r.s.panel[0]).toBe(false)
-    expect(r.openPanel()).toBe(true)
-    const wrong = PANEL_CARD.map((v, i) => (v !== PANEL_START[i] ? i : -1)).filter((i) => i >= 0)
-    expect(wrong.length).toBeGreaterThan(1)
-    wrong.slice(0, -1).forEach((i) => expect(r.flip(i)).toBe(false))
-    expect(r.s.panelDone).toBe(false)
-    expect(r.flip(wrong[wrong.length - 1])).toBe(true)
-    expect(r.s.panelDone).toBe(true)
-    expect(r.s.panelOpen).toBe(false)
-    expect(r.flip(0)).toBe(false)
-  })
-})
-
-describe('landing site keypad', () => {
-  const type = (r: ReturnType<typeof createRepairs>, s: string) => [...s].forEach((c) => r.digit(c))
-  it('takes five digits, ENTR on a wrong number lights OPR ERR and clears the entry', () => {
-    const r = createRepairs()
-    expect(r.digit('1')).toBe(false)
-    r.openKeypad()
-    type(r, '123456')
-    expect(r.s.entry).toBe('12345')
-    expect(r.enter()).toBe('err')
-    expect(r.s.oprErr).toBe(true)
-    expect(r.s.entry).toBe('')
-    expect(r.s.siteDone).toBe(false)
-    r.digit('7')
-    expect(r.s.oprErr).toBe(false)
-  })
-  it('does nothing on ENTR with fewer than five digits, then accepts the right number', () => {
-    const r = createRepairs()
-    r.openKeypad()
-    type(r, SITE_DIGITS.slice(0, 4))
-    expect(r.enter()).toBe('short')
-    expect(r.s.oprErr).toBe(false)
-    r.backspace()
-    type(r, SITE_DIGITS.slice(3))
-    expect(r.enter()).toBe('ok')
-    expect(r.s.siteDone).toBe(true)
-    expect(r.s.keypadOpen).toBe(false)
-  })
-  it('ignores letters', () => {
-    const r = createRepairs()
-    r.openKeypad()
-    expect(r.digit('a')).toBe(false)
-    expect(r.digit('12')).toBe(false)
+    expect(r.clearLine(1)).toBe(true)
+    expect(r.clearLine(1)).toBe(false)
+    expect(r.s.compDone).toBe(false)
+    r.clearLine(0)
+    r.clearLine(2)
+    expect(r.s.compDone).toBe(true)
   })
 })
 
@@ -122,12 +82,12 @@ describe('objective', () => {
   it('lists what is left and frames what can be used now', () => {
     const r = createRepairs()
     let o = repairObjective(r.s)
-    expect(o.markers).toEqual(['act2:pouch', 'act2:gauge', 'act2:panel', 'act2:keypad'])
+    expect(o.markers).toEqual(['act2:pouch', 'act2:gauge', 'act2:comp0', 'act2:comp1', 'act2:comp2'])
     r.takeHammer()
-    r.s.panelDone = true
+    r.clearLine(0)
     o = repairObjective(r.s)
     expect(o.markers).toContain('act2:joint')
-    expect(o.markers).not.toContain('act2:panel')
+    expect(o.markers).not.toContain('act2:comp0')
     expect(o.text).toContain('tap the joint')
   })
   it('is all done only when every repair is', () => {
@@ -136,10 +96,8 @@ describe('objective', () => {
     r.takeHammer()
     r.tap(); r.tap(); r.tap()
     r.s.pressDone = true
-    r.s.panelDone = true
-    expect(r.allDone()).toBe(false)
-    r.s.siteDone = true
+    r.clearLine(0); r.clearLine(1); r.clearLine(2)
     expect(r.allDone()).toBe(true)
-    expect(r.doneCount()).toBe(4)
+    expect(r.doneCount()).toBe(3)
   })
 })

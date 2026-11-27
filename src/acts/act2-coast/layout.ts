@@ -30,14 +30,13 @@ export const JOINT_NEAR_Z = 0.9
 /** Cabin pressure gauge on the right wall of the command module. */
 export const gaugePos = (cmFar: number): Vec3 => ({ x: 1.36, y: 1.5, z: cmFar + 0.9 })
 export const GAUGE_RADIUS = 0.2
-/** Breaker panel (left) and landing site keypad (right) on the lander back wall, each with a card under it. */
-export const PANEL_POS: Vec3 = { x: -0.8, y: 1.6, z: LANDER_Z0 + 0.03 }
-export const PANEL_CARD_POS: Vec3 = { x: -0.8, y: 1.0, z: LANDER_Z0 + 0.03 }
-export const KEYPAD_POS: Vec3 = { x: 0.8, y: 1.6, z: LANDER_Z0 + 0.03 }
-export const SITE_CARD_POS: Vec3 = { x: 0.8, y: 1.0, z: LANDER_Z0 + 0.03 }
-export const PAD_RADIUS = 0.3
+/** Computer screen on the lander back wall: three error lines, a button beside each. */
+export const COMP_SCREEN: Vec3 = { x: 0, y: 1.55, z: LANDER_Z0 + 0.03 }
+export const COMP_BUTTON_X = 0.48
+export const COMP_RADIUS = 0.06
+export const compButtonPos = (i: number): Vec3 => ({ x: COMP_BUTTON_X, y: COMP_SCREEN.y + 0.14 - 0.14 * i, z: COMP_SCREEN.z + 0.02 })
 /**
- * A close-up ends when the eye is farther than this from its panel. It must be more than the use reach (2.5 m),
+ * A close-up ends when the eye is farther than this from the gauge. It must be more than the use reach (2.5 m),
  * or a close-up started from the edge of reach closes on the next frame.
  */
 export const CLOSE_UP_DISTANCE = 3
@@ -59,10 +58,13 @@ export function inTunnel(z: number, cmFar: number): boolean {
   return z > LANDER_Z1 && z < cmFar
 }
 
-/** Rail z values, every 1.5 m from `cmFar` + 2.7 down to just inside the lander. */
+/**
+ * Rail z values, every 1.5 m from `cmFar` + 2.7 down through the lander to its back wall, so a rail is in reach
+ * from every place the player can float to, in both ends of the command module, the tunnel and the lander.
+ */
 export function railZs(cmFar: number): number[] {
   const out: number[] = []
-  for (let z = cmFar + 2.7; z >= LANDER_Z1 - 0.4; z -= RAIL_STEP) out.push(Math.round(z * 1000) / 1000)
+  for (let z = cmFar + 2.7; z >= LANDER_Z0 + 1.2; z -= RAIL_STEP) out.push(Math.round(z * 1000) / 1000)
   return out
 }
 

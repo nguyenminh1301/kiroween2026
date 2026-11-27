@@ -23,7 +23,7 @@ Play with headphones. Much of the game is told through sound and the radio.
 
 1. **Pad 39A.** Dawn on the swing arm. Wave to the crowd, then walk to the White Room and open the hatch.
 2. **Launch.** About 150 seconds in the seat: ignition, liftoff, roll, max Q, staging, the launch escape tower leaving with its cover, then the burn that leaves Earth orbit.
-3. **Coast.** Zero gravity on the way to the Moon. Repair the cabin and the lander (oxygen line, pressure, breaker panel, landing site keypad), then try to sleep.
+3. **Coast.** Zero gravity on the way to the Moon. Repair the cabin and the lander (oxygen line, pressure, the computer), then try to sleep.
 4. **Far side.** A nightmare Buzz wakes up from. He walks a rust-red map by flashlight to find Neil and Mike while something hunts by sound, carries them back one at a time, and wakes in the real, bright cabin to pick one of two answers.
 5. **Tranquility.** The descent with cuts to the cabin, then a calm Moon. Neil climbs down first, then you. Plant the US flag, stand beside it while Neil takes your picture (shown as the real NASA photo AS11-40-5875), take a soil sample, set up the seismometer while Neil works nearby, climb back up and lift off. Mike stays in orbit and speaks on the radio. Only the radio and your breathing.
 6. **Splashdown.** Re-entry, blackout, two drogues and three main parachutes side by side, the Pacific, the USS Hornet and Sea King 66.

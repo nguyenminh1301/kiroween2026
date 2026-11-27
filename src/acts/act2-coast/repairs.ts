@@ -1,16 +1,9 @@
-// The four act 2 repairs as pure state machines: oxygen line, cabin pressure, breaker panel and landing site keypad.
+// The three act 2 repairs as pure state machines: oxygen line, cabin pressure and computer.
 // No Three.js or React imports.
 import { ACT2_TEXT } from '../../content/checklists'
 
 export const TAPS_NEEDED = 3
-
-/** Breaker panel: six switches. The card shows which ones go up. */
-export const PANEL_SWITCHES = 6
-export const PANEL_CARD: readonly boolean[] = [true, false, true, true, false, true]
-export const PANEL_START: readonly boolean[] = [false, true, false, false, true, false]
-
-/** Landing site keypad: five digits then ENTR. */
-export const SITE_DIGITS = '02471'
+export const COMPUTER_LINES = 3
 
 /** The gauge: knob 0..1 moves the needle between PSI_MIN and PSI_MAX. */
 export const PSI_MIN = 2.5
@@ -39,20 +32,11 @@ export interface RepairsState {
   /** Seconds the needle has stayed inside the band. */
   held: number
   pressDone: boolean
-  panelOpen: boolean
-  panel: boolean[]
-  panelDone: boolean
-  keypadOpen: boolean
-  entry: string
-  /** OPR ERR is lit after a wrong number. */
-  oprErr: boolean
-  siteDone: boolean
+  cleared: boolean[]
+  compDone: boolean
 }
 
-export type RepairKind = 'o2' | 'press' | 'panel' | 'site'
-
-/** What ENTR did: not five digits yet, a wrong number, or the right one. */
-export type EntrResult = 'short' | 'err' | 'ok'
+export type RepairKind = 'o2' | 'press' | 'comp'
 
 export interface Repairs {
   readonly s: RepairsState
@@ -65,16 +49,8 @@ export interface Repairs {
   turn(delta: number): void
   /** Advance the needle. Returns 'press' on the tick the repair completes. */
   tick(dt: number): RepairKind | null
-  openPanel(): boolean
-  closePanel(): void
-  /** Flip breaker `i`. Returns true when the panel now matches the card. */
-  flip(i: number): boolean
-  openKeypad(): boolean
-  closeKeypad(): void
-  /** A digit key. Ignored when the keypad is shut or already has five. */
-  digit(d: string): boolean
-  backspace(): void
-  enter(): EntrResult
+  /** Clear computer line `i`. Returns true when it was newly cleared. */
+  clearLine(i: number): boolean
   allDone(): boolean
   doneCount(): number
 }
@@ -89,13 +65,8 @@ export function createRepairs(): Repairs {
     needle: knobToPsi(GAUGE_START_KNOB),
     held: 0,
     pressDone: false,
-    panelOpen: false,
-    panel: [...PANEL_START],
-    panelDone: false,
-    keypadOpen: false,
-    entry: '',
-    oprErr: false,
-    siteDone: false,
+    cleared: Array.from({ length: COMPUTER_LINES }, () => false),
+    compDone: false,
   }
   return {
     s,
@@ -143,58 +114,14 @@ export function createRepairs(): Repairs {
       }
       return null
     },
-    openPanel() {
-      if (s.panelDone || s.panelOpen) return false
-      s.panelOpen = true
+    clearLine(i) {
+      if (i < 0 || i >= COMPUTER_LINES || s.cleared[i] || s.compDone) return false
+      s.cleared[i] = true
+      if (s.cleared.every(Boolean)) s.compDone = true
       return true
     },
-    closePanel() {
-      s.panelOpen = false
-    },
-    flip(i) {
-      if (!s.panelOpen || s.panelDone || !Number.isInteger(i) || i < 0 || i >= PANEL_SWITCHES) return false
-      s.panel[i] = !s.panel[i]
-      if (s.panel.every((v, k) => v === PANEL_CARD[k])) {
-        s.panelDone = true
-        s.panelOpen = false
-        return true
-      }
-      return false
-    },
-    openKeypad() {
-      if (s.siteDone || s.keypadOpen) return false
-      s.keypadOpen = true
-      s.entry = ''
-      s.oprErr = false
-      return true
-    },
-    closeKeypad() {
-      s.keypadOpen = false
-    },
-    digit(d) {
-      if (!s.keypadOpen || s.siteDone || !/^[0-9]$/.test(d) || s.entry.length >= SITE_DIGITS.length) return false
-      s.oprErr = false
-      s.entry += d
-      return true
-    },
-    backspace() {
-      if (!s.keypadOpen || s.siteDone) return
-      s.entry = s.entry.slice(0, -1)
-      s.oprErr = false
-    },
-    enter() {
-      if (!s.keypadOpen || s.siteDone || s.entry.length < SITE_DIGITS.length) return 'short'
-      if (s.entry !== SITE_DIGITS) {
-        s.oprErr = true
-        s.entry = ''
-        return 'err'
-      }
-      s.siteDone = true
-      s.keypadOpen = false
-      return 'ok'
-    },
-    allDone: () => s.o2Done && s.pressDone && s.panelDone && s.siteDone,
-    doneCount: () => Number(s.o2Done) + Number(s.pressDone) + Number(s.panelDone) + Number(s.siteDone),
+    allDone: () => s.o2Done && s.pressDone && s.compDone,
+    doneCount: () => Number(s.o2Done) + Number(s.pressDone) + Number(s.compDone),
   }
 }
 
@@ -210,13 +137,11 @@ export function repairObjective(s: RepairsState): { text: string; markers: strin
     left.push(ACT2_TEXT.press)
     markers.push('act2:gauge')
   }
-  if (!s.panelDone) {
-    left.push(ACT2_TEXT.panel)
-    markers.push('act2:panel')
-  }
-  if (!s.siteDone) {
-    left.push(ACT2_TEXT.site)
-    markers.push('act2:keypad')
+  if (!s.compDone) {
+    left.push(ACT2_TEXT.comp)
+    s.cleared.forEach((c, i) => {
+      if (!c) markers.push(`act2:comp${i}`)
+    })
   }
   return { text: ACT2_TEXT.prefix + left.join(', '), markers }
 }

@@ -38,11 +38,11 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 
 ## Act 1 test
 
-`e2e/act1.mjs` plays the launch and TLI by timeline time. The launch runs 150 s: the script jumps to the pad, liftoff, staging and tower jettison shots, then keys in the card. The later lines never turn the view: the script checks `focus()` stays false.
+`e2e/act1.mjs` plays the launch and TLI by timeline time. The launch runs about 23 s, 10 s of it in the cabin: the script jumps to the pad, liftoff, staging and jettison shots, then keys in the card. The later lines never turn the view: the script checks `focus()` stays false.
 
 ## Act 2 test
 
-`e2e/act2.mjs` plays the three repairs with real key presses, in the order gauge, oxygen line, breaker panel, keypad: E on the gauge and D until the needle sits in the green band; E on the tool pouch, then E three times on the joint; E on the breaker panel and keys 1 to 6; E on the keypad, a wrong number (OPR ERR), walking away to release the close-up, then the right digits and Enter. It then floats back (the tunnel is longer), gets in the bag and holds C: the view fades to black, no flash elements appear, no breathing plays, and act 3 loads about four quiet seconds later. It ends when act 3 loads.
+`e2e/act2.mjs` plays the three repairs with real key presses, in the order gauge, oxygen line, computer: E on the gauge and D until the needle sits in the green band; E on the tool pouch, then E three times on the joint; E on each of the three computer buttons until every red line is green. It then floats back (the tunnel is longer), gets in the bag and holds C: the view fades to black, no flash elements appear, no breathing plays, and act 3 loads about four quiet seconds later. It ends when act 3 loads.
 
 ## Act 4 test
 

@@ -21,6 +21,8 @@ import {
   bagPos,
   BAG_RADIUS,
   cmFarFor,
+  compButtonPos,
+  COMP_RADIUS,
   collisionBoxes,
   CLOSE_UP_DISTANCE,
   gaugePos,
@@ -29,10 +31,7 @@ import {
   JOINT_NEAR_Z,
   JOINT_POS,
   JOINT_RADIUS,
-  KEYPAD_POS,
   LANDER_ENTRY_Z,
-  PAD_RADIUS,
-  PANEL_POS,
   POUCH_POS,
   POUCH_RADIUS,
   rails,
@@ -43,7 +42,7 @@ import {
 import { createAct2Beats, type Next, type ObjectiveKey, type RepairName } from './beats'
 import { borrowMoveKeys, type Borrowed } from './dialKeys'
 import { createPhases } from './phases'
-import { KNOB_SPEED, needleAngle, BAND_HI, BAND_LO, repairObjective, WHEEL_STEP } from './repairs'
+import { BAND_HI, BAND_LO, COMPUTER_LINES, KNOB_SPEED, needleAngle, repairObjective, WHEEL_STEP } from './repairs'
 import { createSleepTimer } from './sleepTimer'
 import { act2State, resetAct2State, setCmFar } from './state'
 
@@ -159,38 +158,17 @@ export function startAct2(): void {
       fxStore.getState().setGauge(null)
     },
   })
-  const panelUp = createCloseUp({
-    maxDistance: CLOSE_UP_DISTANCE,
-    onClose() {
-      R.closePanel()
-      fxStore.getState().setPad(null)
-    },
-  })
-  const keypadUp = createCloseUp({
-    maxDistance: CLOSE_UP_DISTANCE,
-    onClose() {
-      R.closeKeypad()
-      fxStore.getState().setPad(null)
-    },
-  })
   const closeAll = (): void => {
     gaugeUp.esc()
-    panelUp.esc()
-    keypadUp.esc()
   }
   cleanupRegistry.register(() => {
     fxStore.getState().setGauge(null)
-    fxStore.getState().setPad(null)
   })
   // Esc, or the game pausing, ends any close-up.
   const unsubPause = gameStore.subscribe((s, prev) => {
     if (s.paused && !prev.paused) closeAll()
   })
   cleanupRegistry.register(unsubPause)
-  const showPad = (): void => {
-    if (R.s.panelOpen) fxStore.getState().setPad({ kind: 'panel', switches: [...R.s.panel] })
-    else if (R.s.keypadOpen) fxStore.getState().setPad({ kind: 'keypad', entry: R.s.entry, err: R.s.oprErr })
-  }
   registerInteractable({
     id: 'act2:gauge',
     verb: 'ADJUST',
@@ -259,96 +237,30 @@ export function startAct2(): void {
     { pausable: true },
   )
 
-  // 3. Breaker panel: E opens it, keys 1 to 6 flip the breakers to match the card.
-  // 4. Landing site keypad: E opens it, type the five digits from the card, Enter.
-  registerInteractable({
-    id: 'act2:panel',
-    verb: 'FLIP',
-    position: { ...PANEL_POS },
-    radius: PAD_RADIUS,
-    enabled: () => !R.s.panelDone,
-    use() {
-      if (R.s.panelOpen) {
-        panelUp.done()
-        return
-      }
-      keypadUp.esc()
-      if (!R.openPanel()) return
-      panelUp.open()
-      audio.play('click')
-      showPad()
-    },
-  })
-  registerInteractable({
-    id: 'act2:keypad',
-    verb: 'KEY IN',
-    position: { ...KEYPAD_POS },
-    radius: PAD_RADIUS,
-    enabled: () => !R.s.siteDone,
-    use() {
-      if (R.s.keypadOpen) {
-        keypadUp.done()
-        return
-      }
-      panelUp.esc()
-      if (!R.openKeypad()) return
-      keypadUp.open()
-      audio.play('click')
-      showPad()
-    },
-  })
+  // 3. Computer: three buttons, one per red error line. E on a button turns its line green.
+  for (let i = 0; i < COMPUTER_LINES; i++) {
+    registerInteractable({
+      id: `act2:comp${i}`,
+      verb: 'CLEAR',
+      position: { ...compButtonPos(i) },
+      radius: COMP_RADIUS,
+      enabled: () => !R.s.cleared[i],
+      use() {
+        if (!R.clearLine(i)) return
+        audio.play('key')
+        if (R.s.compDone) repairDone('comp')
+        else setObjective('repairs')
+      },
+    })
+  }
+  // Esc ends the gauge close-up.
   const onKey = (e: KeyboardEvent): void => {
-    if (e.code === 'Escape') {
-      closeAll()
-      return
-    }
-    if (R.s.panelOpen) {
-      const m = /^(?:Digit|Numpad)([1-6])$/.exec(e.code)
-      if (!m) return
-      e.preventDefault()
-      if (R.flip(Number(m[1]) - 1)) {
-        audio.play('switch')
-        panelUp.done()
-        repairDone('panel')
-      } else {
-        audio.play('click')
-        showPad()
-      }
-    } else if (R.s.keypadOpen) {
-      const d = /^(?:Digit|Numpad)([0-9])$/.exec(e.code)
-      if (d) {
-        e.preventDefault()
-        if (R.digit(d[1])) audio.play('key')
-      } else if (e.code === 'Backspace') {
-        e.preventDefault()
-        R.backspace()
-      } else if (e.code === 'Enter' || e.code === 'NumpadEnter') {
-        e.preventDefault()
-        const res = R.enter()
-        if (res === 'ok') {
-          audio.play('switch')
-          keypadUp.done()
-          repairDone('site')
-          return
-        }
-        if (res === 'err') audio.play('click')
-      } else return
-      showPad()
-    }
+    if (e.code === 'Escape') closeAll()
   }
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', onKey)
     cleanupRegistry.register(() => window.removeEventListener('keydown', onKey))
   }
-  addSystem(
-    'act2-pads',
-    GAUGE_PRIORITY + 1,
-    () => {
-      if (R.s.panelOpen) panelUp.tick(distanceTo(PANEL_POS))
-      if (R.s.keypadOpen) keypadUp.tick(distanceTo(KEYPAD_POS))
-    },
-    { pausable: true },
-  )
 
   const timer = createSleepTimer({
     setBlackout: (v) => fxStore.getState().setBlackout(v),

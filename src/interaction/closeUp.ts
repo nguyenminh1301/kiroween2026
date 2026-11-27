@@ -1,4 +1,4 @@
-// A close-up task (dial, panel, keypad) that gives the player their body back when it ends.
+// A close-up task (the pressure dial) that gives the player their body back when it ends.
 // It ends when the task finishes, when the player presses Esc, or when they move too far away.
 // Pure: no Three.js or React imports.
 

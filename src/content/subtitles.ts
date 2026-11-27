@@ -97,16 +97,11 @@ export const LINES: Record<string, Line> = {
     text: "Cabin pressure's a little low. Bring it back up to five.",
   },
   'act2.pressdone': { speaker: 'CAPCOM', text: 'Copy, five point zero.' },
-  'act2.panel': {
+  'act2.comp': {
     speaker: 'CMP',
-    text: "Breakers on that panel don't match the card. Set them like it says.",
+    text: "Computer's throwing faults. Clear them one at a time.",
   },
-  'act2.paneldone': { speaker: 'CAPCOM', text: 'Panel looks good from here.' },
-  'act2.site': {
-    speaker: 'CDR',
-    text: "Eagle's computer wants the landing site numbers. They're on the card.",
-  },
-  'act2.sitedone': { speaker: 'CAPCOM', text: 'We copy the site. Eagle is ready.' },
+  'act2.compdone': { speaker: 'CAPCOM', text: 'Computer looks clean from here.' },
   'act2.longer': {
     speaker: 'CMP',
     text: "You were gone a while. It's three pushes down that tunnel.",

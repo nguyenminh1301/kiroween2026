@@ -164,36 +164,6 @@ export function GaugeDial() {
   )
 }
 
-/** The close-up breaker panel and keypad of act 2. */
-export function RepairPad() {
-  const pad = useFx((s) => s.pad)
-  if (!pad) return null
-  if (pad.kind === 'panel') {
-    return (
-      <div className="pad-close" data-testid="pad-panel">
-        <div className="pad-title">{HUD.pad.panel}</div>
-        <div className="pad-switches">
-          {pad.switches.map((on, i) => (
-            <div key={i} className={on ? 'sw on' : 'sw'} data-switch={i + 1} data-on={on ? '1' : '0'}>
-              <span className="lever" aria-hidden="true" />
-              <span className="no">{i + 1}</span>
-            </div>
-          ))}
-        </div>
-        <div className="pad-note">{HUD.pad.keys}</div>
-      </div>
-    )
-  }
-  return (
-    <div className="pad-close" data-testid="pad-keypad">
-      <div className="pad-title">{HUD.pad.keypad}</div>
-      <div className="pad-display" data-testid="pad-entry">{pad.entry.padEnd(5, '_').split('').join(' ')}</div>
-      <div className={pad.err ? 'pad-lamp on' : 'pad-lamp'} data-testid="pad-err">{HUD.pad.err}</div>
-      <div className="pad-note">{HUD.pad.keypadKeys}</div>
-    </div>
-  )
-}
-
 export function FxLayer() {
   const edge = useFx((s) => s.edge)
   const flash = useFx((s) => s.flash)
@@ -231,7 +201,6 @@ export function FxLayer() {
           )
         : null}
       <GaugeDial />
-      <RepairPad />
       {readout ? (
         <div className="fx-readout" data-testid="readout">
           <div className="hd">{readout.header}</div>

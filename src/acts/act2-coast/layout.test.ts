@@ -9,11 +9,11 @@ describe('act 2 layout', () => {
     expect(cmFarFor(true)).toBe(3)
   })
 
-  it('puts rails every 1.5 m from cmFar + 2.7 down to the lander', () => {
-    expect(railZs(1.5)).toEqual([4.2, 2.7, 1.2, -0.3, -1.8, -3.3])
-    expect(railZs(3)).toEqual([5.7, 4.2, 2.7, 1.2, -0.3, -1.8, -3.3])
+  it('puts rails every 1.5 m from cmFar + 2.7 down to the lander back wall', () => {
+    expect(railZs(1.5)).toEqual([4.2, 2.7, 1.2, -0.3, -1.8, -3.3, -4.8])
+    expect(railZs(3)).toEqual([5.7, 4.2, 2.7, 1.2, -0.3, -1.8, -3.3, -4.8])
     const r = rails(1.5)
-    expect(r).toHaveLength(12)
+    expect(r).toHaveLength(14)
     expect(r[0].a).toEqual({ x: -1.1, y: 1.6, z: 3.7 })
     expect(r[1].a).toEqual({ x: 1.1, y: 1.6, z: 3.7 })
     expect(r[0].b.z).toBe(4.7)

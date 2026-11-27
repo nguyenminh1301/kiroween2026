@@ -1,5 +1,5 @@
 // The three repair props: the oxygen hose with its joint, pouch and hammer, the pressure gauge on the wall
-// the breaker panel and landing site keypad with their cards. All read `act2State.repairs` each frame.
+// and the computer screen with its three buttons. All read `act2State.repairs` each frame.
 import { useEffect, useMemo, useRef } from 'react'
 import {
   CanvasTexture,
@@ -22,8 +22,8 @@ import { eyePosition } from '../../engine/playerBody'
 import { getPlayerBody } from '../../engine/playerRuntime'
 import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { cbox, ccyl, mergeColored } from './geo'
-import { gaugePos, JOINT_POS, KEYPAD_POS, PANEL_CARD_POS, PANEL_POS, POUCH_POS, SITE_CARD_POS } from './layout'
-import { BAND_HI, BAND_LO, needleAngle, PANEL_CARD, PANEL_SWITCHES, SITE_DIGITS } from './repairs'
+import { compButtonPos, COMP_SCREEN, gaugePos, JOINT_POS, POUCH_POS } from './layout'
+import { BAND_HI, BAND_LO, needleAngle } from './repairs'
 import { act2State } from './state'
 
 const PRIORITY = 705
@@ -101,60 +101,29 @@ function drawGauge(c: HTMLCanvasElement, psi: number): void {
   g.fill()
 }
 
-/** The card under the breaker panel: which breakers go up. */
-function drawPanelCard(c: HTMLCanvasElement): void {
+function drawScreen(c: HTMLCanvasElement, cleared: boolean[], done: boolean): void {
   const g = c.getContext('2d')
   if (!g) return
   const { width: w, height: h } = c
-  g.fillStyle = '#e9e4d2'
+  g.fillStyle = done ? '#0f5a2a' : '#140808'
   g.fillRect(0, 0, w, h)
-  g.fillStyle = '#3a342a'
-  g.font = `bold ${h * 0.16}px monospace`
-  g.textAlign = 'center'
   g.textBaseline = 'middle'
-  g.fillText('BREAKERS', w / 2, h * 0.14)
-  for (let i = 0; i < PANEL_SWITCHES; i++) {
-    const x = w * (0.1 + (0.8 * (i + 0.5)) / PANEL_SWITCHES)
-    g.fillStyle = '#3a342a'
-    g.fillRect(x - 6, h * 0.3, 12, h * 0.4)
-    g.fillStyle = PANEL_CARD[i] ? '#e9b740' : '#8d9296'
-    g.fillRect(x - 6, PANEL_CARD[i] ? h * 0.3 : h * 0.5, 12, h * 0.2)
-    g.fillStyle = '#3a342a'
-    g.fillText(String(i + 1), x, h * 0.85)
+  if (done) {
+    g.fillStyle = '#7dffa0'
+    g.font = `bold ${h * 0.5}px monospace`
+    g.textAlign = 'center'
+    g.fillText(HUD.screen.ok, w / 2, h / 2)
+    return
   }
-}
-
-/** The card under the keypad: the five site digits. */
-function drawSiteCard(c: HTMLCanvasElement): void {
-  const g = c.getContext('2d')
-  if (!g) return
-  const { width: w, height: h } = c
-  g.fillStyle = '#e9e4d2'
-  g.fillRect(0, 0, w, h)
-  g.fillStyle = '#3a342a'
-  g.textAlign = 'center'
-  g.textBaseline = 'middle'
+  g.textAlign = 'left'
   g.font = `bold ${h * 0.16}px monospace`
-  g.fillText('LANDING SITE', w / 2, h * 0.16)
-  g.font = `bold ${h * 0.42}px monospace`
-  g.fillText(SITE_DIGITS.split('').join(' '), w / 2, h * 0.62)
-}
-
-/** The keypad display on the wall. */
-function drawKeypad(c: HTMLCanvasElement, entry: string, err: boolean, done: boolean): void {
-  const g = c.getContext('2d')
-  if (!g) return
-  const { width: w, height: h } = c
-  g.fillStyle = done ? '#0f5a2a' : '#0b0d0c'
-  g.fillRect(0, 0, w, h)
-  g.textAlign = 'center'
-  g.textBaseline = 'middle'
-  g.fillStyle = done ? '#7dffa0' : '#7dffa0'
-  g.font = `bold ${h * 0.34}px monospace`
-  g.fillText(done ? HUD.pad.enter + ' OK' : entry.padEnd(5, '_').split('').join(' '), w / 2, h * 0.4)
-  g.font = `bold ${h * 0.2}px monospace`
-  g.fillStyle = err ? '#ff4a3a' : '#2a3a2a'
-  g.fillText(HUD.pad.err, w / 2, h * 0.78)
+  HUD.screen.errors.forEach((e, i) => {
+    const y = h * (0.2 + 0.3 * i)
+    g.fillStyle = cleared[i] ? '#2a3a2a' : '#ff4a3a'
+    g.fillRect(w * 0.06, y - h * 0.09, w * 0.78, h * 0.18)
+    g.fillStyle = cleared[i] ? '#4a6a4a' : '#240808'
+    g.fillText(e, w * 0.1, y)
+  })
 }
 
 export function RepairProps({ cmFar }: { cmFar: number }) {
@@ -164,24 +133,11 @@ export function RepairProps({ cmFar }: { cmFar: number }) {
   const puffGeo = useMemo(() => new IcosahedronGeometry(0.05, 0), [])
   const discGeo = useMemo(() => new CircleGeometry(0.14, 20), [])
   const bezelGeo = useMemo(() => new CircleGeometry(0.17, 20), [])
-  const screenGeo = useMemo(() => new PlaneGeometry(0.5, 0.3), [])
-  const frameGeo = useMemo(() => new PlaneGeometry(0.6, 0.4), [])
-  const cardGeo = useMemo(() => new PlaneGeometry(0.44, 0.28), [])
-  const swGeo = useMemo(() => new PlaneGeometry(0.05, 0.1), [])
+  const screenGeo = useMemo(() => new PlaneGeometry(0.8, 0.44), [])
+  const frameGeo = useMemo(() => new PlaneGeometry(0.9, 0.54), [])
+  const btnGeo = useMemo(() => new PlaneGeometry(0.1, 0.09), [])
   const gaugeTex = useMemo(() => canvasTex(64, 64), [])
-  const screenTex = useMemo(() => canvasTex(128, 77), [])
-  const panelCardTex = useMemo(() => {
-    const t = canvasTex(110, 70)
-    drawPanelCard(t.canvas)
-    t.tex.needsUpdate = true
-    return t
-  }, [])
-  const siteCardTex = useMemo(() => {
-    const t = canvasTex(110, 70)
-    drawSiteCard(t.canvas)
-    t.tex.needsUpdate = true
-    return t
-  }, [])
+  const screenTex = useMemo(() => canvasTex(128, 70), [])
   const mats = useMemo(
     () => ({
       vc: createMaterial({ vertexColors: true }),
@@ -189,11 +145,9 @@ export function RepairProps({ cmFar }: { cmFar: number }) {
       puff: new MeshBasicMaterial({ color: '#eef6ff', fog: false }),
       gauge: new MeshBasicMaterial({ map: gaugeTex.tex, fog: false }),
       screen: new MeshBasicMaterial({ map: screenTex.tex, fog: false }),
-      panelCard: new MeshBasicMaterial({ map: panelCardTex.tex, fog: false }),
-      siteCard: new MeshBasicMaterial({ map: siteCardTex.tex, fog: false }),
-      sw: Array.from({ length: PANEL_SWITCHES }, () => new MeshBasicMaterial({ color: '#8d9296', fog: false })),
+      btn: [0, 1, 2].map(() => new MeshBasicMaterial({ color: '#d63a2a', fog: false })),
     }),
-    [gaugeTex, screenTex, panelCardTex, siteCardTex],
+    [gaugeTex, screenTex],
   )
   const hoseRef = useRef<Group>(null)
   const hammerRef = useRef<Group>(null)
@@ -255,33 +209,29 @@ export function RepairProps({ cmFar }: { cmFar: number }) {
         drawGauge(gaugeTex.canvas, r.needle)
         gaugeTex.tex.needsUpdate = true
       }
-      const key = `${r.entry}|${r.oprErr}|${r.siteDone}`
+      const key = `${r.cleared.join()}${r.compDone}`
       if (key !== lastScreen) {
         lastScreen = key
-        drawKeypad(screenTex.canvas, r.entry, r.oprErr, r.siteDone)
+        drawScreen(screenTex.canvas, r.cleared, r.compDone)
         screenTex.tex.needsUpdate = true
+        mats.btn.forEach((m, i) => m.color.set(r.cleared[i] ? '#2f9e44' : '#d63a2a'))
       }
-      r.panel.forEach((on, i) => mats.sw[i].color.set(on ? '#e9b740' : '#6c7074'))
     })
   }, [gaugeTex, screenTex, mats])
 
   useEffect(
     () => () => {
-      ;[hose, pouch, hammer, puffGeo, discGeo, bezelGeo, screenGeo, frameGeo, cardGeo, swGeo].forEach((g) => g.dispose())
+      ;[hose, pouch, hammer, puffGeo, discGeo, bezelGeo, screenGeo, frameGeo, btnGeo].forEach((g) => g.dispose())
       gaugeTex.tex.dispose()
       screenTex.tex.dispose()
-      panelCardTex.tex.dispose()
-      siteCardTex.tex.dispose()
       disposeMaterial(mats.vc)
       disposeMaterial(mats.frame)
       mats.puff.dispose()
       mats.gauge.dispose()
       mats.screen.dispose()
-      mats.panelCard.dispose()
-      mats.siteCard.dispose()
-      mats.sw.forEach((m) => m.dispose())
+      mats.btn.forEach((m) => m.dispose())
     },
-    [hose, pouch, hammer, puffGeo, discGeo, bezelGeo, screenGeo, frameGeo, cardGeo, swGeo, gaugeTex, screenTex, panelCardTex, siteCardTex, mats],
+    [hose, pouch, hammer, puffGeo, discGeo, bezelGeo, screenGeo, frameGeo, btnGeo, gaugeTex, screenTex, mats],
   )
 
   const gp = gaugePos(cmFar)
@@ -308,18 +258,14 @@ export function RepairProps({ cmFar }: { cmFar: number }) {
         <mesh geometry={bezelGeo} material={mats.frame} position={[0, 0, -0.004]} />
         <mesh geometry={discGeo} material={mats.gauge} />
       </group>
-      <group position={[PANEL_POS.x, PANEL_POS.y, PANEL_POS.z]}>
-        <mesh geometry={frameGeo} material={mats.frame} position={[0, 0, -0.004]} />
-        {mats.sw.map((m, i) => (
-          <mesh key={i} geometry={swGeo} material={m} position={[-0.225 + i * 0.09, 0, 0.002]} />
-        ))}
-      </group>
-      <mesh geometry={cardGeo} material={mats.panelCard} position={[PANEL_CARD_POS.x, PANEL_CARD_POS.y, PANEL_CARD_POS.z]} />
-      <group position={[KEYPAD_POS.x, KEYPAD_POS.y, KEYPAD_POS.z]}>
+      <group position={[COMP_SCREEN.x, COMP_SCREEN.y, COMP_SCREEN.z]}>
         <mesh geometry={frameGeo} material={mats.frame} position={[0, 0, -0.004]} />
         <mesh geometry={screenGeo} material={mats.screen} />
       </group>
-      <mesh geometry={cardGeo} material={mats.siteCard} position={[SITE_CARD_POS.x, SITE_CARD_POS.y, SITE_CARD_POS.z]} />
+      {[0, 1, 2].map((i) => {
+        const p = compButtonPos(i)
+        return <mesh key={i} geometry={btnGeo} material={mats.btn[i]} position={[p.x, p.y, p.z - 0.005]} />
+      })}
     </>
   )
 }
