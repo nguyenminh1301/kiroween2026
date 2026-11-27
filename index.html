@@ -1,407 +1,505 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LOSS OF SIGNAL: The flight of Apollo 11</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Loss of Signal: the flight of Apollo 11</title>
     <meta
       name="description"
       content="A long read on the flight of Apollo 11, July 16 to 24, 1969: the crew, the launch, the landing, the moonwalk, Michael Collins alone behind the Moon, and the way home."
     />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="LOSS OF SIGNAL: The flight of Apollo 11" />
+    <meta property="og:title" content="Loss of Signal: the flight of Apollo 11" />
     <meta
       property="og:description"
       content="Eight days to the Moon and back. The flight of Apollo 11, July 16 to 24, 1969, with NASA photographs and sources."
     />
     <meta property="og:image" content="img/article/s69-31739.jpg" />
-    <meta property="og:image:alt" content="The Apollo 11 crew portrait, May 1969: Armstrong, Collins and Aldrin in white suits." />
+    <meta property="og:image:alt" content="Armstrong, Collins and Aldrin in white spacesuits, seated in front of a painted image of the Moon." />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="data:," />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&amp;family=Libre+Franklin:wght@400;500;600;700&amp;display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/article/article.css" />
-    <script>
-      document.documentElement.classList.add('js')
-    </script>
   </head>
   <body>
-    <a class="skip" href="#headline">Skip to the article</a>
-
     <header class="bar">
-      <div class="bar-top">
-        <div class="brand">
-          <a class="masthead" href="#top">LOSS OF SIGNAL</a>
-          <p class="tagline">The flight of Apollo 11, July 16 to 24, 1969</p>
+      <div class="wrap">
+        <div class="bar-meta">
+          <span>Published November 2026</span>
+          <span>A long read in seven parts. About 15 minutes.</span>
         </div>
-        <a class="play" href="./play.html">Play as an astronaut</a>
+        <div class="bar-main">
+          <a class="brand" href="#top">
+            <span class="brand-name">LOSS OF SIGNAL</span>
+            <span class="brand-tag">The flight of Apollo 11, July 16 to 24, 1969</span>
+          </a>
+          <a class="play" href="./play.html">
+            Play as an astronaut
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4"></path></svg>
+          </a>
+        </div>
+        <nav class="sections" aria-label="Sections">
+          <a href="#crew">The crew</a>
+          <a href="#launch">Launch</a>
+          <a href="#landing">The landing</a>
+          <a href="#surface">On the surface</a>
+          <a href="#orbit">Alone in orbit</a>
+          <a href="#home">Coming home</a>
+          <a href="#what-really-happened">What really happened</a>
+          <a href="#sources">Sources</a>
+        </nav>
       </div>
-      <nav class="sections" aria-label="Sections">
-        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="section-links">Sections</button>
-        <ul id="section-links">
-          <li><a href="#the-crew">The crew</a></li>
-          <li><a href="#launch">Launch</a></li>
-          <li><a href="#the-landing">The landing</a></li>
-          <li><a href="#on-the-surface">On the surface</a></li>
-          <li><a href="#coming-home">Coming home</a></li>
-          <li><a href="#what-really-happened">What really happened</a></li>
-          <li><a href="#sources">Sources</a></li>
-        </ul>
-      </nav>
     </header>
 
     <main id="top">
       <article>
-        <section class="opening" aria-labelledby="headline">
-          <p class="dateline">Apollo 11 · July 16 to 24, 1969</p>
-          <h1 id="headline">Eight days to the Moon and back</h1>
-          <p class="standfirst">
-            Apollo 11 left Florida on July 16, 1969, and came down in the Pacific Ocean on July 24. Two of its crew
-            walked on the Moon. This is the flight, from the launch pad to the recovery ship.
-          </p>
-          <p class="lede">
-            At 9:32 on the morning of July 16, 1969, a Saturn V rocket left Launch Complex 39A at Kennedy Space Center
-            in Florida. Three men were aboard. Eight days, three hours and eighteen minutes later they were back, in
-            the Pacific Ocean. In between, two of them had stood on the Moon.
-          </p>
-          <p>
-            The mission was Apollo 11. People remember it for the landing, but the flight had many parts, and each one
-            had to work. The sections below follow them in order.
-          </p>
+        <div class="opening">
+          <p class="kicker kicker-lg">The Moon landing, 1969</p>
+          <h1>Eight Days to the Moon and Back</h1>
+          <p class="standfirst">Apollo 11 left Florida on July 16, 1969, and came down in the Pacific Ocean on July 24. Two of its crew walked on the Moon. This is the whole flight, from the launch pad to the recovery ship.</p>
+          <p class="byline">Written for the Loss of Signal project. Every fact is sourced at the end.</p>
+        </div>
+
+        <figure class="hero">
+          <img
+            class="photo"
+            src="img/article/as11-40-5903.jpg"
+            width="1280"
+            height="1249"
+            fetchpriority="high"
+            alt="Buzz Aldrin in his white spacesuit stands on the grey lunar surface. His gold visor reflects Neil Armstrong and the lunar module."
+          />
+          <figcaption class="cap cap-split">
+            <span>Buzz Aldrin on the Sea of Tranquility, July 20, 1969. Neil Armstrong took the picture and appears in the visor.</span>
+            <span>Photograph: <a href="https://images.nasa.gov/details/AS11-40-5903">NASA</a></span>
+          </figcaption>
+        </figure>
+
+        <div class="prose prose-first">
+          <p class="dropcap">At 9:32 on the morning of July 16, 1969, a Saturn V rocket left Launch Complex 39A at Kennedy Space Center in Florida with three men aboard. Eight days, three hours and eighteen minutes later they were back, floating in the Pacific Ocean. In between, two of them had stood on the Moon.</p>
+          <p>People remember the mission for one moment on the surface. But the flight had many parts, and every one of them had to work. The sections below follow them in order.</p>
+        </div>
+
+        <aside class="numbers" aria-labelledby="numbers-title">
+          <div class="numbers-box">
+            <h2 id="numbers-title" class="eyebrow eyebrow-dark">The flight in numbers</h2>
+            <div class="numbers-grid">
+            <div class="stat">
+              <span class="stat-value">8 d 3 h 18 m</span>
+              <span class="stat-label">From liftoff to splashdown</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">110 m</span>
+              <span class="stat-label">Height of the Saturn V with the spacecraft, 363 feet</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">2.5 h</span>
+              <span class="stat-label">Time spent walking on the Moon</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">21.5 kg</span>
+              <span class="stat-label">Rock and soil brought back</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">48 min</span>
+              <span class="stat-label">Radio silence on each pass behind the Moon</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">24 km</span>
+              <span class="stat-label">From splashdown to USS Hornet</span>
+            </div>
+            </div>
+          </div>
+        </aside>
+
+        <section id="crew" class="prose" aria-labelledby="crew-title">
+          <p class="kicker">Part I</p>
+          <h2 id="crew-title" class="title">The crew</h2>
+          <p>Neil A. Armstrong was the commander. Edwin E. "Buzz" Aldrin Jr. was the lunar module pilot. Michael Collins was the command module pilot.</p>
+          <p>The spacecraft came in two parts. The command module was named Columbia, and the lunar module was named Eagle. Armstrong and Aldrin would fly Eagle down to the surface. Collins would stay in Columbia, alone in orbit, and wait for them.</p>
         </section>
 
-        <section id="the-crew" aria-labelledby="h-crew">
-          <h2 id="h-crew">The crew</h2>
-          <p>
-            Neil A. Armstrong was the commander. Edwin E. &ldquo;Buzz&rdquo; Aldrin Jr. was the lunar module pilot.
-            Michael Collins was the command module pilot.
-          </p>
-          <p>
-            The spacecraft had two parts that matter here. The command module was named Columbia. The lunar module was
-            named Eagle. Armstrong and Aldrin would fly Eagle down to the Moon. Collins would stay in Columbia.
-          </p>
-          <p>NASA named the three as the prime crew of the landing mission, and this portrait is dated May 1969.</p>
-          <figure>
+        <figure class="fig fig-crew">
+          <img
+            class="photo"
+            src="img/article/s69-31739.jpg"
+            width="1280"
+            height="1005"
+            loading="lazy"
+            alt="Armstrong, Collins and Aldrin in white spacesuits, seated in front of a painted image of the Moon."
+          />
+          <figcaption class="cap cap-split cap-rule">
+            <span>The prime crew in May 1969. From left: Armstrong, Collins and Aldrin.</span>
+            <span>Photograph: <a href="https://images.nasa.gov/details/S69-31739">NASA</a></span>
+          </figcaption>
+        </figure>
+
+        <section id="launch" class="split" aria-labelledby="launch-title">
+          <div class="split-inner">
+            <div class="split-text">
+              <p class="kicker">Part II</p>
+              <h2 id="launch-title" class="title">Launch, and three days out</h2>
+              <p>Apollo 11 lifted off at 9:32 a.m. Eastern Daylight Time. The Saturn V and the spacecraft on top of it stood 363 feet tall, about 110 metres.</p>
+              <p>About three minutes into the flight, just after the second stage lit, the launch escape tower and the boost protective cover were thrown clear. The cover had shielded the command module and its windows until then. For the first time, the crew could see out.</p>
+              <p>The trip to the Moon took three days. On July 19 the spacecraft went into orbit around it. One more day of checks followed, and then the landing.</p>
+            </div>
+            <figure class="fig split-photo">
+              <img
+                class="photo"
+                src="img/article/s69-39961.jpg"
+                width="886"
+                height="1280"
+                loading="lazy"
+                alt="The white Saturn V rocket rises from the launch tower on a column of flame and smoke, seen from above."
+              />
+              <figcaption class="cap cap-rule">Liftoff from Pad A, Launch Complex 39, July 16, 1969. Photograph: <a href="https://images.nasa.gov/details/S69-39961">NASA</a></figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="timeline" aria-labelledby="timeline-title">
+          <h2 id="timeline-title" class="eyebrow eyebrow-dark">The eight days, in Eastern Daylight Time</h2>
+          <ol>
+          <li>
+            <span class="tl-date">Wed, July 16</span>
+            <span class="tl-time">9:32 a.m.</span>
+            <span class="tl-text">Liftoff from Launch Complex 39A.</span>
+          </li>
+          <li>
+            <span class="tl-date">Sat, July 19</span>
+            <span class="tl-time">Lunar orbit</span>
+            <span class="tl-text">Columbia and Eagle go into orbit around the Moon.</span>
+          </li>
+          <li>
+            <span class="tl-date">Sun, July 20</span>
+            <span class="tl-time">4:17 p.m.</span>
+            <span class="tl-text">Eagle lands in the Sea of Tranquility.</span>
+          </li>
+          <li>
+            <span class="tl-date">Sun, July 20</span>
+            <span class="tl-time">10:56 p.m.</span>
+            <span class="tl-text">Armstrong steps onto the surface.</span>
+          </li>
+          <li>
+            <span class="tl-date">Mon, July 21</span>
+            <span class="tl-time">Liftoff</span>
+            <span class="tl-text">Eagle leaves the Moon and docks with Columbia.</span>
+          </li>
+          <li>
+            <span class="tl-date">Thu, July 24</span>
+            <span class="tl-time">Splashdown</span>
+            <span class="tl-text">Columbia lands in the Pacific near USS Hornet.</span>
+          </li>
+          </ol>
+        </section>
+
+        <section id="landing" class="prose" aria-labelledby="landing-title">
+          <p class="kicker">Part III</p>
+          <h2 id="landing-title" class="title">The landing</h2>
+          <p>Armstrong and Aldrin brought Eagle down in the Sea of Tranquility on July 20, 1969, at 4:17 p.m.</p>
+          <p>The descent did not go smoothly. On the way down, Eagle's computer raised 1202 and 1201 program alarms. It had more work than time and was dropping its low priority jobs. In Houston, the controllers judged that it could carry on, and called it go.</p>
+          <p>Near the surface the computer was steering toward a field of boulders. Armstrong took over by hand and flew past it. Then Eagle was down.</p>
+        </section>
+
+        <blockquote class="pullquote">
+          <p>"Houston, Tranquility Base here. The Eagle has landed."</p>
+          <footer>Neil Armstrong, July 20, 1969</footer>
+        </blockquote>
+
+        <section id="surface" class="prose" aria-labelledby="surface-title">
+          <p class="kicker">Part IV</p>
+          <h2 id="surface-title" class="title">On the surface</h2>
+          <p>Armstrong stepped onto the Moon at 10:56 p.m. on July 20. "That's one small step for man, one giant leap for mankind." Aldrin followed him down the ladder.</p>
+          <p>The moonwalk lasted about two and a half hours. They set up a flag, a passive seismometer, a laser reflector and a sheet to catch the solar wind, and they collected about 21.5 kilograms of rock and soil.</p>
+        </section>
+
+        <div class="photo-row photo-row-wide">
+          <figure class="fig">
             <img
-              src="img/article/s69-31739.jpg"
-              width="1280"
-              height="1005"
-              loading="lazy"
-              alt="Three astronauts in white suits sit side by side for a portrait."
-            />
-            <figcaption>
-              The prime crew, left to right: Armstrong, Collins and Aldrin. Portrait from May 1969.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/S69-31739">NASA</a></span>
-            </figcaption>
-          </figure>
-        </section>
-
-        <section id="launch" aria-labelledby="h-launch">
-          <h2 id="h-launch">Launch</h2>
-          <p>
-            Apollo 11 lifted off at 9:32 a.m. Eastern Daylight Time on July 16, 1969. The launch site was Launch
-            Complex 39A at Kennedy Space Center. The rocket was a Saturn V.
-          </p>
-          <p>The Saturn V and the spacecraft on top of it stood 363 feet tall, about 110 metres.</p>
-          <p>
-            About three minutes into the flight, just after the second stage lit, the launch escape tower and the boost
-            protective cover were jettisoned. The cover had shielded the command module and its windows until then.
-          </p>
-          <figure class="tall">
-            <img
-              src="img/article/s69-39961.jpg"
-              width="886"
-              height="1280"
-              loading="lazy"
-              alt="A tall white rocket rises from a launch pad on a column of flame and smoke."
-            />
-            <figcaption>
-              Apollo 11 leaves Pad A of Launch Complex 39 at Kennedy Space Center on July 16, 1969.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/S69-39961">NASA</a></span>
-            </figcaption>
-          </figure>
-        </section>
-
-        <section id="three-days-out" aria-labelledby="h-days">
-          <h2 id="h-days">Three days out</h2>
-          <p>After launch, Apollo 11 headed for the Moon. The trip took three days.</p>
-          <p>
-            The spacecraft went into orbit around the Moon on July 19. One more day in orbit followed, and then the
-            landing on July 20.
-          </p>
-          <p>
-            In lunar orbit Columbia passed behind the Moon again and again. Each pass cut the radio link to Earth. The
-            section on Collins explains what that meant.
-          </p>
-        </section>
-
-        <section id="the-landing" aria-labelledby="h-landing">
-          <h2 id="h-landing">The landing</h2>
-          <p>
-            Armstrong and Aldrin landed Eagle in the Sea of Tranquility on July 20, 1969, at 4:17 p.m. Eastern Daylight
-            Time.
-          </p>
-          <p>
-            The descent did not go smoothly. Eagle&rsquo;s computer gave 1202 and 1201 program alarms on the way down.
-            It was short of time for its jobs and dropped the low priority ones. Houston called it go, and the landing
-            went on.
-          </p>
-          <p>Near the surface Armstrong flew past a boulder field by hand. Then Eagle was down.</p>
-          <blockquote class="pull">
-            <p>&ldquo;Houston, Tranquility Base here. The Eagle has landed.&rdquo;</p>
-            <footer>Armstrong, July 20, 1969</footer>
-          </blockquote>
-        </section>
-
-        <section id="on-the-surface" aria-labelledby="h-surface">
-          <h2 id="h-surface">On the surface</h2>
-          <p>
-            Armstrong stepped onto the Moon at 10:56 p.m. Eastern Daylight Time on July 20. Aldrin also walked on the surface.
-          </p>
-          <blockquote class="pull">
-            <p>&ldquo;That&rsquo;s one small step for man, one giant leap for mankind.&rdquo;</p>
-            <footer>Armstrong, July 20, 1969</footer>
-          </blockquote>
-          <figure>
-            <img
+              class="photo photo-square"
               src="img/article/as11-40-5878.jpg"
               width="1274"
               height="1280"
               loading="lazy"
-              alt="A boot print pressed into fine grey lunar soil."
+              alt="A single boot print pressed sharply into fine grey lunar soil."
             />
-            <figcaption>
-              A close view of a boot print in the lunar soil, taken with a 70 mm surface camera during the moonwalk.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/AS11-40-5878">NASA</a></span>
-            </figcaption>
+            <figcaption class="cap cap-rule">A boot print in the lunar soil, photographed close up to study how the ground behaves. Photograph: <a href="https://images.nasa.gov/details/AS11-40-5878">NASA</a></figcaption>
           </figure>
-          <p>The moonwalk lasted about two and a half hours.</p>
-          <figure>
+          <figure class="fig">
             <img
-              src="img/article/as11-40-5903.jpg"
-              width="1280"
-              height="1249"
-              loading="lazy"
-              alt="An astronaut in a white suit walks on grey ground beside a leg of the lunar module."
-            />
-            <figcaption>
-              Aldrin walks on the surface near a leg of Eagle. Armstrong took the picture.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/AS11-40-5903">NASA</a></span>
-            </figcaption>
-          </figure>
-          <p>
-            The crew set up a flag, a passive seismometer, a laser reflector and a solar wind sheet. They collected
-            about 21.5 kilograms of samples.
-          </p>
-          <figure>
-            <img
+              class="photo photo-square"
               src="img/article/as11-40-5927.jpg"
               width="1280"
               height="1280"
               loading="lazy"
-              alt="An astronaut stands beside the lunar module and reaches for equipment stowed on its side."
+              alt="The gold and silver lunar module stands on its four legs. An astronaut works at an open bay in its lower stage."
             />
-            <figcaption>
-              Aldrin prepares to take the Early Apollo Scientific Experiments Package out of its storage bay on
-              Eagle&rsquo;s descent stage.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/AS11-40-5927">NASA</a></span>
-            </figcaption>
+            <figcaption class="cap cap-rule">Aldrin unloads the experiments from a storage bay in Eagle's descent stage. Photograph: <a href="https://images.nasa.gov/details/AS11-40-5927">NASA</a></figcaption>
           </figure>
-          <figure>
+          <figure class="fig">
             <img
+              class="photo photo-square"
               src="img/article/as11-40-5948.jpg"
               width="1280"
               height="1280"
               loading="lazy"
-              alt="An astronaut stands on the Moon with instruments on the ground, a flag and the lunar module behind him."
+              alt="Aldrin walks away from a seismometer on the grey ground. The flag and the lunar module stand in the distance."
             />
-            <figcaption>
-              Aldrin after setting up the experiments. The seismometer is in the foreground and the laser reflector is
-              beyond it. The flag and Eagle are in the background.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/AS11-40-5948">NASA</a></span>
-            </figcaption>
+            <figcaption class="cap cap-rule">The seismometer in the foreground, the laser reflector beyond it, the flag and Eagle behind. Photograph: <a href="https://images.nasa.gov/details/AS11-40-5948">NASA</a></figcaption>
           </figure>
-          <p>
-            The mission left a plaque on the Moon. It reads: &ldquo;Here men from the planet Earth first set foot upon
-            the Moon, July 1969, A.D. We came in peace for all mankind.&rdquo;
-          </p>
-          <p>
-            Eagle lifted off on July 21 after about 21.5 hours on the surface. The ascent engine&rsquo;s exhaust knocked
-            the flag over.
-          </p>
+        </div>
+
+        <div class="prose prose-after-photos">
+          <p>The crew left a plaque on one of Eagle's legs. It reads: "Here men from the planet Earth first set foot upon the Moon, July 1969, A.D. We came in peace for all mankind."</p>
+          <p>Eagle lifted off on July 21, after about 21.5 hours on the surface. The exhaust of its ascent engine knocked the flag over.</p>
+        </div>
+
+        <section id="orbit" class="orbit" aria-labelledby="orbit-title">
+          <div class="orbit-inner">
+            <figure class="orbit-photo">
+              <img
+                class="photo"
+                src="img/article/as11-44-6642.jpg"
+                width="1280"
+                height="984"
+                loading="lazy"
+                alt="The small ascent stage of Eagle flies above the cratered grey Moon, with half of the Earth rising over the horizon behind it."
+              />
+              <figcaption class="cap">Eagle's ascent stage climbs back to Columbia, seen from Collins's window, with the Earth behind. Photograph: <a href="https://images.nasa.gov/details/AS11-44-6642">NASA</a></figcaption>
+            </figure>
+            <div class="orbit-text">
+              <p class="kicker">Part V</p>
+              <h2 id="orbit-title" class="title">Alone in orbit</h2>
+              <p>While Armstrong and Aldrin walked on the surface, Michael Collins circled the Moon alone in Columbia.</p>
+              <p>Each time Columbia passed behind the Moon, its radio link to Earth was cut. The silence lasted about 48 minutes on every orbit. For that time, nobody on Earth could hear him, and he could hear nobody.</p>
+              <p>On July 21, Eagle's ascent stage flew back up to him and docked.</p>
+            </div>
+          </div>
         </section>
 
-        <section id="alone-in-orbit" aria-labelledby="h-orbit">
-          <h2 id="h-orbit">Alone in orbit</h2>
-          <p>
-            While Armstrong and Aldrin were on the surface, Collins stayed in lunar orbit aboard Columbia.
-          </p>
-          <p>
-            Each time Columbia passed behind the Moon, Collins lost radio contact with Earth. The loss lasted about 48
-            minutes on every orbit. For that time nobody on Earth could hear him.
-          </p>
-          <p>After liftoff, the ascent stage of Eagle flew back to Columbia and docked with it.</p>
-          <figure>
-            <img
-              src="img/article/as11-44-6642.jpg"
-              width="1280"
-              height="984"
-              loading="lazy"
-              alt="A small spacecraft with legs folded in approaches another, with half of the Earth behind it."
-            />
-            <figcaption>
-              Eagle&rsquo;s ascent stage closes in on Columbia for the rendezvous, with half of the Earth behind it.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/AS11-44-6642">NASA</a></span>
-            </figcaption>
-          </figure>
+        <section id="home" class="prose" aria-labelledby="home-title">
+          <p class="kicker">Part VI</p>
+          <h2 id="home-title" class="title">Coming home</h2>
+          <p>Columbia came down in the Pacific Ocean on July 24, 1969, about 24 kilometres from the recovery ship USS Hornet. Swimmers reached the capsule, and a helicopter carried the crew to the ship.</p>
+          <p>The three men went straight into quarantine, in case they had brought anything back from the Moon. The mission had lasted 8 days, 3 hours and 18 minutes.</p>
         </section>
 
-        <section id="coming-home" aria-labelledby="h-home">
-          <h2 id="h-home">Coming home</h2>
-          <p>
-            Columbia came down in the Pacific Ocean on July 24, 1969. The capsule landed about 24 kilometres from the
-            recovery ship USS Hornet.
-          </p>
-          <figure class="tall">
+        <div class="photo-row photo-row-narrow">
+          <figure class="fig">
             <img
+              class="photo photo-cover"
               src="img/article/s69-21698.jpg"
               width="1272"
               height="1280"
               loading="lazy"
-              alt="Four men in dark isolation suits sit in a life raft on the sea."
+              alt="The capsule floats in dark blue sea inside an orange flotation collar, with the crew in a raft beside it."
             />
-            <figcaption>
-              The three crew wait in a life raft for a helicopter from USS Hornet. A Navy swimmer is with them. All four
-              wear biological isolation garments.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/S69-21698">NASA</a></span>
-            </figcaption>
+            <figcaption class="cap cap-rule">The crew in a life raft beside Columbia, in isolation garments, waiting for the helicopter. Photograph: <a href="https://images.nasa.gov/details/S69-21698">NASA</a></figcaption>
           </figure>
-          <p>The crew went into quarantine after the recovery. The mission had lasted 8 days, 3 hours and 18 minutes.</p>
-          <figure>
+          <figure class="fig">
             <img
+              class="photo"
               src="img/article/s69-40022.jpg"
               width="1280"
               height="832"
               loading="lazy"
-              alt="Rows of consoles in a control room, with people standing and cheering."
+              alt="Black and white photo of flight controllers in Mission Control waving small flags and cheering at their consoles."
             />
-            <figcaption>
-              Flight controllers in the Mission Operations Control Room in Houston celebrate the end of the mission.
-              <span class="credit">Credit: <a href="https://images.nasa.gov/details/S69-40022">NASA</a></span>
-            </figcaption>
+            <figcaption class="cap cap-rule">Flight controllers in Houston celebrate the end of the mission. Photograph: <a href="https://images.nasa.gov/details/S69-40022">NASA</a></figcaption>
           </figure>
-        </section>
+        </div>
 
-        <section id="what-really-happened" aria-labelledby="h-real">
-          <h2 id="h-real">What really happened</h2>
-          <p>
-            This site also has a game, Loss of Signal. The game is fiction, but it shows real moments of this flight.
-            Below are eight of them: what you see in the game, what really happened, and where it is written down.
-          </p>
-          <p id="marks-note" class="note" hidden>The marks show what you saw in your last flight on this browser.</p>
+        <section id="what-really-happened" class="real" aria-labelledby="wrh-title">
+          <div class="real-head">
+            <div class="real-intro">
+              <p class="kicker">Part VII</p>
+              <h2 id="wrh-title" class="title title-tight">What really happened</h2>
+              <p class="real-lede">This site also has a game, Loss of Signal. The game is fiction, but it puts eight real moments of this flight in front of the player. Here is each one: what the game shows, what really happened, and where it is written down.</p>
+            </div>
+            <p id="marks-note" class="marks-note" hidden><strong>Your flight:</strong> <span id="marks-count">0</span> of 8 moments seen.</p>
+          </div>
           <ol class="moments">
-            <li class="moment" data-moment="escape-tower">
-              <h3>The escape tower leaves</h3>
-              <p class="mark" hidden></p>
-              <p><span class="label">In the game</span> After the second stage lit, the launch escape tower and its cover left the capsule. The windows were clear.</p>
-              <p><span class="label">What really happened</span> The launch escape tower and the boost protective cover were jettisoned about three minutes into the flight, just after the second stage lit. The cover had shielded the command module and its windows until then.</p>
-              <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/index.html">Apollo 11 Flight Journal</a></p>
-            </li>
-            <li class="moment" data-moment="loss-of-signal">
-              <h3>Loss of signal</h3>
-              <p class="mark" hidden></p>
-              <p><span class="label">In the game</span> The ship passed behind the Moon and Houston could not be heard.</p>
-              <p><span class="label">What really happened</span> Behind the Moon the spacecraft had no radio contact with Earth at all, about 48 minutes of every orbit.</p>
-              <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/index.html">Apollo 11 Flight Journal</a></p>
-            </li>
-            <li class="moment" data-moment="alarm-1202">
-              <h3>The 1202 alarm</h3>
-              <p class="mark" hidden></p>
-              <p><span class="label">In the game</span> A program alarm, a 1202, lit the guidance computer display during the powered descent.</p>
-              <p><span class="label">What really happened</span> Eagle&rsquo;s computer gave 1202 and 1201 alarms on the way down. It was short of time for its jobs and dropped the low priority ones. Houston called it go and the landing went on.</p>
-              <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/index.html">Apollo 11 Flight Journal</a></p>
-            </li>
-            <li class="moment" data-moment="eagle-landed">
-              <h3>The Eagle has landed</h3>
-              <p class="mark" hidden></p>
-              <p><span class="label">In the game</span> The commander called Houston after the contact light: the Eagle has landed.</p>
-              <p><span class="label">What really happened</span> Armstrong said &ldquo;Houston, Tranquility Base here. The Eagle has landed.&rdquo; at about 20:17 UTC on July 20, 1969, in the Sea of Tranquility.</p>
-              <p class="cite">Source: <a href="https://www.nasa.gov/history/alsj-and-afj/">Apollo Lunar Surface Journal</a></p>
-            </li>
-            <li class="moment" data-moment="seismo-steps">
-              <h3>The seismometer hears footsteps</h3>
-              <p class="mark" hidden></p>
-              <p><span class="label">In the game</span> Houston said the seismometer was already picking up the crew&rsquo;s footsteps.</p>
-              <p><span class="label">What really happened</span> The seismometer left on the Moon, the Passive Seismic Experiment Package, recorded the astronauts&rsquo; footsteps. It ran for about three weeks.</p>
-              <p class="cite">Source: <a href="https://www.nasa.gov/history/alsj-and-afj/">Apollo Lunar Surface Journal</a></p>
-            </li>
-            <li class="moment" data-moment="flag-knocked">
-              <h3>The flag falls</h3>
-              <p class="mark" hidden></p>
-              <p><span class="label">In the game</span> The ascent engine fired and the flag fell over.</p>
-              <p><span class="label">What really happened</span> Aldrin reported that the blast of the ascent engine knocked the flag over. It had a horizontal rod along the top edge to hold the cloth out, because there is no wind on the Moon.</p>
-              <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/index.html">Apollo 11 Flight Journal</a></p>
-            </li>
-            <li class="moment" data-moment="burn-routine">
-              <h3>The ascent engine ignites</h3>
-              <p class="mark" hidden></p>
-              <p><span class="label">In the game</span> The ascent engine fired straight down into the descent stage, with it on top, and a green readout named a routine.</p>
-              <p><span class="label">What really happened</span> The lunar module used its descent stage as a launch pad: the ascent engine fired down onto it. The guidance computer routine that ignited the engines is named BURN_BABY_BURN--MASTER_IGNITION_ROUTINE.</p>
-              <p class="cite">Source: <a href="https://github.com/chrislgarry/Apollo-11/blob/master/Luminary099/BURN_BABY_BURN--MASTER_IGNITION_ROUTINE.agc">Apollo Guidance Computer source, Luminary 099</a></p>
-            </li>
-            <li class="moment" data-moment="hornet">
-              <h3>USS Hornet and Helicopter 66</h3>
-              <p class="mark" hidden></p>
-              <p><span class="label">In the game</span> USS Hornet and a Sea King helicopter, Helicopter 66, came for the capsule after splashdown.</p>
-              <p><span class="label">What really happened</span> Columbia landed in the Pacific on July 24, 1969, about 24 km (13 nautical miles) from the recovery carrier USS Hornet. Swimmers opened the hatch and Helicopter 66 flew the crew to the ship.</p>
-              <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/index.html">Apollo 11 Flight Journal</a></p>
-            </li>
+        <li class="moment" data-moment="escape-tower">
+          <div class="moment-head">
+            <span class="moment-num">01</span>
+            <h3>The escape tower leaves</h3>
+            <span class="mark" hidden></span>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow">In the game</span>
+            <p class="moment-game">After the second stage lit, the launch escape tower and its cover left the capsule, and the windows were clear.</p>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow eyebrow-red">What really happened</span>
+            <p class="moment-real">The tower and the boost protective cover were thrown clear about three minutes into the flight, just after the second stage lit. Until then the cover hid the windows.</p>
+            <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/">Apollo 11 Flight Journal</a></p>
+          </div>
+        </li>
+        <li class="moment" data-moment="loss-of-signal">
+          <div class="moment-head">
+            <span class="moment-num">02</span>
+            <h3>Loss of signal</h3>
+            <span class="mark" hidden></span>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow">In the game</span>
+            <p class="moment-game">The ship passed behind the Moon and Houston fell silent.</p>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow eyebrow-red">What really happened</span>
+            <p class="moment-real">Behind the Moon the spacecraft had no radio contact with Earth at all, for about 48 minutes of every orbit.</p>
+            <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/">Apollo 11 Flight Journal</a></p>
+          </div>
+        </li>
+        <li class="moment" data-moment="alarm-1202">
+          <div class="moment-head">
+            <span class="moment-num">03</span>
+            <h3>The 1202 alarm</h3>
+            <span class="mark" hidden></span>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow">In the game</span>
+            <p class="moment-game">A 1202 program alarm lit the computer display during the powered descent.</p>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow eyebrow-red">What really happened</span>
+            <p class="moment-real">Eagle’s computer raised 1202 and 1201 alarms on the way down. It was short of time and dropped low priority jobs. Houston called it go.</p>
+            <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/">Apollo 11 Flight Journal</a></p>
+          </div>
+        </li>
+        <li class="moment" data-moment="eagle-landed">
+          <div class="moment-head">
+            <span class="moment-num">04</span>
+            <h3>The Eagle has landed</h3>
+            <span class="mark" hidden></span>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow">In the game</span>
+            <p class="moment-game">After the contact light, the commander called Houston: the Eagle has landed.</p>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow eyebrow-red">What really happened</span>
+            <p class="moment-real">Armstrong said “Houston, Tranquility Base here. The Eagle has landed.” at about 20:17 UTC on July 20, 1969.</p>
+            <p class="cite">Source: <a href="https://www.nasa.gov/history/alsj/a11/a11.html">Apollo Lunar Surface Journal</a></p>
+          </div>
+        </li>
+        <li class="moment" data-moment="seismo-steps">
+          <div class="moment-head">
+            <span class="moment-num">05</span>
+            <h3>The seismometer hears footsteps</h3>
+            <span class="mark" hidden></span>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow">In the game</span>
+            <p class="moment-game">Houston said the seismometer was already picking up the crew’s footsteps.</p>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow eyebrow-red">What really happened</span>
+            <p class="moment-real">The Passive Seismic Experiment Package recorded the astronauts’ footsteps. It ran for about three weeks.</p>
+            <p class="cite">Source: <a href="https://www.nasa.gov/history/alsj/a11/a11.html">Apollo Lunar Surface Journal</a></p>
+          </div>
+        </li>
+        <li class="moment" data-moment="flag-knocked">
+          <div class="moment-head">
+            <span class="moment-num">06</span>
+            <h3>The flag falls</h3>
+            <span class="mark" hidden></span>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow">In the game</span>
+            <p class="moment-game">The ascent engine fired and the flag fell over.</p>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow eyebrow-red">What really happened</span>
+            <p class="moment-real">Aldrin saw the blast of the ascent engine knock the flag over. A rod along its top edge held the cloth out, since there is no wind on the Moon.</p>
+            <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/">Apollo 11 Flight Journal</a></p>
+          </div>
+        </li>
+        <li class="moment" data-moment="burn-routine">
+          <div class="moment-head">
+            <span class="moment-num">07</span>
+            <h3>The ascent engine ignites</h3>
+            <span class="mark" hidden></span>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow">In the game</span>
+            <p class="moment-game">The ascent engine fired down onto the descent stage, and a green readout named a routine.</p>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow eyebrow-red">What really happened</span>
+            <p class="moment-real">The descent stage served as a launch pad. The computer routine that lit the engines is named BURN_BABY_BURN--MASTER_IGNITION_ROUTINE.</p>
+            <p class="cite">Source: <a href="https://github.com/chrislgarry/Apollo-11">Apollo Guidance Computer source, Luminary 099</a></p>
+          </div>
+        </li>
+        <li class="moment" data-moment="hornet">
+          <div class="moment-head">
+            <span class="moment-num">08</span>
+            <h3>USS Hornet and Helicopter 66</h3>
+            <span class="mark" hidden></span>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow">In the game</span>
+            <p class="moment-game">USS Hornet and Helicopter 66, a Sea King, came for the capsule after splashdown.</p>
+          </div>
+          <div class="moment-col">
+            <span class="eyebrow eyebrow-red">What really happened</span>
+            <p class="moment-real">Columbia landed about 24 km (13 nautical miles) from USS Hornet. Swimmers opened the hatch and Helicopter 66 flew the crew to the ship.</p>
+            <p class="cite">Source: <a href="https://www.nasa.gov/history/afj/ap11fj/">Apollo 11 Flight Journal</a></p>
+          </div>
+        </li>
           </ol>
-          <figure class="tall">
-            <img
-              src="img/as11-40-5875.jpg"
-              width="990"
-              height="1024"
-              loading="lazy"
-              alt="An astronaut in a white suit and gold visor stands beside the flag on the Moon."
-            />
-            <figcaption>
-              Aldrin beside the flag, July 20, 1969. The game shows this picture as a print. NASA photo AS11-40-5875.
-              <span class="credit">Credit: <a href="https://www.hq.nasa.gov/alsj/a11/images11.html">NASA</a></span>
-            </figcaption>
-          </figure>
         </section>
 
-        <section id="sources" aria-labelledby="h-sources">
-          <h2 id="h-sources">Sources</h2>
-          <ul class="sources">
-            <li><a href="https://www.nasa.gov/mission/apollo-11/">NASA, Apollo 11 mission page</a></li>
-            <li><a href="https://www.nasa.gov/history/afj/ap11fj/">NASA, Apollo 11 Flight Journal</a></li>
-            <li><a href="https://www.nasa.gov/history/alsj/a11/a11.html">NASA, Apollo Lunar Surface Journal, Apollo 11</a></li>
-            <li><a href="https://www.nasa.gov/history/alsj-and-afj/">NASA, the Apollo Journals</a></li>
-            <li><a href="https://images.nasa.gov/">NASA Image and Video Library</a> for the photographs, each linked in its credit</li>
-            <li><a href="https://www.hq.nasa.gov/alsj/a11/images11.html">NASA, Apollo 11 image library</a>, photo AS11-40-5875</li>
-            <li><a href="https://github.com/chrislgarry/Apollo-11">Apollo Guidance Computer source code, Apollo 11</a>, public domain</li>
+        <section class="game" aria-labelledby="play-title">
+          <div class="game-box">
+            <figure class="game-photo">
+              <img
+                src="img/as11-40-5875.jpg"
+                width="990"
+                height="1024"
+                loading="lazy"
+                alt="Aldrin stands beside the American flag on the grey lunar surface, saluting."
+              />
+            </figure>
+            <div class="game-text">
+              <p class="kicker">The game</p>
+              <h2 id="play-title">Take the middle couch.</h2>
+              <p class="game-lede">Loss of Signal is a short first person horror game set aboard Apollo 11. You fly as the lunar module pilot, from the pad to the sea. The crew in the game are fictional characters. Play with headphones on.</p>
+              <a class="play play-lg" href="./play.html">
+                Play as an astronaut
+                <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4"></path></svg>
+              </a>
+              <p class="game-credit">Photograph: Aldrin with the flag, AS11-40-5875, <a href="https://images.nasa.gov/details/AS11-40-5875">NASA</a>. The game shows it as a print.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="sources" class="sources" aria-labelledby="sources-title">
+          <h2 id="sources-title" class="eyebrow eyebrow-dark">Sources</h2>
+          <ul>
+          <li><a href="https://www.nasa.gov/mission/apollo-11/">NASA, Apollo 11 mission overview</a></li>
+          <li><a href="https://www.nasa.gov/history/afj/ap11fj/">NASA, Apollo 11 Flight Journal</a></li>
+          <li><a href="https://www.nasa.gov/history/alsj/a11/a11.html">NASA, Apollo Lunar Surface Journal, Apollo 11</a></li>
+          <li><a href="https://images.nasa.gov/">NASA Image and Video Library, for every photograph</a></li>
+          <li><a href="https://github.com/chrislgarry/Apollo-11">Apollo Guidance Computer source code, Apollo 11, public domain</a></li>
           </ul>
-          <p class="note">
-            NASA photographs are in the public domain. The type is Libre Caslon Text and Source Serif 4, from Google
-            Fonts, under the SIL Open Font License.
-          </p>
-        </section>
-
-        <section class="closing" aria-labelledby="h-play">
-          <h2 id="h-play">Play</h2>
-          <p id="h-play-line">
-            A short first person horror game set aboard Apollo 11. The crew in the game are fictional characters.
-          </p>
-          <p><a class="play big" href="./play.html">Play as an astronaut</a></p>
+          <p class="sources-note">NASA photographs are in the public domain. Type: Newsreader and Libre Franklin, from Google Fonts, under the SIL Open Font License.</p>
         </section>
       </article>
     </main>
+
+    <footer class="site-footer">
+      <div class="wrap site-footer-inner">
+        <span class="footer-name">LOSS OF SIGNAL</span>
+        <span class="footer-note">An independent project. Not affiliated with NASA.</span>
+        <a class="footer-play" href="./play.html">Play as an astronaut</a>
+      </div>
+    </footer>
 
     <script type="module" src="/src/article/main.ts"></script>
   </body>
