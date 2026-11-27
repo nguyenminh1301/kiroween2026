@@ -43,6 +43,8 @@ export interface GameState {
   unlockedActs: ActId[]
   /** True once act 5 has been finished. Saved. */
   finished: boolean
+  /** A run was started on this browser. Saved, so the article can show marks. */
+  played: boolean
   setScreen: (screen: Screen) => void
   setAct: (act: ActId | null) => void
   setCheckpoint: (checkpoint: string | null) => void
@@ -63,6 +65,7 @@ export interface GameState {
   setSubtitle: (subtitle: Subtitle | null) => void
   setUnlockedActs: (ids: ActId[]) => void
   setFinished: (finished: boolean) => void
+  setPlayed: (played: boolean) => void
   resetAnomalies: () => void
 }
 
@@ -87,6 +90,7 @@ export const gameStore = createStore<GameState>()((set) => ({
   subtitle: null,
   unlockedActs: ['act0-pad'],
   finished: false,
+  played: false,
   setScreen: (screen) => set({ screen }),
   setAct: (act) => set({ act }),
   setCheckpoint: (checkpoint) => set({ checkpoint }),
@@ -110,5 +114,6 @@ export const gameStore = createStore<GameState>()((set) => ({
   setSubtitle: (subtitle) => set({ subtitle }),
   setUnlockedActs: (unlockedActs) => set({ unlockedActs: [...unlockedActs] }),
   setFinished: (finished) => set({ finished }),
+  setPlayed: (played) => set({ played }),
   resetAnomalies: () => set({ anomaliesSeen: [], dreamChoice: null }),
 }))

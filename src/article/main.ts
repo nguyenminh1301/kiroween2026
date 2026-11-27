@@ -1,3 +1,5 @@
+import { applyMarks } from './marks'
+
 // The article page script: folds the section menu on narrow screens.
 // No game code and no 3D code is imported here.
 
@@ -19,3 +21,5 @@ function setupMenu(): void {
 }
 
 setupMenu()
+
+applyMarks()

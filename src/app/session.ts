@@ -18,6 +18,7 @@ export function playAct(id: ActId, checkpoint?: string, opts: { restart?: boolea
 /** Start a new run at act 0. */
 export function startRun(): Promise<void> {
   gameStore.getState().resetAnomalies()
+  gameStore.getState().setPlayed(true)
   return playAct(startAction().act)
 }
 

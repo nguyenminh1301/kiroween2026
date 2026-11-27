@@ -52,6 +52,10 @@ export interface SavedShape {
   unlockedActs: ActId[]
   /** Act 5 was finished once. Omitted when false. */
   finished?: boolean
+  /** A run was started on this browser. The article shows Seen or Missed marks only then. */
+  played?: boolean
+  /** Moment ids seen in the last run. Only kept when `played`. */
+  seen?: string[]
 }
 
 export function serializeSaved(saved: SavedShape): string {
@@ -59,6 +63,7 @@ export function serializeSaved(saved: SavedShape): string {
     settings: { ...saved.settings },
     unlockedActs: [...saved.unlockedActs],
     finished: saved.finished === true,
+    ...(saved.played === true ? { played: true, seen: [...(saved.seen ?? [])] } : {}),
   })
 }
 
@@ -109,6 +114,9 @@ export function parseSaved(raw: string | null): SavedShape {
     settings: sanitizeSettings(o.settings),
     unlockedActs: sanitizeUnlocked(o.unlockedActs),
     ...(o.finished === true ? { finished: true } : {}),
+    ...(o.played === true
+      ? { played: true, seen: Array.isArray(o.seen) ? o.seen.filter((x): x is string => typeof x === 'string') : [] }
+      : {}),
   }
 }
 

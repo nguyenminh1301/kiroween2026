@@ -61,16 +61,25 @@ export function startPersistence(
   store.getState().setSettings(saved.settings)
   store.getState().setUnlockedActs(saved.unlockedActs)
   if (saved.finished) store.getState().setFinished(true)
+  if (saved.played) store.setState({ played: true, anomaliesSeen: saved.seen ?? [] })
 
   return store.subscribe((state, prev) => {
     if (
       state.settings === prev.settings &&
       state.unlockedActs === prev.unlockedActs &&
-      state.finished === prev.finished
+      state.finished === prev.finished &&
+      state.played === prev.played &&
+      state.anomaliesSeen === prev.anomaliesSeen
     )
       return
     try {
-      writeRaw(serializeSaved({ settings: state.settings, unlockedActs: state.unlockedActs, finished: state.finished }), resolve())
+      writeRaw(serializeSaved({
+          settings: state.settings,
+          unlockedActs: state.unlockedActs,
+          finished: state.finished,
+          played: state.played,
+          seen: state.anomaliesSeen,
+        }), resolve())
     } catch (err) {
       warnOnce('write', err)
     }
