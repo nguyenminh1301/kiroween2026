@@ -63,6 +63,8 @@ export function buildRibs(): BufferGeometry {
   const R = '#5a2214'
   let k = 0
   for (const e of GRID.edges()) {
+    // The closing wall at the cabin doorway has its own posts: a rib at its middle would stand in the doorway.
+    if (e.axis === 'z' && Math.abs(e.at - Z_HATCH_END) < 1e-6) continue
     for (const end of [e.from, e.to]) {
       const key = `${e.axis}:${e.at.toFixed(2)}:${end.toFixed(2)}:${e.open}`
       if (seen.has(key)) continue

@@ -6,6 +6,11 @@ import type { Box } from '../../engine/collision'
 import type { Vec3 } from '../../types'
 import { CELL, Grid, type Pt, type Rect } from './mapgrid'
 
+const box = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number): Box => ({
+  min: { x: x0, y: y0, z: z0 },
+  max: { x: x1, y: y1, z: z1 },
+})
+
 export const CHECKPOINTS = ['start', 'wp0', 'wp1', 'wp2', 'wp3'] as const
 export type Checkpoint = (typeof CHECKPOINTS)[number]
 
@@ -77,6 +82,11 @@ export const CAGED: Record<'cdr' | 'cmp', Vec3> = {
   cmp: { x: 0.55, y: 0, z: -31.5 },
 }
 export const CREW_RADIUS = 0.6
+/** Collision half size of a hanging crewman, in x and z. */
+export const CREW_BOX_HALF = 0.25
+/** The hanging crewman as a collision slab. Dropped when he is carried away. */
+export const crewBox = (who: 'cdr' | 'cmp'): Box =>
+  box(CAGED[who].x - CREW_BOX_HALF, CAGED[who].x + CREW_BOX_HALF, 0, HEIGHT, CAGED[who].z - CREW_BOX_HALF, CAGED[who].z + CREW_BOX_HALF)
 /** Voice position of a caged crewman. */
 export const cagedVoice = (who: 'cdr' | 'cmp'): Vec3 => ({ ...CAGED[who], y: 1.0 })
 /** Z of the whole map's far edge. */
@@ -277,17 +287,13 @@ export const SPOTS: SpotDef[] = [...LOCKERS, ...CORNERS, ...BAG_SPOTS]
 // ---------------------------------------------------------------------------------------------------
 // Collision and creature navigation.
 
-const box = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number): Box => ({
-  min: { x: x0, y: y0, z: z0 },
-  max: { x: x1, y: y1, z: z1 },
-})
 
 /** The cage door as a collision slab. Removed when the cage opens. */
 export const cageDoorBox = (): Box => box(-CAGE.doorHalf, CAGE.doorHalf, 0, HEIGHT, CAGE.z - CAGE.thick / 2, CAGE.z + CAGE.thick / 2)
 export const hatchBox = (): Box => box(-HATCH.halfW, HATCH.halfW, 0, HEIGHT, HATCH.z - HATCH.thick / 2, HATCH.z + HATCH.thick / 2)
 
 /** Collision: floor, ceiling, map walls, cabin, bags, lockers, door leaves, hatch and cage bars. */
-export function collisionBoxes(): Box[] {
+export function collisionBoxes(withCrew = true): Box[] {
   const zLo = Z_FAR_END - 0.5
   const zHi = CABIN.z1 + 0.5
   const C = CABIN.halfW
@@ -317,7 +323,21 @@ export function collisionBoxes(): Box[] {
   boxes.push(box(-HALF_W, -CAGE.doorHalf, 0, HEIGHT, CAGE.z - CAGE.thick / 2, CAGE.z + CAGE.thick / 2))
   boxes.push(box(CAGE.doorHalf, HALF_W, 0, HEIGHT, CAGE.z - CAGE.thick / 2, CAGE.z + CAGE.thick / 2))
   boxes.push(cageDoorBox())
+  if (withCrew) boxes.push(crewBox('cdr'), crewBox('cmp'))
   return boxes
+}
+
+/** The solid props the player can reach on the map, each with a point inside it. Every one has a collision box. */
+export function solidProps(): Array<{ id: string; point: Vec3 }> {
+  return [
+    ...LOCKERS.map((l) => ({ id: l.id, point: { ...l.center } })),
+    { id: 'hatch', point: { x: 0, y: 1, z: HATCH.z } },
+    { id: 'cage-left', point: { x: -0.8, y: 1, z: CAGE.z } },
+    { id: 'cage-right', point: { x: 0.8, y: 1, z: CAGE.z } },
+    { id: 'cage-door', point: { x: 0, y: 1, z: CAGE.z } },
+    { id: 'crew-cdr', point: { x: CAGED.cdr.x, y: 1, z: CAGED.cdr.z } },
+    { id: 'crew-cmp', point: { x: CAGED.cmp.x, y: 1, z: CAGED.cmp.z } },
+  ]
 }
 
 /** What the creature never walks into: spots, the hatch and the cage bars. */

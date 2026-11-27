@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveCapsule } from '../../engine/collision'
-import { CAGE, CAGED, cageDoorBox, checkpointAt, collisionBoxes, creatureBlockers, creatureClear, detectBump, GRID, HATCH, LOCKERS, NAV_NODES, PATROL_ROUTE, SPOTS, CREATURE_RADIUS } from './layout'
+import { CAGE, CAGED, cageDoorBox, checkpointAt, collisionBoxes, creatureBlockers, creatureClear, crewBox, detectBump, GRID, HATCH, LOCKERS, NAV_NODES, PATROL_ROUTE, solidProps, SPOTS, CREATURE_RADIUS } from './layout'
 
 /** Can a walker get from the cell at (x0, z0) to the cell at (x1, z1) when cells in `cut` are removed? */
 function reachable(from: [number, number], to: [number, number], cut: (c: number, r: number) => boolean): boolean {
@@ -164,5 +164,21 @@ describe('act 3 map', () => {
       expect(GRID.clearAt(p.x, p.z, 0.4)).toBe(true)
     }
     expect(CAGED.cmp.x - CAGED.cdr.x).toBeGreaterThan(0.9)
+  })
+
+  it('gives every solid prop on the map a collision box, so nothing can be walked through', () => {
+    const boxes = collisionBoxes()
+    for (const p of solidProps()) {
+      const hit = boxes.some((b) => p.point.x > b.min.x && p.point.x < b.max.x && p.point.y > b.min.y && p.point.y < b.max.y && p.point.z > b.min.z && p.point.z < b.max.z)
+      expect(hit, p.id).toBe(true)
+    }
+  })
+
+  it('pushes the player out of a hanging crewman, at 0.55 m: close enough to take him', () => {
+    const boxes = collisionBoxes()
+    const hit = resolveCapsule({ x: 0.55, y: 0.2, z: CAGED.cmp.z + 0.4 }, { x: 0, y: 0, z: -2 }, boxes)
+    expect(hit.pos.z).toBeGreaterThan(CAGED.cmp.z)
+    expect(hit.pos.z - CAGED.cmp.z).toBeCloseTo(0.55, 1)
+    expect(collisionBoxes(false)).not.toContainEqual(crewBox('cmp'))
   })
 })

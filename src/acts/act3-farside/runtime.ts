@@ -40,6 +40,7 @@ import {
   CHECKPOINT_DEFS,
   collisionBoxes,
   creatureClear,
+  crewBox,
   CREW_RADIUS,
   detectBump,
   heardAt,
@@ -102,16 +103,22 @@ export function startAct3(requested: string): void {
     fxStore.getState().setSlit(false)
   })
 
-  const allBoxes = collisionBoxes()
+  const allBoxes = collisionBoxes(false)
   const doorBox = cageDoorBox()
   allBoxes.push(doorBox)
+  // The hanging crew are solid until they are carried away.
+  const crewBoxes = { cdr: crewBox('cdr'), cmp: crewBox('cmp') }
+  const gone = new Set<unknown>()
+  if (later && persistedFirst) gone.add(crewBoxes[persistedFirst])
+  allBoxes.push(crewBoxes.cdr, crewBoxes.cmp)
+  const liveBoxes = (): typeof allBoxes => allBoxes.filter((b) => !gone.has(b))
   const step: {
     boxes: typeof allBoxes
     seatForwardYaw: number
     speed?: number
     seatedYawLimit?: number
     seatedPitchLimit?: number
-  } = { boxes: allBoxes, seatForwardYaw: asleep ? SLEEP_YAW : LOCKER_YAW }
+  } = { boxes: liveBoxes(), seatForwardYaw: asleep ? SLEEP_YAW : LOCKER_YAW }
   addPlayerSystem(step)
   startAudioSession()
   audio.setScene({ hum: 1, bed: 'engine', breath: breathAllowed('act3-farside', 'dream') })
@@ -172,10 +179,13 @@ export function startAct3(requested: string): void {
     },
     openCage: () => {
       act3State.cageOpen = true
-      step.boxes = allBoxes.filter((b) => b !== doorBox)
+      gone.add(doorBox)
+      step.boxes = liveBoxes()
     },
     carry: (who) => {
       act3State.carried = who
+      gone.add(crewBoxes[who])
+      step.boxes = liveBoxes()
       persistedFirst = who
       step.speed = CARRY_SPEED
       setBagMark(who)
@@ -209,7 +219,7 @@ export function startAct3(requested: string): void {
       step.seatForwardYaw = SLEEP_YAW
       step.seatedYawLimit = undefined
       step.seatedPitchLimit = undefined
-      step.boxes = allBoxes
+      step.boxes = liveBoxes()
       updatePlayerBody({
         pos: { x: SLEEP_EYE.x, y: SLEEP_EYE.y - EYE_HEIGHT, z: SLEEP_EYE.z },
         vel: { x: 0, y: 0, z: 0 },
