@@ -27,27 +27,83 @@ export const MAIN_HEIGHT = 30
 export const MAIN_DIAMETER = 25
 export const DROGUE_DIAMETER = 5
 export const LINE_LENGTH = 30
-/** Centre to centre of neighbouring mains: a little wider than one canopy, so they sit side by side. */
-export const MAIN_SPACING = 26
-/** Where the lines gather, above the top of the capsule, metres. */
-export const CONFLUENCE_Y = 4
 /** Main canopies per set. */
 export const MAIN_COUNT = 3
+/**
+ * The three mains fly as a triangle seen from below. Each canopy has its own gather point, `GATHER_Y` above the
+ * capsule top and `GATHER_RADIUS` out from its axis, and its own riser down to the top of the capsule.
+ * The canopies tilt a little outward from each other, as real clusters do.
+ */
+export const GATHER_Y = 6
+export const GATHER_RADIUS = 7.5
+export const MAIN_TILT = 0.26
+/** Where the risers meet the capsule, metres from its axis. */
+export const RISER_BASE_RADIUS = 0.5
+/** Line and riser widths in metres, thick enough to read at 640 x 360 in the outside shots. */
+export const MAIN_LINE_WIDTH = 0.25
+export const RISER_WIDTH = 0.5
+export const DROGUE_LINE_WIDTH = 0.2
+
+export interface MainPose {
+  /** Where this canopy's lines gather. */
+  gather: Vec3
+  /** Unit vector along the canopy axis, from the gather point up through the dome. */
+  axis: Vec3
+  /** Centre of the rim. */
+  rim: Vec3
+  rimRadius: number
+  /** Line length from the gather point to the rim. */
+  line: number
+}
+
+/** Bearing of main `i` around the vertical axis. Main 0 faces +z. */
+export const mainAngle = (i: number): number => Math.PI / 2 + (i * 2 * Math.PI) / MAIN_COUNT
+
+export function gatherPoint(i: number): Vec3 {
+  const a = mainAngle(i)
+  return { x: GATHER_RADIUS * Math.cos(a), y: GATHER_Y, z: GATHER_RADIUS * Math.sin(a) }
+}
+
+/** Where main `i`'s riser meets the capsule top. */
+export function riserBase(i: number): Vec3 {
+  const a = mainAngle(i)
+  return { x: RISER_BASE_RADIUS * Math.cos(a), y: 0, z: RISER_BASE_RADIUS * Math.sin(a) }
+}
 
 /**
- * Where main `i` (0 to 2) sits when open by `spread` (0 reefed together, 1 full): the centre of its rim,
- * above the capsule top, and how far it leans outward. The rim height follows from the line length.
+ * Main `i` with its rim at `scale` of full radius and its outward tilt at `spread` (0 reefed, 1 full).
+ * Every line is `LINE_LENGTH` long, so a narrow reefed canopy sits higher than a full one.
  */
-export function mainCentre(i: number, spread: number): { x: number; y: number; z: number; lean: number } {
-  const f = clamp01(spread)
-  const side = i - 1
-  const near = MAIN_DIAMETER / 2
+export function mainPose(i: number, scale: number, spread: number): MainPose {
+  const rimRadius = (MAIN_DIAMETER / 2) * Math.max(0, Math.min(1.2, scale))
+  const d = Math.sqrt(LINE_LENGTH * LINE_LENGTH - rimRadius * rimRadius)
+  const tilt = MAIN_TILT * Math.min(1, Math.max(0, spread))
+  const a = mainAngle(i)
+  const axis = { x: Math.sin(tilt) * Math.cos(a), y: Math.cos(tilt), z: Math.sin(tilt) * Math.sin(a) }
+  const gather = gatherPoint(i)
   return {
-    x: side * MAIN_SPACING * f,
-    y: CONFLUENCE_Y + Math.sqrt(LINE_LENGTH * LINE_LENGTH - near * near) - Math.abs(side) * 0.5 * f,
-    z: 0,
-    lean: -side * 0.1 * f,
+    gather,
+    axis,
+    rim: { x: gather.x + axis.x * d, y: gather.y + axis.y * d, z: gather.z + axis.z * d },
+    rimRadius,
+    line: LINE_LENGTH,
   }
+}
+
+/** Point `k` of `n` on the rim of a posed canopy. */
+export function rimPoint(pose: MainPose, k: number, n: number): Vec3 {
+  const { axis } = pose
+  // u = axis x z and w = axis x u: two unit vectors in the rim plane.
+  const ul = Math.hypot(axis.x, axis.y) || 1
+  const ux = axis.y / ul
+  const uy = -axis.x / ul
+  const wx = -axis.z * uy
+  const wy = axis.z * ux
+  const wz = axis.x * uy - axis.y * ux
+  const ang = (k / n) * Math.PI * 2
+  const c = Math.cos(ang) * pose.rimRadius
+  const sn = Math.sin(ang) * pose.rimRadius
+  return { x: pose.rim.x + ux * c + wx * sn, y: pose.rim.y + uy * c + wy * sn, z: pose.rim.z + wz * sn }
 }
 
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x))
@@ -66,15 +122,20 @@ export function coverAt(t: number): { pos: Vec3; spin: number } | null {
 /** How far the drogue lines have run out, 0 to 1. */
 export const drogueRun = (t: number): number => smooth((t - DROGUE_AT) / DROGUE_SHOOT)
 
+/** Seconds the drogues stay reefed, partly open, before they fill. */
+export const DROGUE_REEF_HOLD = 0.9
+export const DROGUE_REEFED = 0.45
+
 /**
- * Drogue canopy fill: a thin streamer at first, then a jerk open with a small overshoot, then 1.
- * 0 before the jerk, about 1.18 at the peak, settles to 1.
+ * Drogue canopy fill: a thin streamer while the lines run out, a reefed moment, then a snap to fully open
+ * with a small overshoot, then 1.
  */
 export function drogueFill(t: number): number {
   const u = t - DROGUE_JERK_AT
   if (u < 0) return 0.18
-  // A damped spring from the thin streamer: it snaps open, overshoots about 18 percent, and settles.
-  return 1 - 0.82 * Math.exp(-u * 7) * Math.cos(u * 14)
+  if (u < DROGUE_REEF_HOLD) return DROGUE_REEFED
+  const v = u - DROGUE_REEF_HOLD
+  return 1 - (1 - DROGUE_REEFED) * Math.exp(-v * 7) * Math.cos(v * 14)
 }
 
 /** The drogues are in use from the pop until 0.0 seconds after the cut, then they fall away for 2.5 s. */
@@ -100,7 +161,7 @@ export function openingJerk(t: number): number {
     const u = t - at
     return u < 0 ? 0 : -size * Math.exp(-u * 4.5) * Math.sin(Math.min(u, 0.35) / 0.35 * Math.PI)
   }
-  return hit(DROGUE_JERK_AT, 0.45) + hit(REEF_AT - 0.3, 0.35) + hit(FULL_FROM + 1.5, 0.3)
+  return hit(DROGUE_JERK_AT, 0.3) + hit(DROGUE_JERK_AT + DROGUE_REEF_HOLD, 0.45) + hit(REEF_AT - 0.3, 0.35) + hit(FULL_FROM + 1.5, 0.3)
 }
 
 /** Main chute opening, 0 to 1, in two steps over 8 s: reefed (0.3) by 29.4 s, full from 32.2 s to 36.2 s. */

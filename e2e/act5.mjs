@@ -41,16 +41,16 @@ try {
   })
   check(start.tension === 'UNEASE' && start.hr === 100 && Math.abs(start.fear - 0.2) < 0.01, `start state ${JSON.stringify(start)}`)
 
-  // Screenshots every 9 s of timeline time, and a budget check on each.
+  // Screenshots at the re-entry peak and fade, the reefed and open drogues, the reefed and open mains, then every 9 s. A budget check on each.
   const sawLines = new Set()
   let maxCalls = 0
   let maxTris = 0
-  for (let mark = 9; mark <= 63; mark += 9) {
+  for (const mark of [8.5, 11.5, 22.8, 25, 29.8, 34, 36.5, 45, 54, 63]) {
     await wait((m) => (window.__los.timeline() ?? 999) >= m, mark, 120000)
     const s = await page.evaluate(() => ({ calls: window.__los.stats.calls, tris: window.__los.stats.triangles }))
     maxCalls = Math.max(maxCalls, s.calls)
     maxTris = Math.max(maxTris, s.tris)
-    await shot(`act5-t${String(mark).padStart(2, '0')}s`)
+    await shot(`act5-t${String(mark).replace('.', '_').padStart(2, '0')}s`)
   }
   check(maxCalls < 150, `draw calls ${maxCalls}, expected under 150`)
   check(maxTris < 150000, `triangles ${maxTris}, expected under 150000`)
