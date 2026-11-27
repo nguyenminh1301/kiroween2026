@@ -63,7 +63,6 @@ Kiro wrote the code, from specs, steering files and hooks kept in the repo. `doc
 - `.kiro/steering/` holds the rules Kiro always reads: product, art, tech, structure, testing, repo rules, working rules and writing rules for player text.
 - `.kiro/specs/` holds one folder per spec, each with requirements, design and tasks.
 - `.kiro/hooks/` holds three hooks: tests on save, a copy check on content edits, and a budget check.
-- `.kiro/agents/` holds the agent used for the command line runs.
 
 ## Project layout
 
