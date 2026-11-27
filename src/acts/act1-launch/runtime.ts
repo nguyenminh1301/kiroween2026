@@ -133,6 +133,7 @@ export function startAct1(): void {
         setSky: (c) => {
           cabinState.sky = c
         },
+        moment: (id) => gameStore.getState().addAnomalySeen(id),
       }),
       { at: LAUNCH_DURATION, run: onLaunchEnd },
     ],

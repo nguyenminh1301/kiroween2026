@@ -24,6 +24,7 @@ function record() {
     ignite: () => push('ignite'),
     liftoff: () => push('liftoff'),
     setSky: (c: string) => push(`sky ${c}`),
+    moment: (id: string) => push(`moment ${id}`),
     showEarth: () => push('earth'),
     earthLines: () => push('earthLines'),
   }
@@ -55,6 +56,7 @@ describe('launch timeline', () => {
       [110, 'staging'],
       [110, 'act1.staging'],
       [122, 'act1.jettison'],
+      [122, 'moment escape-tower'],
       [126, 'sky #000000'],
       [135, 'act1.sky'],
       [145, 'act1.orbit'],

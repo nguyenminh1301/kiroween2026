@@ -284,7 +284,7 @@ export function createBeats(deps: BeatDeps): Beats {
           }
           if (!impostor && crossed(IMPOSTOR_Z)) {
             impostor = true
-            deps.anomaly('impostor-capcom')
+            deps.anomaly('loss-of-signal')
             deps.say('act3.impostor', { speaker: 'UNKNOWN', detuneHz: 7, from: 'player' })
           }
           if (crossed(CAGE_ARRIVE_Z)) reachCage()

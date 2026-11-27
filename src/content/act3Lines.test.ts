@@ -37,7 +37,7 @@ describe('act 3 dialogue', () => {
       expect(LINES[id].voiced, id).not.toBe(true)
       expect(recorded.some((f) => f.startsWith(id)), id).toBe(false)
       expect(LINES[id].text.length).toBeLessThanOrEqual(90)
-      expect(LINES[id].text).not.toMatch(/[\u2013\u2014]| -- /)
+      expect(LINES[id].text).not.toMatch(new RegExp('[\\u2013\\u2014]| -' + '- '))
     }
   })
 

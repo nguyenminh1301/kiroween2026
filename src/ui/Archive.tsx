@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { ANOMALIES } from '../content/anomalies'
+import { MOMENTS, TOLD_MOMENT } from '../content/archive'
 import { PHOTO } from '../content/hud'
 import { DREAM_CHOICES, FORM_LINE, MENUS } from '../content/menus'
 import { goScreen } from '../app/session'
@@ -11,7 +11,7 @@ export function Archive() {
   const m = MENUS.archive
   const back = useRef<HTMLButtonElement>(null)
   useEffect(() => back.current?.focus({ preventScroll: true }), [])
-  const count = ANOMALIES.filter((a) => seen.includes(a.id)).length
+  const count = MOMENTS.filter((a) => seen.includes(a.id)).length
   return (
     <div className="screen" data-screen="archive">
       <div className="paper archive">
@@ -19,23 +19,26 @@ export function Archive() {
         <h2>{m.title}</h2>
         <p>{m.intro}</p>
         <p data-testid="archive-count">
-          {m.noticed}: {count} / {ANOMALIES.length}.
+          {m.noticed}: {count} / {MOMENTS.length}.
         </p>
-        {ANOMALIES.map((a) => {
+        {MOMENTS.map((a) => {
           const got = seen.includes(a.id)
           return (
-            <div key={a.id} className={`anomaly ${got ? 'noticed' : 'missed'}`} data-anomaly={a.id}>
+            <div key={a.id} className={`moment ${got ? 'seen' : 'missed'}`} data-moment={a.id}>
               <div className="tag">{got ? m.noticed : m.missed}</div>
-              <p className="seen">{a.seen}</p>
+              <p className="saw">{a.seen}</p>
               <p className="real">{a.real}</p>
-              {a.id === 'impostor-capcom' && told ? (
+              {a.id === TOLD_MOMENT && told ? (
                 <p className="told" data-testid="archive-told">
                   {m.told} {DREAM_CHOICES[told]}
                 </p>
               ) : null}
-              <a href={a.source} target="_blank" rel="noreferrer">
-                {m.source}
-              </a>
+              <p className="cite">
+                {m.source}: {a.cite}.{' '}
+                <a href={a.source} target="_blank" rel="noreferrer">
+                  {a.source}
+                </a>
+              </p>
             </div>
           )
         })}

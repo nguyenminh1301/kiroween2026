@@ -141,6 +141,8 @@ export interface LaunchHooks {
   ignite(): void
   liftoff(): void
   setSky(color: string): void
+  /** A real moment of the flight happened in front of the player. */
+  moment(id: string): void
 }
 
 /** The launch events, in the order the timeline runs them. */
@@ -172,7 +174,13 @@ export function launchEvents(h: LaunchHooks): TimelineEvent[] {
         h.say('act1.staging', {})
       },
     },
-    { at: JETTISON_AT, run: () => h.say('act1.jettison') },
+    {
+      at: JETTISON_AT,
+      run: () => {
+        h.say('act1.jettison')
+        h.moment('escape-tower')
+      },
+    },
     { at: SECOND_STAGE_AT, run: () => h.setSky(SKY.space) },
     { at: THIRD_STAGE_AT, run: () => h.say('act1.sky') },
     { at: ORBIT_AT, run: () => h.say('act1.orbit') },

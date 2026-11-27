@@ -74,7 +74,7 @@ describe('act 3 dream beats', () => {
     h.at(-15)
     h.at(-13)
     h.at(-15)
-    expect(h.log.filter((l) => l === 'anomaly:impostor-capcom')).toHaveLength(1)
+    expect(h.log.filter((l) => l === 'anomaly:loss-of-signal')).toHaveLength(1)
     expect(h.log.filter((l) => l === 'say:act3.impostor')).toHaveLength(1)
   })
 
