@@ -1,9 +1,10 @@
+import { gameUrl } from './url.mjs'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
@@ -140,7 +141,7 @@ try {
   check((await pos()).y < rungY, 'dropping')
 
   // 3. The surface.
-  await objective('Surface tasks, any order', 120000)
+  await objective('Plant the flag. The photo comes next', 120000)
   check(await page.evaluate(() => window.__los.player.body.pos.z > 4.5), 'stepped off onto the dust beyond the footpad')
   check((await info()).phase === 'eva', 'eva phase')
   check(await page.evaluate(() => window.__los.store.getState().checkpoint === 'tasks'), 'tasks checkpoint')

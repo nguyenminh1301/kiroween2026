@@ -1,6 +1,7 @@
+import { gameUrl } from './url.mjs'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const errors = []
 const check = (ok, msg) => {
   if (!ok) errors.push(`check failed: ${msg}`)

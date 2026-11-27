@@ -1,9 +1,9 @@
 // No WebGL: the page must show the no-WebGL message, with no uncaught error and no blank page.
 // Run against the dev server without ?debug, so the real screens show.
 import { chromium } from 'playwright'
+import { gameUrl } from './url.mjs'
 
-const base = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
-const url = base.replace(/\?debug.*$/, '')
+const url = gameUrl(null)
 const errors = []
 const check = (ok, msg) => {
   if (!ok) errors.push(`check failed: ${msg}`)

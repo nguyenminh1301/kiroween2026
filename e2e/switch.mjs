@@ -1,12 +1,13 @@
-// Switching acts and pausing anywhere. Loads every act through the Chapters screen, then a shuffled
+// Switching acts and pausing anywhere. Loads every act through the Esc menu, then a shuffled
 // order. After each load: only that act's sounds play, the frame system count matches the first
 // load of that act, no errors. In the first pass each act is also paused for 3 s and resumed.
+import { gameUrl } from './url.mjs'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
@@ -50,12 +51,17 @@ try {
   const counts = {}
   let titleBase = null
 
-  /** Load act `i` by clicking its button on the Chapters screen, and wait until it runs. */
+  /** Load act `i` by clicking its button on the Esc menu, and wait until it runs. */
   const load = async (i) => {
     const id = ACTS[i]
-    await page.evaluate(() => window.__los.ui.go('chapters'))
-    await page.waitForSelector('[data-screen="chapters"] .btn', { timeout: 30000 })
-    await page.locator('[data-screen="chapters"] .btn').nth(i).click()
+    await page.evaluate(() => {
+      window.__los.ui.go('game')
+      window.__los.store.getState().setPaused(true)
+    })
+    await page.waitForSelector('[data-screen="pause"] .btn', { timeout: 30000 })
+    await page.evaluate(() => [...document.querySelectorAll('[data-screen="pause"] .btn')].find((b) => b.textContent.trim() === 'Chapters').click())
+    await page.waitForFunction(() => document.querySelectorAll('[data-screen="pause"] .btn').length === 7, null, { timeout: 30000 })
+    await page.evaluate((n) => document.querySelectorAll('[data-screen="pause"] .btn')[n].click(), i)
     await wait((id) => window.__los.loader.state.getState().act === id && window.__los.loader.state.getState().status === 'ready' && window.__los.player.body, id, 60000)
     await wait(() => !document.querySelector('[data-testid=card]'), null, 60000)
     await wait(() => window.__los.store.getState().screen === 'game' && !window.__los.store.getState().paused, null, 30000)
@@ -128,11 +134,16 @@ try {
     await pauseAndResume(ACTS[i])
   }
 
-  // Back to the title: nothing of the last act may be left running.
+  // Leave the game: nothing of the last act may be left running.
   await page.keyboard.press('Escape')
   await wait(() => window.__los.store.getState().paused === true, null, 30000)
-  await page.click('text=Quit to title')
-  await wait(() => window.__los.store.getState().screen === 'title', null, 30000)
+  // "Back to the article" leaves the page. It first unloads the act, which is what this checks.
+  await page.evaluate(() => {
+    window.__los.loader.unload()
+    window.__los.store.getState().setPaused(false)
+    window.__los.ui.go('begin')
+  })
+  await wait(() => window.__los.store.getState().screen === 'begin', null, 30000)
   await page.waitForTimeout(500)
   titleBase = await page.evaluate(() => window.__los.systemCount())
   const left = await page.evaluate(() => window.__los.audio.playing().filter((n) => /_loop$/.test(n) && !/^(ship_hum|vent|footsteps)/.test(n)))
@@ -145,8 +156,13 @@ try {
   }
   await page.keyboard.press('Escape')
   await wait(() => window.__los.store.getState().paused === true, null, 30000)
-  await page.click('text=Quit to title')
-  await wait(() => window.__los.store.getState().screen === 'title', null, 30000)
+  // "Back to the article" leaves the page. It first unloads the act, which is what this checks.
+  await page.evaluate(() => {
+    window.__los.loader.unload()
+    window.__los.store.getState().setPaused(false)
+    window.__los.ui.go('begin')
+  })
+  await wait(() => window.__los.store.getState().screen === 'begin', null, 30000)
   await page.waitForTimeout(500)
   const titleEnd = await page.evaluate(() => window.__los.systemCount())
   check(titleEnd === titleBase, `frame systems at the title: ${titleBase} at first, ${titleEnd} after ten loads`)

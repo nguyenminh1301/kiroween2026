@@ -1,7 +1,8 @@
-// Pointer lock must survive the chapter card. Start from the title, finish act 0, and check act 1.
+// Pointer lock must survive the chapter card. Start from the begin card, finish act 0, and check act 1.
+import { gameUrl } from './url.mjs'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const errors = []
 const check = (ok, msg) => {
   if (!ok) errors.push(`check failed: ${msg}`)
@@ -20,9 +21,9 @@ try {
   const locked = () => page.evaluate(() => document.pointerLockElement !== null)
   await page.goto(url)
   await wait(() => window.__los?.loader.state.getState().status === 'ready', null, 30000)
-  await page.evaluate(() => window.__los.ui.go('title'))
-  await page.waitForSelector('[data-screen="title"]')
-  await page.click('text=Start')
+  await page.evaluate(() => window.__los.ui.go('begin'))
+  await page.waitForSelector('[data-screen="begin"]')
+  await page.click('[data-screen="begin"]')
   await wait(() => window.__los.loader.state.getState().act === 'act0-pad' && window.__los.player.body, null, 120000)
   await wait(() => document.pointerLockElement !== null, null, 10000)
   check(await locked(), 'lock held in act 0')

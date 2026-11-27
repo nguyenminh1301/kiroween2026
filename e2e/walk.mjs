@@ -1,10 +1,11 @@
 // Act 0: walking must work while the opening lines play. Hold W from 2 s after load.
+import { gameUrl } from './url.mjs'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 const errors = []

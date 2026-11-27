@@ -1,12 +1,13 @@
 // A newcomer who does nothing. In each act that waits for the player: load it, do nothing for 60 s,
 // then check the objective and a hint are on screen, nothing is stuck and the screen is not black.
 // In act 3 the creature keeps patrolling and does not catch a player standing still at the start.
+import { gameUrl } from './url.mjs'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 

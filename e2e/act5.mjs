@@ -1,9 +1,10 @@
+import { gameUrl } from './url.mjs'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
@@ -32,7 +33,10 @@ try {
   await wait(() => window.__los.loader.state.getState().status === 'ready', null, 30000)
   await page.mouse.click(640, 360)
   await wait(() => window.__los.audio.loaded().length >= 40, null, 30000).catch(() => {})
-  await page.evaluate(() => window.__los.loader.loadAct('act5-home'))
+  await page.evaluate(() => {
+    window.__los.store.getState().setPlayed(true)
+    return window.__los.loader.loadAct('act5-home')
+  })
   await wait(() => window.__los.loader.state.getState().act === 'act5-home' && window.__los.player.body, null, 40000)
   check(await page.evaluate(() => window.__los.player.body.mode === 'seated'), 'seated in the cabin')
   const start = await page.evaluate(() => {
@@ -61,33 +65,29 @@ try {
   sawLines.add('act5.end')
   await wait(() => (window.__los.timeline() ?? 999) >= 70.8, null, 60000)
   await shot('act5-t72s')
-  await wait(() => window.__los.store.getState().screen === 'archive', null, 30000)
+  await wait(() => window.__los.store.getState().screen === 'leaving', null, 30000)
   await page.waitForTimeout(500)
   await shot('act5-t81s')
-  const count = await page.evaluate(() => document.querySelector('[data-testid=archive-count]')?.textContent ?? '')
-  check(/Seen: \d \/ 8\./.test(count), `archive count text: ${count}`)
   check(await page.evaluate(() => window.__los.store.getState().finished), 'finished flag set')
   check(await page.evaluate(() => window.__los.store.getState().anomaliesSeen.includes('hornet')), 'hornet seen')
+  // The end fade, then the article at "What really happened". The save has the run, so the Hornet item is marked.
+  await page.waitForURL(/#what-really-happened$/, { timeout: 30000 })
+  await page.waitForSelector('.moment .mark:not([hidden])', { timeout: 30000 })
+  const hornet = await page.locator('[data-moment="hornet"] .mark').textContent()
+  check(hornet === 'Seen in your flight', `hornet mark in the article: ${hornet}`)
 
-  // Quit to title mid-timeline: nothing more fires and every sound stops.
+  // "Back to the article" in the Esc menu leaves the game page.
+  await page.goto(url)
+  await wait(() => window.__los?.loader.state.getState().status === 'ready', null, 30000)
   await page.evaluate(() => {
     window.__los.ui.go('game')
     return window.__los.loader.loadAct('act5-home')
   })
   await wait(() => window.__los.loader.state.getState().act === 'act5-home' && (window.__los.timeline() ?? 0) >= 14, null, 60000)
   await page.evaluate(() => window.__los.store.getState().setPaused(true))
-  await page.getByRole('button', { name: 'Quit to title' }).click()
-  await wait(() => window.__los.store.getState().screen === 'title', null, 30000)
-  await page.waitForTimeout(3000)
-  const after = await page.evaluate(() => ({
-    playing: window.__los.audio.playing(),
-    queue: window.__los.audio.radioQueue(),
-    timeline: window.__los.timeline(),
-    act: window.__los.loader.state.getState().act,
-    sub: window.__los.store.getState().subtitle,
-  }))
-  check(after.playing.length === 0, `no sound after quit, got ${JSON.stringify(after.playing)}`)
-  check(after.queue.length === 0 && after.timeline === null && after.act === null && !after.sub, `nothing runs after quit: ${JSON.stringify(after)}`)
+  await page.getByRole('button', { name: 'Back to the article' }).click()
+  await page.waitForURL((u) => u.pathname === '/' || u.pathname.endsWith('/index.html'), { timeout: 30000 })
+  check(await page.locator('h1').first().isVisible(), 'article page is open after Back to the article')
 } catch (e) {
   errors.push(`script: ${e.message.split('\n')[0]} at ${(e.stack.match(/act5.mjs:(\d+)/g) ?? []).join(' ')}`)
   try {

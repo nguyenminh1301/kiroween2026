@@ -1,6 +1,6 @@
 # End-to-end smoke test
 
-The smoke test does not start a server. It opens `GAME_URL` (default `http://localhost:5173/?debug`) in headless Chromium, waits for `window.__los`, checks for a canvas and WebGL2, and saves `e2e/shots/smoke.png`.
+The smoke test does not start a server. It opens `play.html` on the origin of `GAME_URL` (default `http://localhost:5173/?debug`), with the query of `GAME_URL` in headless Chromium, waits for `window.__los`, checks for a canvas and WebGL2, and saves `e2e/shots/smoke.png`.
 
 1. In one terminal, start the dev server:
 
@@ -69,3 +69,9 @@ It prints `errors: none` and exits 0 on success. Any page error or console error
 ## Playability fixes
 
 `e2e/walk.mjs` holds W in act 0 from 2 s of game time and checks 3 m by 6 s. `e2e/lock.mjs` starts from the title, finishes act 0 and checks the pointer lock survives the chapter card, then that Resume takes it back. `e2e/rails.mjs` looks down the act 2 tunnel and presses E four times for at least 4 m. `e2e/nowebgl.mjs` stubs WebGL away and checks the no-WebGL message shows with no uncaught error (against a dev server it ignores React's dev-only re-report of that one error).
+
+## Article test
+
+`e2e/article.mjs` opens the article page (`index.html`). It checks the nine sections, the ten photos (loaded, with width, height and lazy loading), that no game script loads, that the top bar stays at the top while scrolling, that the Seen and Missed marks show only after a saved run, that the Play buttons open `play.html` on the begin card, and that at 390 px the links fold into a menu and the button stays. `e2e/url.mjs` builds the URLs: `GAME_URL` gives the origin and the query, the game scripts open `play.html` on it.
+
+The game scripts no longer meet a title menu. `ui.mjs` checks the begin card and the Esc menu (Resume, Restart checkpoint, Chapters, Settings, Back to the article). `act5.mjs` and `playthrough.mjs` wait for the end fade, then for the article at `#what-really-happened` and its marks.

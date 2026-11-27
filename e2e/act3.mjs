@@ -1,9 +1,10 @@
+import { gameUrl } from './url.mjs'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
@@ -80,6 +81,22 @@ try {
   await wait(() => window.__los.act3.phase === 'explore', null, 40000)
   await frames()
   const mon = (await dir()).monster.pos
+  // The teeth show for only 0.3 s, shorter than a SwiftShader screenshot. Record them as the DOM changes.
+  await page.evaluate(() => {
+    window.__sawBite = false
+    window.__biteBeforeOpen = false
+    const t0 = performance.now()
+    new MutationObserver(() => {
+      if (!document.querySelector('[data-testid="bite"]')) return
+      window.__sawBite = true
+      if (window.__los.act3?.phase === 'caught' && window.__caughtAt && performance.now() - window.__caughtAt < 600) window.__biteBeforeOpen = true
+    }).observe(document.body, { childList: true, subtree: true })
+    const poll = () => {
+      if (window.__los.act3?.phase === 'caught' && !window.__caughtAt) window.__caughtAt = performance.now()
+      if (performance.now() - t0 < 60000) requestAnimationFrame(poll)
+    }
+    poll()
+  })
   await teleport(mon.x - 0.4, mon.z, Math.PI / 2)
   await wait(() => window.__los.act3.phase === 'caught', null, 30000)
   // The swallow takes 1.5 s: the lit face (0 to 0.7 s), the open head (0.7 to 1.2 s), the teeth closing (1.2 to 1.5 s).
@@ -87,8 +104,8 @@ try {
   await shot('act3-swallow-face')
   await page.waitForTimeout(500)
   await shot('act3-swallow-open')
-  check((await page.locator('[data-testid="bite"]').count()) === 0, 'no teeth over the view before the lunge')
-  const sawBite = await page.waitForSelector('[data-testid="bite"]', { timeout: 5000 }).then(() => true, () => false)
+  check(!(await page.evaluate(() => window.__biteBeforeOpen)), 'no teeth over the view before the lunge')
+  const sawBite = await wait(() => window.__sawBite, null, 5000).then(() => true, () => false)
   check(sawBite, 'the teeth close over the view at the end of the swallow')
   await shot('act3-swallow-bite')
   await wait(() => window.__los.act3.phase === 'explore' && window.__los.store.getState().checkpoint === 'wp0', null, 60000)

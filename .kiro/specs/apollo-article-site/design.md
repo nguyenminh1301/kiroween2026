@@ -25,3 +25,9 @@
 
 ## E2E
 - `e2e/url.mjs` builds the game URL (`play.html` plus the search of `GAME_URL`) and the article URL from the origin of `GAME_URL`.
+
+## Decisions made during the work
+- `window.__los.loader` gains `unload()` (added, nothing renamed) so `switch.mjs` can leave an act the way "Back to the article" does.
+- No WebGL is a gate reason, so `nowebgl.mjs` sees the message before any begin card.
+- Two older e2e checks were fixed on the way: act 4 waits for the photo-first objective, and act 3 records the 0.3 s teeth with a DOM observer instead of a wait after two slow screenshots.
+- Loading act 4 at `run` threw since the photo-first change. `finishedTasks()` in `tasks.ts` builds that state in the allowed order, with a unit test.

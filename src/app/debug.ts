@@ -30,6 +30,8 @@ export interface LosDebug {
   loader: {
     state: { getState(): { status: 'idle' | 'loading' | 'ready' | 'error' | 'finished'; act: LoadableId | null; checkpoint: string | null } }
     loadAct(id: LoadableId, checkpoint?: string): Promise<void>
+    /** Unload the current act and go idle, as "Back to the article" does before it leaves the page. */
+    unload(): void
   }
   player: {
     readonly body: PlayerBody | null
@@ -84,6 +86,7 @@ export function installDebug(win: Window = window): void {
     loader: {
       state: { getState: () => loader.getState() },
       loadAct: (id, checkpoint) => loader.loadAct(id, checkpoint),
+      unload: () => loader.unload(),
     },
     player: {
       get body() {

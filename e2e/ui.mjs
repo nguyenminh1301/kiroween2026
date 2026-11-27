@@ -2,10 +2,10 @@ import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
+import { gameUrl } from './url.mjs'
 
-const base = new URL(process.env.GAME_URL ?? 'http://localhost:5173/?debug')
-const plainUrl = `${base.origin}/`
-const debugUrl = `${base.origin}/?debug`
+const plainUrl = gameUrl(null)
+const debugUrl = gameUrl('?debug')
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 const shot = (page, name) => page.screenshot({ path: join(shotDir, `ui-${name}.png`) })
@@ -28,28 +28,40 @@ const newPage = async () => {
   })
   return page
 }
+/** Act 0 opens on its chapter card. The pause menu shows only after the card has gone. */
+const afterCard = async (page) => {
+  await page.waitForSelector('[data-testid="card"]', { timeout: 30000 }).catch(() => {})
+  await page.waitForSelector('[data-testid="card"]', { state: 'detached', timeout: 60000 })
+}
 const text = (page, sel) => page.locator(sel).first().textContent()
 const lower = (s) => (s ?? '').toLowerCase()
 
 try {
-  // Without ?debug: the screen flow.
+  // Without ?debug: one begin card, then the game. Settings and chapters sit in the Esc menu.
   const page = await newPage()
   await page.goto(plainUrl)
-  await page.waitForSelector('[data-screen="warning"]')
+  await page.waitForSelector('[data-screen="begin"]')
   check(await page.evaluate(() => window.__los === undefined), 'no debug object without ?debug')
-  await page.click('text=Continue')
-  await page.click('text=Click to start')
-  await page.waitForSelector('[data-screen="title"]')
-  check(lower(await text(page, '[data-screen="title"] h1')).includes('loss of signal'), 'title shows LOSS OF SIGNAL')
-  check((await page.locator('[data-screen="title"] .btn').count()) === 4, 'title has 4 buttons before act 5 is finished')
-  await page.click('text=Chapters')
-  await page.waitForSelector('[data-screen="chapters"]')
-  const labels = await page.locator('[data-screen="chapters"] .btn').allTextContents()
+  check(lower(await text(page, '[data-screen="begin"]')).trim() === 'use headphones. click to begin.', 'begin card text')
+  check((await page.locator('[data-screen="begin"] .btn, [data-screen="title"]').count()) === 0, 'no title menu')
+  await shot(page, 'begin')
+  await page.click('[data-screen="begin"]')
+  await page.waitForSelector('[data-screen="begin"]', { state: 'detached' })
+  await afterCard(page)
+  await page.keyboard.press('Escape')
+  await page.waitForSelector('[data-screen="pause"]')
+  const items = (await page.locator('[data-screen="pause"] .btn').allTextContents()).map((t) => t.trim())
+  check(
+    JSON.stringify(items) === JSON.stringify(['Resume', 'Restart checkpoint', 'Chapters', 'Settings', 'Back to the article']),
+    `pause menu items: ${items.join(' | ')}`,
+  )
+  await shot(page, 'pause-menu')
+  await page.click('[data-screen="pause"] >> text=Chapters')
+  const labels = await page.locator('[data-screen="pause"] .btn').allTextContents()
   check(labels.length === 7, `chapters has 6 acts and Back, got ${labels.length}`)
   TITLES.forEach((t, i) => check(lower(labels[i]).includes(lower(t)), `chapter ${i} is ${t}, got ${labels[i]}`))
-  await page.click('text=Back')
-  await page.click('text=Settings')
-  await page.waitForSelector('[data-screen="settings"]')
+  await page.click('[data-screen="pause"] >> text=Back')
+  await page.click('[data-screen="pause"] >> text=Settings')
   await page.evaluate(() => {
     const el = document.querySelector('input[name="volume"]')
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '0.5')
@@ -57,9 +69,12 @@ try {
   })
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('loss-of-signal:v1') ?? '{}').settings?.volume === 0.5)
   await page.reload()
-  await page.click('text=Continue')
-  await page.click('text=Click to start')
-  await page.click('text=Settings')
+  await page.click('[data-screen="begin"]')
+  await page.waitForSelector('[data-screen="begin"]', { state: 'detached' })
+  await afterCard(page)
+  await page.keyboard.press('Escape')
+  await page.waitForSelector('[data-screen="pause"]')
+  await page.click('[data-screen="pause"] >> text=Settings')
   check((await page.inputValue('input[name="volume"]')) === '0.5', 'volume 0.5 persisted after reload')
   await page.close()
 
@@ -69,18 +84,8 @@ try {
   await g.waitForFunction(() => window.__los, null, { timeout: 30000 })
   await g.waitForFunction(() => window.__los.loader.state.getState().status === 'ready' && window.__los.player.body, null, { timeout: 30000 })
 
-  // 1. Title, Start loads act0-pad.
-  await g.evaluate(() => window.__los.ui.go('title'))
-  await g.waitForSelector('[data-screen="title"]')
-  await shot(g, 'title')
-  await g.evaluate(() => window.__los.ui.go('chapters'))
-  await g.waitForSelector('[data-screen="chapters"]')
-  await shot(g, 'chapters')
-  await g.evaluate(() => window.__los.ui.go('settings'))
-  await g.waitForSelector('[data-screen="settings"]')
-  await shot(g, 'settings')
-  await g.evaluate(() => window.__los.ui.go('title'))
-  await g.click('text=Start')
+  // 1. The first act loads.
+  await g.evaluate(() => window.__los.loader.loadAct('act0-pad'))
   await g.waitForFunction(() => window.__los.store.getState().act === 'act0-pad', null, { timeout: 30000 })
   check(true, 'act0-pad began loading')
 
@@ -138,18 +143,6 @@ try {
   // The button is the top element at its centre; click it through the DOM, since the page runs slowly on SwiftShader.
   await g.evaluate(() => document.querySelector('[data-screen="pause"] .btn').click())
   await g.waitForFunction(() => window.__los.store.getState().paused === false, null, { timeout: 30000 })
-
-  // Archive.
-  await g.evaluate(() => {
-    window.__los.store.setState({ anomaliesSeen: ['burn-routine', 'test-box'] })
-    window.__los.ui.go('archive')
-  })
-  await g.waitForSelector('[data-screen="archive"]')
-  check((await text(g, '[data-testid="archive-count"]')).includes('1 / 8'), 'archive counts 1 of 8')
-  check((await g.locator('[data-moment]').count()) === 8, 'archive lists eight moments')
-  check((await g.locator('.moment.seen').count()) === 1, 'one moment is marked seen')
-  check(lower(await text(g, '[data-screen="archive"]')).includes('what really happened'), 'archive title')
-  await shot(g, 'archive')
 } catch (e) {
   errors.push(`script: ${e instanceof Error ? e.message : e}`)
 } finally {

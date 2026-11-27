@@ -2,7 +2,7 @@
 
 LOSS OF SIGNAL is a first-person horror game with a PS1 look, set on the Apollo 11 flight in July 1969. You play Buzz Aldren, the Lunar Module Pilot, from the launch pad to splashdown. A run takes about 12 minutes. It plays in a desktop browser with a mouse and keyboard. It is an entry for Kiroween 2026.
 
-**Play:** PLAY_URL
+**Read and play:** PLAY_URL. The site opens on a long article about the flight of Apollo 11. The button "Play as an astronaut" opens the game (`play.html`).
 
 ## Controls
 
@@ -15,7 +15,7 @@ LOSS OF SIGNAL is a first-person horror game with a PS1 look, set on the Apollo 
 | C | Close eyes (Coast) |
 | Q | Look back |
 | F | Check wrist |
-| Esc | Pause |
+| Esc | Pause menu: Resume, Restart checkpoint, Chapters, Settings, Back to the article |
 
 Play with headphones. Much of the game is told through sound and the radio.
 
@@ -28,7 +28,7 @@ Play with headphones. Much of the game is told through sound and the radio.
 5. **Tranquility.** The descent with cuts to the cabin, then a calm Moon. Neil climbs down first, then you. Plant the US flag, stand beside it while Neil takes your picture (shown as the real NASA photo AS11-40-5875), take a soil sample, set up the seismometer while Neil works nearby, climb back up and lift off. Mike stays in orbit and speaks on the radio. Only the radio and your breathing.
 6. **Splashdown.** Re-entry, blackout, two drogues and three main parachutes side by side, the Pacific, the USS Hornet and Sea King 66.
 
-After the last chapter, the Archive screen, "What really happened", lists the real Apollo 11 moments the game showed, with the real fact and a source for each, marked seen or missed.
+The game has no title menu. It opens on one card, "Use headphones. Click to begin.". After the last chapter the picture fades out and the article opens at "What really happened". That section lists the real Apollo 11 moments the game showed, with the real fact and a source for each, marked seen or missed if you have played on this browser.
 
 ## What is real
 
@@ -44,7 +44,7 @@ The crew names are changed. The flight details below come from the real mission.
 - The Apollo Guidance Computer routine `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE`.
 - Recovery by the USS Hornet and the Sea King helicopter with the number 66.
 
-Sources shown on the Archive screen:
+Sources used in the article (the full list is in its Sources section):
 
 - NASA photo AS11-40-5875 (public domain): https://www.hq.nasa.gov/alsj/a11/images11.html
 - NASA Apollo 11 Flight Journal: https://www.nasa.gov/history/afj/ap11fj/index.html
@@ -61,7 +61,7 @@ npm ci
 npm run dev
 ```
 
-Then open the URL Vite prints. Add `?debug` to the URL to get the stats box and the `window.__los` debug object.
+Then open the URL Vite prints. It shows the article. The game is at `/play.html`; add `?debug` there to get the stats box and the `window.__los` debug object.
 
 ### Checks
 
@@ -70,8 +70,8 @@ Then open the URL Vite prints. Add `?debug` to the URL to get the stats box and 
 | `npm run test` | Vitest unit and property tests |
 | `npm run lint` | ESLint on `src` and `scripts`, then `tsc --noEmit` |
 | `npm run build` | Type-check and build to `dist/` |
-| `npm run check-budget` | Check bundle sizes in `dist/` (run after `build`) |
-| `npm run check-copy` | Check the player-facing text in `src/content/` |
+| `npm run check-budget` | Check bundle sizes in `dist/` (run after `build`). The article page must load under 300 KB of script and style |
+| `npm run check-copy` | Check the player-facing text in `src/content/` and the text of `index.html` |
 | `npm run e2e` | Browser tests against a running dev server |
 
 ### E2E
@@ -83,7 +83,7 @@ npm run dev -- --port 5180 --strictPort
 GAME_URL='http://localhost:5180/?debug' npm run e2e
 ```
 
-Set `CHROMIUM_PATH` if Playwright's own Chromium is not installed. Screenshots go to `e2e/shots/`. The full chain takes about 20 minutes. See `e2e/README.md` for what each script checks.
+`GAME_URL` only gives the origin and the query. The game scripts open `play.html` on that origin and `e2e/article.mjs` opens the article. Set `CHROMIUM_PATH` if Playwright's own Chromium is not installed. Screenshots go to `e2e/shots/`. The full chain takes about 20 minutes. See `e2e/README.md` for what each script checks.
 
 ### Deploy
 

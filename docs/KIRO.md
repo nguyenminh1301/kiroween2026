@@ -44,6 +44,10 @@ Each spec has `requirements.md` (EARS form), `design.md` and `tasks.md`. In the 
 | `playtest-2-acts-0-2` | Second round of notes, acts 0 to 2 (see below) | 8 |
 | `playtest-2-dream` | Second round of notes, the act 3 dream | 7 |
 | `playtest-2-moon-home` | Second round of notes, acts 4 and 5 and the Archive | 9 |
+| `playtest-3-acts-0-2` | Third round of notes, acts 0 to 2 (see below) | 3 |
+| `playtest-3-dream` | Third round of notes, the act 3 dream | 5 |
+| `playtest-3-moon-home` | Third round of notes, acts 4 and 5 | 3 |
+| `apollo-article-site` | Third round of notes, the site: an article page and a game page without a title menu | 5 |
 
 The `play-fixes` and `look-fixes` spec folders are not in the repo, so their task counts are not shown here. The table rows come from the commits.
 
@@ -80,6 +84,15 @@ The player played again and sent a second set of notes. Three more prompts answe
 1. **Acts 0 to 2.** The breathing loop only on the Moon and in the dream, new dialogue, an opening hatch that leads into act 1, a 150 second launch with the real beats, a cabin eye at helmet height with small props, a slowly turning spacecraft, a breaker panel and a keypad in act 2, and bedtime by holding C.
 2. **The dream.** A map with choices (a jammed hatch, a left and a right loop, side rooms), more hiding places, a creature that hunts the last noise it heard, the crew hanging in the cage room, a harder swallow, and a bright, normal cabin to wake in.
 3. **Acts 4 and 5.** Cabin shots in the lunar module at helmet height, Neil on the surface (he climbs down first, takes the photo with a flash and a click, then scoops soil, kneels at rocks, writes on his cuff and takes photos) and Mike on the radio in orbit, the US flag, a long narrow ascent flame with thruster puffs, the next act loaded before the liftoff shot ends so the cut is a clean fade, a re-entry shake held to the launch cap, a soft sea, full-size parachutes (two 5 m drogues, three 25 m mains side by side), new dialogue in subtitles only, and an Archive rebuilt as "What really happened". The old anomaly ids went with it; the store field keeps its name because it is part of the debug contract.
+
+## The third round of the player's notes: four prompts
+
+A third set of notes was answered by four prompts, each run by Kiro CLI in non-interactive mode, one task at a time in one chat, with a short spec committed first.
+
+1. **Acts 0 to 2** (`playtest-3-acts-0-2`). A dark closed box behind the act 0 hatch, a launch that spends about 10 s in the cabin with the eye and panel at the right distance, and act 2 cut to three tasks (oxygen line, gauge, computer) with an unbroken chain of handrails.
+2. **The dream** (`playtest-3-dream`). No bar in the doorway and collision on every prop, a window onto the hanging crew at the first junction, the door corner hiding spot removed, a wider bag slit, a creature that fits the corridor, a 1.5 s swallow, a glowing cage door and a carry marker.
+3. **Acts 4 and 5** (`playtest-3-moon-home`). The flag photo needs the player in the mark, looking at the flag, and comes first; a re-entry shot rebuilt from additive layers; reefed then open drogues and three mains in a triangle on their own lines.
+4. **The site** (`apollo-article-site`). The site opens on a long article about the flight (real names, NASA photos and sources, no game code, under 300 KB of script and style). The game moved to `play.html` with no title menu: one card, "Use headphones. Click to begin.", and an Esc menu with chapters, settings and a link back to the article. The Archive became the article section "What really happened", with marks read from the saved run. The e2e scripts start from `play.html`, and a new script covers the article.
 
 ## What went wrong and how it was fixed
 

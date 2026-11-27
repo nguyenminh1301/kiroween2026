@@ -1,11 +1,12 @@
 // The full-game check: title screen, Start, every act in order with the same steps as the act
 // scripts (teleports only where those scripts teleport), then the Archive with every moment seen.
+import { gameUrl } from './url.mjs'
 import { mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
-const url = process.env.GAME_URL ?? 'http://localhost:5173/?debug'
+const url = gameUrl()
 const shotDir = join(dirname(fileURLToPath(import.meta.url)), 'shots')
 mkdirSync(shotDir, { recursive: true })
 
@@ -117,12 +118,12 @@ try {
   await wait(() => window.__los, null, 30000)
   await wait(() => window.__los.loader.state.getState().status === 'ready', null, 30000)
 
-  // Title, then Start.
-  stage = 'title'
-  await page.evaluate(() => window.__los.ui.go('title'))
-  await page.waitForSelector('[data-screen="title"]')
-  await shot('playthrough-title')
-  await page.click('text=Start')
+  // The begin card, one click.
+  stage = 'begin'
+  await page.evaluate(() => window.__los.ui.go('begin'))
+  await page.waitForSelector('[data-screen="begin"]')
+  await shot('playthrough-begin')
+  await page.click('[data-screen="begin"]')
 
   // Act 0.
   stage = 'act0'
@@ -322,7 +323,7 @@ try {
   await actReady('act4-moon')
   await wait(() => window.__los.act4, null, 30000)
   await wait(() => window.__los.act4.phase === 'exit', null, 60000)
-  await objective('Surface tasks, any order', 120000)
+  await objective('Plant the flag. The photo comes next', 120000)
   await shot('playthrough-act4')
   await objective('Plant the flag', 5000)
   await teleport4(1.7, 4.6)
@@ -361,31 +362,17 @@ try {
   await actReady('act5-home')
   await wait(() => (window.__los.timeline() ?? 0) >= 33, null, 120000)
   await shot('playthrough-act5')
-  await wait(() => window.__los.store.getState().screen === 'archive', null, 120000)
-  stage = 'archive'
-  await page.waitForTimeout(500)
-  await shot('playthrough-archive')
+  await wait(() => window.__los.store.getState().screen === 'leaving', null, 120000)
+  stage = 'article'
   const got = await page.evaluate(() => window.__los.store.getState().anomaliesSeen)
   for (const id of ALL) check(got.includes(id), `${id} seen in the full run`)
-  const count = await page.evaluate(() => document.querySelector('[data-testid=archive-count]')?.textContent ?? '')
-  check(count.includes('Seen: 8 / 8.'), `archive count: ${count}`)
-  const told = await page.evaluate(() => document.querySelector('[data-testid=archive-told]')?.textContent ?? '')
-  check(told.includes('You told them:'), `archive choice line: ${told}`)
-  check(await page.evaluate(() => document.querySelectorAll('.moment.seen').length) === 8, 'eight seen rows')
   check(await page.evaluate(() => window.__los.store.getState().finished), 'act 5 saved as finished')
-  const blocker = await page.evaluate(() => {
-    const btn = [...document.querySelectorAll('[data-screen="archive"] button')].pop()
-    if (!btn) return 'no button'
-    btn.scrollIntoView()
-    const r = btn.getBoundingClientRect()
-    const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
-    return top === btn ? null : `${top?.tagName}.${top?.className}`
-  })
-  check(blocker === null, `archive back button covered by ${blocker}`)
-  check(await page.evaluate(() => document.pointerLockElement === null), 'pointer lock released on the Archive')
-  await page.locator('[data-screen="archive"] button').last().click({ timeout: 30000 })
-  await wait(() => window.__los.store.getState().screen === 'title', null, 30000)
-  check(await page.locator('[data-screen="title"] button', { hasText: 'Archive' }).count() > 0, 'Archive button on the title screen')
+  // The end fade, then the article at "What really happened", with every moment marked.
+  await page.waitForURL(/#what-really-happened$/, { timeout: 30000 })
+  await page.waitForSelector('.moment .mark:not([hidden])', { timeout: 30000 })
+  const marks = await page.evaluate(() => [...document.querySelectorAll('.moment .mark')].map((m) => m.textContent))
+  check(marks.length === 8 && marks.every((m) => m === 'Seen in your flight'), `article marks: ${marks.join(' | ')}`)
+  await shot('playthrough-article')
 } catch (e) {
   errors.push(`script (${stage}): ${e.message.split('\n')[0]} at ${(e.stack.match(/playthrough.mjs:(\d+)/g) ?? []).join(' ')}`)
   try {
