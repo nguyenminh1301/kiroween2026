@@ -60,7 +60,7 @@ try {
     { timeout: 40000 },
   )
 
-  // Launch: pad shot, liftoff shot, cabin shake, staging shot.
+  // Launch (about 23 s): pad shot, liftoff shot, cabin shake, staging and jettison shots.
   await atTime(2)
   await shot('act1-pad')
   await budget('pad shot')
@@ -73,15 +73,16 @@ try {
   await atTime(9.4)
   await shot('act1-shake')
   await budget('cabin during shake')
-  await atTime(111)
+  await atTime(12.2)
   await shot('act1-staging')
   await budget('staging shot')
 
   // Upper stages: the later beats never turn the view. Then the DSKY three times.
-  await atTime(123)
+  await atTime(15)
   await shot('act1-jettison')
   await budget('jettison shot')
-  await atTime(140)
+  await page.waitForFunction(() => window.__los.timeline() !== null, null, { timeout: 60000 })
+  await atTime(21)
   await objective('numbers on the card')
   check(!(await page.evaluate(() => window.__los.focus())), 'the view was not turned')
   for (let i = 0; i < 3; i++) {
@@ -90,14 +91,10 @@ try {
     if (i === 2) break
   }
   await page.waitForTimeout(500)
-  // DSKY close up: look straight at it, narrow enough to fill the view.
+  // DSKY close up: the eye 0.45 m in front of the keys, looking straight at them.
   await page.evaluate(() => {
     const d = window.__los.interactables().find((i) => i.id === 'act1:dsky').position
-    window.__los.player.set({ pos: { x: d.x, y: -0.48, z: -0.2 } })
-    const dx = d.x - d.x
-    const dy = d.y - 1.17
-    const dz = d.z + 0.2 - 0
-    window.__los.player.set({ yaw: Math.atan2(-dx, dz < 0 ? -dz : dz) * 0, pitch: Math.atan2(dy, -dz) })
+    window.__los.player.set({ pos: { x: d.x, y: d.y - 1.65, z: d.z + 0.45 }, yaw: 0, pitch: 0 })
   })
   await page.waitForTimeout(400)
   await shot('act1-dsky')

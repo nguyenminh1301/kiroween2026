@@ -4,7 +4,7 @@ import { launchEnvelope, MAX_OFFSET, MAX_ROT, noise, shakeSample, tliEnvelope } 
 
 describe('act 1 shake', () => {
   it('never passes 0.4 degrees or 1 cm', () => {
-    for (let t = 0; t < 150; t += 0.01) {
+    for (let t = 0; t < 24; t += 0.01) {
       const s = shakeSample(launchEnvelope(t), t, false)
       for (const r of [s.rx, s.ry, s.rz]) expect(Math.abs(r)).toBeLessThanOrEqual(MAX_ROT + 1e-12)
       for (const o of [s.ox, s.oy, s.oz]) expect(Math.abs(o)).toBeLessThanOrEqual(MAX_OFFSET + 1e-12)
@@ -12,11 +12,11 @@ describe('act 1 shake', () => {
   })
   it('follows the beats: strong at liftoff, a peak at max Q, a bump at staging, silent by orbit', () => {
     expect(launchEnvelope(2)).toBe(0)
-    expect(launchEnvelope(8)).toBeCloseTo(0.8)
+    expect(launchEnvelope(5)).toBeCloseTo(0.8)
     expect(launchEnvelope(MAXQ_AT)).toBeCloseTo(0.8)
-    expect(launchEnvelope(40)).toBeCloseTo(0.5)
+    expect(launchEnvelope(8.5)).toBeCloseTo(0.6)
     expect(launchEnvelope(STAGING_AT + 0.01)).toBeGreaterThan(launchEnvelope(STAGING_AT + 1))
-    expect(launchEnvelope(ORBIT_AT + 3)).toBe(0)
+    expect(launchEnvelope(ORBIT_AT)).toBe(0)
     expect(launchEnvelope(150)).toBe(0)
     expect(tliEnvelope(3)).toBeLessThan(0.5)
   })

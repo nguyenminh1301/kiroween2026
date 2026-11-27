@@ -19,17 +19,21 @@ export const SPACE_Y = 150
 export const PAD_BASE_Y = 18
 export const LIFTOFF_AT = 4.5
 export const IGNITION_AT = 3.5
-/** Beat times of the 150 s launch, in seconds of game time. */
-export const TOWER_AT = 9.5
-export const ROLL_AT = 20
-export const MAXQ_AT = 70
-export const STAGING_AT = 110
-export const JETTISON_AT = 122
-export const SECOND_STAGE_AT = 126
-export const THIRD_STAGE_AT = 135
-export const ORBIT_AT = 145
+/**
+ * Beat times of the short launch, in seconds of game time. The cabin shows from ignition to orbit shutdown for
+ * about 10 s in all (see `cabinSeconds`); the outside shots carry the rest of the beats.
+ */
+export const TOWER_AT = 9
+export const ROLL_AT = 9.6
+export const MAXQ_AT = 10.6
+export const STAGING_AT = 11.6
+export const JETTISON_AT = 14.2
+export const SECOND_STAGE_AT = 17.6
+export const THIRD_STAGE_AT = 19.8
+/** Orbit shutdown: the end of the cabin time the launch counts. */
+export const ORBIT_AT = 22.9
 
-export const LAUNCH_DURATION = 150
+export const LAUNCH_DURATION = ORBIT_AT + 0.5
 export const TLI_DURATION = 15
 
 /** Rocket height above the pad `t` seconds into the launch timeline. */
@@ -110,12 +114,12 @@ export const tliViewAt = (t: number): View => shotAt(TLI_SHOTS, t)?.view ?? 'cab
 /** Engine level 0 to 1 during the launch: first stage, a gap at staging, then the upper stages. */
 export function engineLevel(t: number): number {
   if (t < IGNITION_AT) return 0
-  if (t < 9.5) return (t - IGNITION_AT) / (9.5 - IGNITION_AT)
+  if (t < TOWER_AT) return (t - IGNITION_AT) / (TOWER_AT - IGNITION_AT)
   if (t < STAGING_AT - 0.5) return 1
   if (t < STAGING_AT) return 1 - ((t - (STAGING_AT - 0.5)) / 0.5) * 0.7
   if (t < THIRD_STAGE_AT) return 0.3
   if (t < ORBIT_AT) return 0.2
-  return Math.max(0, 0.2 - (t - ORBIT_AT) * 0.1)
+  return Math.max(0, 0.2 - (t - ORBIT_AT) * 0.4)
 }
 
 /** Engine level during the TLI timeline: a burn from 0.2 s, ending about 6 s. */
@@ -126,7 +130,7 @@ export function tliEngineLevel(t: number): number {
   return Math.max(0, 1 - (t - 5.8) * 1.5)
 }
 
-export const alarmOn = (t: number): boolean => t >= STAGING_AT - 0.2 && t < STAGING_AT + 1.6
+export const alarmOn = (t: number): boolean => t >= 11.4 && t < STAGING_AT + 1.6
 
 export const SKY = {
   pad: '#9db7c9',
@@ -148,7 +152,7 @@ export interface LaunchHooks {
 /** The launch events, in the order the timeline runs them. */
 export function launchEvents(h: LaunchHooks): TimelineEvent[] {
   return [
-    { at: 0.5, run: () => h.say('act1.count') },
+    { at: 0.2, run: () => h.say('act1.count2') },
     { at: 3.2, run: () => h.playSound('rumble') },
     { at: IGNITION_AT, run: () => h.ignite() },
     {
@@ -159,14 +163,9 @@ export function launchEvents(h: LaunchHooks): TimelineEvent[] {
       },
     },
     { at: 5.2, run: () => h.playSound('launchRoar') },
-    { at: 8, run: () => h.say('act1.clock') },
-    { at: TOWER_AT, run: () => h.say('act1.tower') },
-    { at: 40, run: () => h.setSky(SKY.climb) },
-    { at: ROLL_AT, run: () => h.say('act1.roll') },
-    { at: ROLL_AT + 2.5, run: () => h.say('act1.rollok') },
-    { at: MAXQ_AT, run: () => h.say('act1.maxq') },
-    { at: 95, run: () => h.setSky(SKY.dark) },
-    { at: STAGING_AT - 0.2, run: () => h.playSound('alarm') },
+    { at: TOWER_AT, run: () => h.setSky(SKY.climb) },
+    { at: 10.8, run: () => h.setSky(SKY.dark) },
+    { at: 11.4, run: () => h.playSound('alarm') },
     {
       at: STAGING_AT,
       run: () => {
@@ -182,9 +181,17 @@ export function launchEvents(h: LaunchHooks): TimelineEvent[] {
       },
     },
     { at: SECOND_STAGE_AT, run: () => h.setSky(SKY.space) },
-    { at: THIRD_STAGE_AT, run: () => h.say('act1.sky') },
     { at: ORBIT_AT, run: () => h.say('act1.orbit') },
   ]
+}
+
+/**
+ * Seconds the cabin is on screen between ignition and orbit shutdown: the time not covered by an outside shot.
+ */
+export function cabinSeconds(shots: NamedShot[] = LAUNCH_SHOTS): number {
+  let sum = 0
+  for (let t = IGNITION_AT; t < ORBIT_AT; t += 0.01) if (!shotAt(shots, t)) sum += 0.01
+  return Math.round(sum * 10) / 10
 }
 
 export interface TliHooks {

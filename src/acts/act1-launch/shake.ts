@@ -4,7 +4,7 @@ import { IGNITION_AT, LIFTOFF_AT, MAXQ_AT, ORBIT_AT, STAGING_AT, THIRD_STAGE_AT 
 
 export { MAX_OFFSET, MAX_ROT, noise, shakeSample } from '../../engine/shakeNoise'
 /** Hold the strong shake this long after liftoff, then ease to the climb level. */
-export const STRONG_SECONDS = 10
+export const STRONG_SECONDS = 4
 
 const clamp01 = (x: number): number => Math.min(1, Math.max(0, x))
 
@@ -13,17 +13,12 @@ const KEYS: readonly (readonly [number, number])[] = [
   [IGNITION_AT, 0],
   [LIFTOFF_AT, 0.3],
   [LIFTOFF_AT + 0.5, 0.8],
-  [LIFTOFF_AT + STRONG_SECONDS, 0.8],
-  [LIFTOFF_AT + STRONG_SECONDS + 4, 0.5],
-  [MAXQ_AT - 8, 0.5],
+  [LIFTOFF_AT + STRONG_SECONDS, 0.6],
   [MAXQ_AT, 0.8],
-  [MAXQ_AT + 6, 0.5],
-  [STAGING_AT - 2, 0.4],
   [STAGING_AT - 0.5, 0.3],
   [STAGING_AT + 1, 0.3],
   [THIRD_STAGE_AT, 0.2],
-  [ORBIT_AT, 0.1],
-  [ORBIT_AT + 3, 0],
+  [ORBIT_AT, 0],
 ]
 
 /** Shake strength 0 to 1 for the launch timeline at `t`. */

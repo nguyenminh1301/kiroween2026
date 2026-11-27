@@ -20,7 +20,7 @@ import { createMaterial, disposeMaterial } from '../../render/materialFactory'
 import { paintWindowView } from '../windowView'
 import { buildFigure } from '../../procgen/figure'
 import { buildCouches, buildShell } from './cabinGeo'
-import { COUCH_X, SHELL_SIDES } from './layout'
+import { COUCH_X, CREW_ROOT_Z, SHELL_SIDES } from './layout'
 import { viewDirections, windowDefs } from './windows'
 import { cabinState } from './cabinState'
 import { buildProp } from './props'
@@ -134,7 +134,7 @@ function Crew() {
   useEffect(() => {
     figures.forEach(({ fig, x }) => {
       fig.setPose('working', 0)
-      fig.root.position.set(x, 0, 0.62)
+      fig.root.position.set(x, 0, CREW_ROOT_Z)
       fig.root.rotation.y = Math.PI
       group.current?.add(fig.root)
     })

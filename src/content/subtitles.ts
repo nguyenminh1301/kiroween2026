@@ -49,28 +49,18 @@ export const LINES: Record<string, Line> = {
   },
   'act0.gunter2': { speaker: 'PAD', text: 'See you when you get back.' },
   'act0.board': { speaker: 'CDR', text: "Morning, Buzz. Get strapped in, we're right on time." },
-  'act1.count': {
+  'act1.count2': {
     speaker: 'LAUNCH',
-    text: 'Twelve, eleven, ten, nine. Ignition sequence start.',
-    seconds: 4,
+    text: 'Six, five, four, three, two, one, zero. All engines running.',
+    seconds: 4.3,
   },
   'act1.liftoff': { speaker: 'LAUNCH', mood: 'shout', text: 'Liftoff! We have a liftoff!', seconds: 3 },
-  'act1.clock': { speaker: 'CDR', text: 'Liftoff. The clock is running.', seconds: 3 },
-  'act1.tower': { speaker: 'CAPCOM', text: "Roger. You've cleared the tower.", seconds: 3 },
-  'act1.roll': { speaker: 'CDR', text: 'Roll program.', seconds: 2 },
-  'act1.rollok': { speaker: 'CAPCOM', text: 'Roger, roll.', seconds: 2 },
-  'act1.maxq': {
-    speaker: 'CAPCOM',
-    text: 'Apollo 11, Houston. Through max Q. Thrust is good on all five.',
-    seconds: 4.5,
-  },
-  'act1.staging': { speaker: 'CDR', text: "Staging. And we've got ignition on the second stage.", seconds: 4 },
+  'act1.staging': { speaker: 'CDR', text: "Staging. And we've got ignition on the second stage.", seconds: 2.6 },
   'act1.jettison': {
     speaker: 'CDR',
     text: "Tower's gone. The cover went with it. We have windows.",
-    seconds: 4,
+    seconds: 3.4,
   },
-  'act1.sky': { speaker: 'CMP', text: "Sky's already black out there.", seconds: 3 },
   'act1.orbit': {
     speaker: 'CAPCOM',
     text: "Apollo 11, Houston. Shutdown confirmed. You're in orbit.",

@@ -2,12 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { sortedEvents } from '../../timeline/timeline'
 import {
   alarmOn,
+  cabinSeconds,
   engineLevel,
   LAUNCH_SHOTS,
+  LAUNCH_DURATION,
   launchEvents,
+  ORBIT_AT,
   rocketHeight,
   shotAt,
+  STAGING_AT,
   TLI_SHOTS,
+  TOWER_AT,
   tliEvents,
 } from './timelines'
 
@@ -34,48 +39,62 @@ function record() {
 describe('launch timeline', () => {
   it('lists the events at the right times', () => {
     const r = record()
-    for (const e of sortedEvents({ duration: 150, events: launchEvents(r.hooks) })) {
+    for (const e of sortedEvents({ duration: LAUNCH_DURATION, events: launchEvents(r.hooks) })) {
       r.setAt(e.at)
       e.run()
     }
     expect(r.log).toEqual([
-      [0.5, 'act1.count'],
+      [0.2, 'act1.count2'],
       [3.2, 'rumble'],
       [3.5, 'ignite'],
       [4.5, 'liftoff'],
       [4.5, 'act1.liftoff'],
       [5.2, 'launchRoar'],
-      [8, 'act1.clock'],
-      [9.5, 'act1.tower'],
-      [20, 'act1.roll'],
-      [22.5, 'act1.rollok'],
-      [40, 'sky #4a6a8a'],
-      [70, 'act1.maxq'],
-      [95, 'sky #1a2636'],
-      [109.8, 'alarm'],
-      [110, 'staging'],
-      [110, 'act1.staging'],
-      [122, 'act1.jettison'],
-      [122, 'moment escape-tower'],
-      [126, 'sky #000000'],
-      [135, 'act1.sky'],
-      [145, 'act1.orbit'],
+      [9, 'sky #4a6a8a'],
+      [10.8, 'sky #1a2636'],
+      [11.4, 'alarm'],
+      [11.6, 'staging'],
+      [11.6, 'act1.staging'],
+      [14.2, 'act1.jettison'],
+      [14.2, 'moment escape-tower'],
+      [17.6, 'sky #000000'],
+      [22.9, 'act1.orbit'],
+    ])
+  })
+
+  it('says only the five kept lines', () => {
+    const r = record()
+    launchEvents(r.hooks).forEach((e) => e.run())
+    const said = r.log.map(([, s]) => s).filter((s) => s.startsWith('act1.'))
+    expect(said.sort()).toEqual(['act1.count2', 'act1.jettison', 'act1.liftoff', 'act1.orbit', 'act1.staging'])
+  })
+
+  it('keeps the cabin on screen for about 10 s from ignition to orbit shutdown', () => {
+    expect(cabinSeconds()).toBeGreaterThanOrEqual(9.5)
+    expect(cabinSeconds()).toBeLessThanOrEqual(10.5)
+  })
+
+  it('keeps the four outside shots as they were', () => {
+    expect(LAUNCH_SHOTS.map((s) => [s.name, +(s.to - s.from).toFixed(1), s.fov])).toEqual([
+      ['padFar', 3.3, 50],
+      ['padLow', 3.4, 75],
+      ['staging', 2.6, 60],
+      ['jettison', 3.4, 55],
     ])
   })
 
   it('has the shot windows', () => {
     const at = (t: number) => shotAt(LAUNCH_SHOTS, t)?.name ?? null
-    expect([2, 4, 6, 50, 111, 123, 140].map(at)).toEqual(['padFar', null, 'padLow', null, 'staging', 'jettison', null])
-    expect(LAUNCH_SHOTS.map((s) => s.fov)).toEqual([50, 75, 60, 55])
+    expect([2, 4, 6, 10, 12, 15, 20].map(at)).toEqual(['padFar', null, 'padLow', null, 'staging', 'jettison', null])
   })
 
   it('shakes, climbs and sounds the alarm on schedule', () => {
     expect(engineLevel(3.4)).toBe(0)
-    expect(engineLevel(9.5)).toBe(1)
-    expect(engineLevel(60)).toBe(1)
-    expect(engineLevel(111)).toBeCloseTo(0.3)
-    expect(engineLevel(149)).toBeLessThan(0.3)
-    expect([109.7, 109.8, 111.5, 111.6].map(alarmOn)).toEqual([false, true, true, false])
+    expect(engineLevel(TOWER_AT)).toBe(1)
+    expect(engineLevel(11)).toBe(1)
+    expect(engineLevel(STAGING_AT + 1)).toBeCloseTo(0.3)
+    expect(engineLevel(ORBIT_AT - 0.1)).toBeLessThan(0.3)
+    expect([11.3, 11.4, 13.1, 13.3].map(alarmOn)).toEqual([false, true, true, false])
     expect(rocketHeight(4.5)).toBe(0)
     expect(rocketHeight(6.5)).toBeCloseTo(7.2)
     expect(rocketHeight(100)).toBe(rocketHeight(12))
