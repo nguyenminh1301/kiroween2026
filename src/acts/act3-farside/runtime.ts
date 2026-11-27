@@ -72,6 +72,7 @@ const other = (c: Crew): Crew => (c === 'cdr' ? 'cmp' : 'cdr')
 let persistedFirst: Crew | null = null
 
 export function startAct3(requested: string): void {
+  postToHost(hostMessage.dream(true))
   const cp: Checkpoint = requested in CHECKPOINT_DEFS ? (requested as Checkpoint) : 'start'
   const def = CHECKPOINT_DEFS[cp]
   resetAct3State()
@@ -217,6 +218,7 @@ export function startAct3(requested: string): void {
       audio.setScene({ hum: 1, bed: 'engine', breath: breathAllowed('act3-farside', 'dream') })
     },
     wakeUp: () => {
+      postToHost(hostMessage.dream(false))
       act3State.lunge = null
       act3State.world = 'real'
       act3State.silent = false

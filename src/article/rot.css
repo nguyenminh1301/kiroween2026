@@ -1,0 +1,106 @@
+/* The page decays while the act 3 dream runs. Everything hangs on html.rot and --rot (0 to 1).
+   Nothing here applies unless the game window sets the class. */
+.rot-layer,
+.rot-layer > div,
+svg[aria-hidden] {
+  pointer-events: none;
+}
+.rot-layer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+html.rot .rot-layer {
+  display: block;
+}
+.rot-stain,
+.rot-cracks {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+/* Stains: red and brown blotches from SVG noise. */
+.rot-stain {
+  opacity: calc(var(--rot, 0) * 0.85);
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' preserveAspectRatio='none'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.018' numOctaves='4' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.08  0 0 0 0 0.05  0 0 0 9 -4.6'/%3E%3C/filter%3E%3Crect width='400' height='300' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+/* Cracks: thin dark red lines. */
+.rot-cracks {
+  opacity: calc(var(--rot, 0) * 0.9);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' preserveAspectRatio='none' fill='none' stroke='%235a0f0c' stroke-width='0.7'%3E%3Cpath d='M40 0l8 30-10 22 14 25-6 30M48 30l-22 14M52 77l24 10 6 28M120 300l-6-40 14-26-8-30 20-34M128 234l30 8M300 0l-10 38 16 30-12 26 8 40M306 68l34 6 10 34M390 120l-30 28 6 36-18 30M0 190l40-10 22 14 30-6'/%3E%3C/svg%3E");
+}
+html.rot-hunt .rot-stain {
+  animation: rot-pulse 1.1s ease-in-out infinite;
+}
+@keyframes rot-pulse {
+  50% {
+    opacity: calc(var(--rot, 0) * 0.6);
+  }
+}
+
+/* Paper, rules and ink turn red and brown. */
+html.rot {
+  --paper: color-mix(in srgb, #fbf9f4, #c4907c calc(var(--rot) * 70%));
+  --rule: color-mix(in srgb, #d8d3c8, #8e1b17 calc(var(--rot) * 85%));
+  --ink: color-mix(in srgb, #121212, #2a0605 calc(var(--rot) * 70%));
+  --grey: color-mix(in srgb, #4a4a4a, #5a1511 calc(var(--rot) * 60%));
+}
+
+/* Headlines smear and crack. */
+html.rot h1,
+html.rot h2,
+html.rot h3,
+html.rot .title,
+html.rot .brand-name {
+  filter: url(#rot-smear);
+  text-shadow: 0 calc(var(--rot) * 2px) calc(var(--rot) * 3px) rgba(142, 27, 23, calc(var(--rot) * 0.6));
+}
+
+/* Photos darken and go dull red. */
+html.rot img {
+  filter: brightness(calc(1 - var(--rot) * 0.55)) sepia(calc(var(--rot) * 0.7)) saturate(calc(1 + var(--rot) * 0.5)) contrast(1.08);
+}
+
+/* Dark streaks run down from the top bar. */
+html.rot .bar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: calc(var(--rot) * 340px);
+  pointer-events: none;
+  background:
+    linear-gradient(#1a0503, transparent) 4% 0 / 5px 70% no-repeat,
+    linear-gradient(#2b0907, transparent) 11% 0 / 2px 95% no-repeat,
+    linear-gradient(#1a0503, transparent) 19% 0 / 9px 45% no-repeat,
+    linear-gradient(#2b0907, transparent) 31% 0 / 3px 80% no-repeat,
+    linear-gradient(#1a0503, transparent) 42% 0 / 6px 100% no-repeat,
+    linear-gradient(#3a0d0a, transparent) 53% 0 / 2px 60% no-repeat,
+    linear-gradient(#1a0503, transparent) 64% 0 / 8px 85% no-repeat,
+    linear-gradient(#2b0907, transparent) 73% 0 / 3px 50% no-repeat,
+    linear-gradient(#1a0503, transparent) 84% 0 / 5px 90% no-repeat,
+    linear-gradient(#2b0907, transparent) 94% 0 / 4px 65% no-repeat;
+  opacity: calc(0.35 + var(--rot) * 0.65);
+}
+
+/* Small glitches in the text. */
+.rot-glitch {
+  transform: translateX(3px) skewX(-5deg);
+  text-shadow: 2px 0 rgba(142, 27, 23, 0.85), -2px 0 rgba(30, 70, 90, 0.6);
+  clip-path: inset(0 0 35% 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.rot-hunt .rot-stain {
+    animation: none;
+  }
+  .rot-glitch {
+    transform: none;
+    clip-path: none;
+    text-shadow: none;
+  }
+}

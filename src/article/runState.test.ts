@@ -13,11 +13,15 @@ describe('reduceRun', () => {
   it('tracks the hunt in act 3 only and clears it on the next act', () => {
     let s = reduceRun(IDLE_RUN, hostMessage.act('act1-launch'))
     expect(reduceRun(s, hostMessage.hunt(true)).hunting).toBe(false)
+    s = reduceRun(s, hostMessage.act(null))
+    s = reduceRun(s, hostMessage.dream(true))
     s = reduceRun(s, hostMessage.act('act3-farside'))
+    expect(s.dreaming).toBe(true)
     s = reduceRun(s, hostMessage.hunt(true))
     expect(s.hunting).toBe(true)
+    expect(reduceRun(s, hostMessage.dream(false))).toMatchObject({ dreaming: false, hunting: false })
     s = reduceRun(s, hostMessage.act('act4-moon'))
-    expect(s.hunting).toBe(false)
+    expect(s).toMatchObject({ dreaming: false, hunting: false })
   })
   it('ends and leaves', () => {
     const s = reduceRun(IDLE_RUN, hostMessage.act('act5-home'))

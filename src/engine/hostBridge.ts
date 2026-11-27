@@ -5,6 +5,8 @@ export const HOST_SOURCE = 'los'
 
 export type HostMessage =
   | { source: typeof HOST_SOURCE; type: 'act'; act: ActId | null }
+  /** The act 3 dream starts (true) or Buzz wakes (false). */
+  | { source: typeof HOST_SOURCE; type: 'dream'; on: boolean }
   | { source: typeof HOST_SOURCE; type: 'hunt'; on: boolean }
   /** The player chose "Back to the article". */
   | { source: typeof HOST_SOURCE; type: 'leave' }
@@ -15,6 +17,7 @@ const ACTS: readonly string[] = ['act0-pad', 'act1-launch', 'act2-coast', 'act3-
 
 export const hostMessage = {
   act: (act: ActId | null): HostMessage => ({ source: HOST_SOURCE, type: 'act', act }),
+  dream: (on: boolean): HostMessage => ({ source: HOST_SOURCE, type: 'dream', on }),
   hunt: (on: boolean): HostMessage => ({ source: HOST_SOURCE, type: 'hunt', on }),
   leave: (): HostMessage => ({ source: HOST_SOURCE, type: 'leave' }),
   end: (): HostMessage => ({ source: HOST_SOURCE, type: 'end' }),
@@ -29,6 +32,8 @@ export function parseHostMessage(data: unknown): HostMessage | null {
     case 'act':
       if (d.act === null) return hostMessage.act(null)
       return typeof d.act === 'string' && ACTS.includes(d.act) ? hostMessage.act(d.act as ActId) : null
+    case 'dream':
+      return typeof d.on === 'boolean' ? hostMessage.dream(d.on) : null
     case 'hunt':
       return typeof d.on === 'boolean' ? hostMessage.hunt(d.on) : null
     case 'leave':
