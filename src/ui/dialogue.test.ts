@@ -17,5 +17,7 @@ describe('name line', () => {
     expect(nameLine('CAPCOM', null)).toEqual({ name: 'HOUSTON', tags: ['(radio)'] })
     expect(nameLine('CMP', 'whisper')?.tags).toEqual(['(whispering)'])
     expect(nameLine('CDR', 'distant')?.tags).toEqual(['(far away)'])
+    expect(nameLine('LMP', null)).toEqual({ name: 'BUZZ ALDREN', tags: [] })
+    expect(nameLine('SWIM', null)).toEqual({ name: 'SWIM 1', tags: ['(radio)'] })
   })
 })

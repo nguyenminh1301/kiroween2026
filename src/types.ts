@@ -12,7 +12,7 @@ export type MoveMode = 'walk' | 'zeroG' | 'seated'
 
 export type TensionState = 'CALM' | 'UNEASE' | 'STALK' | 'CHASE' | 'RELEASE'
 
-export type Speaker = 'CDR' | 'CMP' | 'CAPCOM' | 'LOS' | 'UNKNOWN' | 'PAD' | 'NARRATOR' | 'HORNET' | 'LAUNCH' | 'TECH'
+export type Speaker = 'CDR' | 'CMP' | 'CAPCOM' | 'LOS' | 'UNKNOWN' | 'PAD' | 'NARRATOR' | 'HORNET' | 'LAUNCH' | 'TECH' | 'LMP' | 'SWIM'
 
 export type Mood = 'whisper' | 'shout' | 'distant'
 

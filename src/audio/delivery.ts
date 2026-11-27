@@ -3,7 +3,7 @@ import type { Speaker } from '../types'
 
 export type DeliveryKind = 'voiced' | 'ground' | 'murmur' | 'los' | 'chirp'
 
-const GROUND: readonly Speaker[] = ['CAPCOM', 'HORNET', 'LAUNCH']
+const GROUND: readonly Speaker[] = ['CAPCOM', 'HORNET', 'LAUNCH', 'SWIM']
 
 /** How a line is voiced: voiced file, ground radio, murmur from a position, LOS static, or chirp. */
 export function deliveryKind(speaker: Speaker, line: Pick<Line, 'voiced'>, hasPosition: boolean): DeliveryKind {

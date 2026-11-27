@@ -20,6 +20,8 @@ export const SPEAKER_NAMES: Record<Speaker, string> = {
   LAUNCH: 'LAUNCH CONTROL',
   TECH: 'PAD CREW',
   HORNET: 'USS HORNET',
+  LMP: 'BUZZ ALDREN',
+  SWIM: 'SWIM 1',
 }
 
 export const LINES: Record<string, Line> = {

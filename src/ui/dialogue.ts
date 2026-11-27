@@ -11,7 +11,7 @@ export function revealCount(elapsedSeconds: number, total: number, cps: number =
   return Math.min(total, Math.floor(elapsedSeconds * cps))
 }
 
-const RADIO: ReadonlySet<Speaker> = new Set<Speaker>(['CAPCOM', 'UNKNOWN', 'LOS', 'HORNET', 'LAUNCH'])
+const RADIO: ReadonlySet<Speaker> = new Set<Speaker>(['CAPCOM', 'UNKNOWN', 'LOS', 'HORNET', 'LAUNCH', 'SWIM'])
 
 /** The name line for a speaker, or null for the narrator. */
 export function nameLine(speaker: Speaker, mood: Mood | null): { name: string; tags: string[] } | null {
