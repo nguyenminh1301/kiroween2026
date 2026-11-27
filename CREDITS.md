@@ -54,7 +54,7 @@ Recordings in `public/audio/`, trimmed, converted to mono MP3 and loudness-norma
 
 ## Fonts
 
-Loaded from Google Fonts in `index.html`.
+Loaded from Google Fonts in `play.html` (game) and `index.html` (article).
 
 | Font | License |
 |------|---------|
@@ -62,10 +62,12 @@ Loaded from Google Fonts in `index.html`.
 | IBM Plex Mono | OFL-1.1 |
 | Courier Prime | OFL-1.1 |
 | Special Elite | Apache-2.0 |
+| Libre Caslon Text | OFL-1.1 |
+| Source Serif 4 | OFL-1.1 |
 
 ## Apollo Guidance Computer source
 
-The act 4 liftoff screen and the Archive quote the routine name `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE` from the Apollo 11 lunar module program.
+The act 4 liftoff screen and the article page quote the routine name `BURN_BABY_BURN--MASTER_IGNITION_ROUTINE` from the Apollo 11 lunar module program.
 
 | What | Source | License |
 |------|--------|---------|
@@ -76,3 +78,12 @@ The act 4 liftoff screen and the Archive quote the routine name `BURN_BABY_BURN-
 | File | Source | License |
 |------|--------|---------|
 | `public/img/as11-40-5875.jpg` | NASA, Apollo 11, July 20, 1969, photo AS11-40-5875 (Buzz Aldrin beside the flag). https://www.hq.nasa.gov/alsj/a11/images11.html | Public domain (NASA) |
+| `public/img/article/s69-31739.jpg` | NASA, S69-31739, APOLLO XI CREW - PORTRAIT. https://images.nasa.gov/details/S69-31739 | Public domain (NASA) |
+| `public/img/article/s69-39961.jpg` | NASA, S69-39961, Liftoff of the Apollo 11 lunar landing mission. https://images.nasa.gov/details/S69-39961 | Public domain (NASA) |
+| `public/img/article/as11-40-5903.jpg` | NASA, AS11-40-5903, Astronaut Edwin Aldrin walks on lunar surface near leg of Lunar Module. https://images.nasa.gov/details/AS11-40-5903 | Public domain (NASA) |
+| `public/img/article/as11-40-5878.jpg` | NASA, AS11-40-5878, Close-up view of astronauts footprint in lunar soil. https://images.nasa.gov/details/AS11-40-5878 | Public domain (NASA) |
+| `public/img/article/as11-40-5927.jpg` | NASA, AS11-40-5927, View Apollo 11 Lunar Module as it rested on lunar surface. https://images.nasa.gov/details/AS11-40-5927 | Public domain (NASA) |
+| `public/img/article/as11-40-5948.jpg` | NASA, AS11-40-5948, Astronaut Edwin Aldrin after deployment of EASEP on surface of moon. https://images.nasa.gov/details/AS11-40-5948 | Public domain (NASA) |
+| `public/img/article/as11-44-6642.jpg` | NASA, AS11-44-6642, KSC-as11-44-6642. https://images.nasa.gov/details/AS11-44-6642 | Public domain (NASA) |
+| `public/img/article/s69-21698.jpg` | NASA, S69-21698, Recovery - Apollo 11. https://images.nasa.gov/details/S69-21698 | Public domain (NASA) |
+| `public/img/article/s69-40022.jpg` | NASA, S69-40022, View of Mission Control Center celebrating conclusion of Apollo 11 mission. https://images.nasa.gov/details/S69-40022 | Public domain (NASA) |

@@ -73,3 +73,6 @@ export const MOMENTS: Moment[] = [
 
 /** The moment that carries the player's act 3 answer. */
 export const TOLD_MOMENT = 'loss-of-signal'
+
+/** Ids of the moments, in order. The article page lists the same ids. */
+export const MOMENT_IDS = MOMENTS.map((m) => m.id)

@@ -24,11 +24,12 @@ function* walk(dir) {
 /**
  * Scan a directory for copy rule violations.
  * @param {string} dir
+ * @param {string[]} [extraFiles] more files to scan with the same rules, such as the article page
  * @returns {{ file: string, line: number, reason: string }[]}
  */
-export function checkCopy(dir) {
+export function checkCopy(dir, extraFiles = []) {
   const hits = []
-  for (const file of walk(dir)) {
+  for (const file of [...walk(dir), ...extraFiles]) {
     const lines = readFileSync(file, 'utf8').split(/\r?\n/)
     const isSubtitles = basename(file) === 'subtitles.ts'
     lines.forEach((text, i) => {
@@ -54,7 +55,7 @@ export function checkCopy(dir) {
 
 function main() {
   const dir = join(process.cwd(), 'src', 'content')
-  const hits = checkCopy(dir)
+  const hits = checkCopy(dir, [join(process.cwd(), 'index.html')])
   for (const h of hits) console.log(`${relative(process.cwd(), h.file)}:${h.line}: ${h.reason}`)
   if (hits.length) {
     console.log(`check-copy: ${hits.length} problem(s)`)
