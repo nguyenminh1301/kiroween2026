@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { ARTICLE_END_HASH } from '../app/flow'
 import { MOMENT_IDS } from '../content/archive'
+import { PHOTO } from '../content/hud'
+import { PRINT_PHOTOS } from '../content/prints'
 
 const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8')
 const SECTION_IDS = ['crew', 'launch', 'landing', 'surface', 'orbit', 'home', 'what-really-happened', 'sources']
@@ -71,5 +73,16 @@ describe('article page', () => {
 
   it('names no fictional crew member and no creature', () => {
     expect(html).not.toMatch(/Armstead|Collier|Aldren|Gunter|creature|monster/i)
+  })
+
+  it('says the game opens in a window on this page', () => {
+    expect(html).toContain('The game opens in a window on this page')
+  })
+
+  it('lists every photo the game shows in the Sources', () => {
+    const sources = html.slice(html.indexOf('<section id="sources"'))
+    const numbers = [...Object.values(PRINT_PHOTOS).map((p) => p.number), /AS11-40-5875/.exec(PHOTO.caption)![0]]
+    expect(numbers).toHaveLength(13)
+    for (const n of numbers) expect(sources, n).toContain(`details/${n}">${n}</a>`)
   })
 })
