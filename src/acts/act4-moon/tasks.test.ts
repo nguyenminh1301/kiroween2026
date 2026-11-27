@@ -7,6 +7,7 @@ import {
   tasksDone,
   photoPending,
   takePhoto,
+  finishedTasks,
   canDo,
   canTake,
   isLocked,
@@ -129,5 +130,14 @@ describe('objective text', () => {
     for (const t of ['sample', 'seismo'] as const) s = doTask(take(s, ITEM_FOR[t])!, t)!.state
     expect(allDone(s)).toBe(true)
     expect(objectiveText(s)).toBeNull()
+  })
+})
+
+describe('the run checkpoint', () => {
+  it('starts with every task and the photo done, in the order the rules allow', () => {
+    const s = finishedTasks()
+    expect(allDone(s)).toBe(true)
+    expect(s.carrying).toBeNull()
+    expect(s.last).toBe('seismo')
   })
 })

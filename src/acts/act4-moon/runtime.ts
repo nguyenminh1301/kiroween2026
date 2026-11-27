@@ -77,7 +77,6 @@ import {
 } from './neil'
 import { act4State, resetAct4State } from './state'
 import {
-  ITEM_FOR,
   KIT_ID,
   TASK_FOR,
   SITE_ID,
@@ -90,6 +89,7 @@ import {
   takePhoto,
   createTasks,
   doTask,
+  finishedTasks,
   enabledTargets,
   objectiveText,
   take,
@@ -597,8 +597,7 @@ export function startAct4(requested: string): void {
   if (cp === 'start') descent()
   else if (cp === 'tasks') eva(false)
   else {
-    for (const t of TASK_IDS) tasks = doTask(take(tasks, ITEM_FOR[t])!, t)!.state
-    tasks = takePhoto(tasks)!
+    tasks = finishedTasks()
     phase = 'eva'
     act4State.tasks = tasks
     audio.setScene({ hum: 0, bed: 'none', breath: breathAllowed('act4-moon', 'surface') })

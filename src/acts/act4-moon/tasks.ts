@@ -93,3 +93,11 @@ export function enabledTargets(s: TaskState): string[] {
   if (!s.photoDone) return s.done.flag ? [PHOTO_ID] : [KIT_ID.flag]
   return remaining(s).map((t) => KIT_ID[ITEM_FOR[t]])
 }
+
+/** The state at the `run` checkpoint: every task and the flag photo done, in the order the rules allow (flag, photo, the rest). */
+export function finishedTasks(): TaskState {
+  let s = doTask(take(createTasks(), 'flag')!, 'flag')!.state
+  s = takePhoto(s)!
+  for (const t of TASK_IDS) if (!s.done[t]) s = doTask(take(s, ITEM_FOR[t])!, t)!.state
+  return s
+}
