@@ -36,8 +36,11 @@ export const PANEL_CARD_POS: Vec3 = { x: -0.8, y: 1.0, z: LANDER_Z0 + 0.03 }
 export const KEYPAD_POS: Vec3 = { x: 0.8, y: 1.6, z: LANDER_Z0 + 0.03 }
 export const SITE_CARD_POS: Vec3 = { x: 0.8, y: 1.0, z: LANDER_Z0 + 0.03 }
 export const PAD_RADIUS = 0.3
-/** A close-up ends when the eye is farther than this from its panel. */
-export const CLOSE_UP_DISTANCE = 1.8
+/**
+ * A close-up ends when the eye is farther than this from its panel. It must be more than the use reach (2.5 m),
+ * or a close-up started from the edge of reach closes on the next frame.
+ */
+export const CLOSE_UP_DISTANCE = 3
 
 export const RAIL_Y = 1.6
 export const RAIL_RADIUS = 0.3

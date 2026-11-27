@@ -44,3 +44,11 @@ describe('act 2 layout', () => {
     expect(r.pos.x).toBeLessThan(0.7)
   })
 })
+
+describe('close-up reach', () => {
+  it('keeps a close-up open anywhere the player can start it from', async () => {
+    const { DEFAULT_REACH } = await import('../../interaction/targeting')
+    const { CLOSE_UP_DISTANCE } = await import('./layout')
+    expect(CLOSE_UP_DISTANCE).toBeGreaterThan(DEFAULT_REACH)
+  })
+})
