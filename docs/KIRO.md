@@ -94,6 +94,10 @@ A third set of notes was answered by four prompts, each run by Kiro CLI in non-i
 3. **Acts 4 and 5** (`playtest-3-moon-home`). The flag photo needs the player in the mark, looking at the flag, and comes first; a re-entry shot rebuilt from additive layers; reefed then open drogues and three mains in a triangle on their own lines.
 4. **The site** (`apollo-article-site`). The site opens on a long article about the flight (real names, NASA photos and sources, no game code, under 300 KB of script and style). The game moved to `play.html` with no title menu: one card, "Use headphones. Click to begin.", and an Esc menu with chapters, settings and a link back to the article. The Archive became the article section "What really happened", with marks read from the saved run. The e2e scripts start from `play.html`, and a new script covers the article.
 
+## The article redesign: one prompt
+
+The owner found the article page too plain and had a new design made, kept in `docs/design/article-design.dc.html`. One prompt, run by Kiro CLI in non-interactive mode, turned that design file into the production page (spec `article-redesign`, four tasks). Kiro rebuilt `index.html` and `src/article/article.css` as plain static HTML and CSS with no inline styles, kept the section ids so the game still returns to `#what-really-happened`, and kept the Seen and Missed marks coming from the saved run instead of the design's fixed list. It also added a "Your flight: N of 8 moments seen" line, new fonts (Newsreader and Libre Franklin), and an article e2e that takes screenshots at 375, 768, 1280 and 1920 px. The game did not change, so only the article checks were run.
+
 ## What went wrong and how it was fixed
 
 - **Spec folders left uncommitted.** Early specs stayed out of git. Rule 10 in `repo-rules.md` now makes Kiro commit the spec folder with the first task and again whenever it changes (`d168a3e`).

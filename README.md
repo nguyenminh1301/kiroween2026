@@ -30,6 +30,8 @@ Play with headphones. Much of the game is told through sound and the radio.
 
 The game has no title menu. It opens on one card, "Use headphones. Click to begin.". After the last chapter the picture fades out and the article opens at "What really happened". That section lists the real Apollo 11 moments the game showed, with the real fact and a source for each, marked seen or missed if you have played on this browser.
 
+The article page was rebuilt from a design file in `docs/design/` (one prompt, run by Kiro CLI in non-interactive mode). It is static HTML and CSS in Newsreader and Libre Franklin and loads no game code. See `docs/KIRO.md`.
+
 ## What is real
 
 The crew names are changed. The flight details below come from the real mission.
