@@ -142,7 +142,7 @@ try {
   await go(-6, -13.5)
   await frames()
   await go(-6, -14.6)
-  await wait(() => window.__los.store.getState().anomaliesSeen.includes('impostor-capcom'), null, 30000)
+  await wait(() => window.__los.store.getState().anomaliesSeen.includes('loss-of-signal'), null, 30000)
   await subtitle('how many crew aboard', 30000)
   await go(0, -26.5)
   await frames()
@@ -190,8 +190,20 @@ try {
   )
   check(boxes.length === 2, 'both answers show')
   for (const r of boxes) check(r.top > r.h * 0.6 && r.bottom < r.h && r.left >= 0 && r.right <= r.w, 'an answer sits at the bottom of the screen')
-  await page.hover('[data-choice="fine"]')
-  check((await page.locator('[data-choice="fine"].marked').count()) === 1, 'hover marks the answer')
+  // The page runs slowly on SwiftShader, so move the mouse to the box centre instead of waiting for stable boxes.
+  await page.mouse.move(5, 5)
+  await page.waitForTimeout(1500)
+  const fine = await page.evaluate(() => {
+    const r = document.querySelector('[data-choice="fine"]').getBoundingClientRect()
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
+  })
+  await page.mouse.move(fine.x, fine.y)
+  await page.waitForTimeout(300)
+  const onTop = await page.evaluate(({ x, y }) => {
+    const el = document.elementFromPoint(x, y)
+    return el?.closest('[data-choice]') ? 'choice' : `${el?.tagName}.${el?.className}`
+  }, fine)
+  check((await page.locator('[data-choice="fine"].marked').count()) === 1, `hover marks the answer (top element: ${onTop})`)
 
   // 5. Pause during the choice, then pick with a mouse click.
   await page.keyboard.press('Escape')
@@ -200,9 +212,14 @@ try {
   check((await page.evaluate(() => window.__los.act3.phase)) === 'choice', 'still in the choice after the pause')
   await page.evaluate(() => window.__los.lock.resume())
   await wait(() => window.__los.store.getState().paused === false, null, 30000)
-  await page.click('[data-choice="fine"]')
+  // A real mouse click: the pick asks for the pointer lock again, which needs a user gesture.
+  const fine2 = await page.evaluate(() => {
+    const r = document.querySelector('[data-choice="fine"]').getBoundingClientRect()
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
+  })
+  await page.mouse.click(fine2.x, fine2.y)
   await wait(() => window.__los.store.getState().dreamChoice === 'fine', null, 30000)
-  await wait(() => window.__los.loader.state.getState().act === 'act4-moon', null, 120000)
+  await wait(() => window.__los.loader.state.getState().act === 'act4-moon', null, 300000)
 } catch (e) {
   errors.push(`script: ${e.message.split("\n")[0]} at ${(e.stack.match(/act3.mjs:(\d+)/g) ?? []).join(" ")}`)
   try {
